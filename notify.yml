@@ -1,0 +1,42 @@
+name: SJAMES 텔레그램 알림
+
+on:
+  schedule:
+    # 매일 KST 09:00 = UTC 00:00 실행
+    # cron 형식: 분 시 일 월 요일 (UTC 기준)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      force_type:
+        description: '수동 발송 종류'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - 'monthly'
+          - 'midmonth'
+          - 'deadline'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 알림 스크립트 실행
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          APP_URL: ${{ secrets.APP_URL }}
+          FORCE_TYPE: ${{ github.event.inputs.force_type }}
+          TZ: Asia/Seoul
+        run: |
+          python notify_telegram.py
