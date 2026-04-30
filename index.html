@@ -781,6 +781,178 @@
     transform: translateX(2px);
   }
 
+  /* 월별 상세 보기 - 항목 행 */
+  .month-item-row {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg-elevated);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .month-item-row:hover {
+    border-color: var(--accent);
+    background: var(--bg-subtle);
+    box-shadow: var(--shadow-xs);
+  }
+  .month-item-row:active {
+    background: var(--bg-muted);
+  }
+
+  /* 월별 상세 보기 - 헤더 */
+  .month-detail-header {
+    margin-bottom: 14px;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent-soft) 0%, var(--bg-elevated) 100%);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+  }
+  .month-detail-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .month-detail-title {
+    font-size: 18px;
+    color: var(--accent);
+  }
+  .month-detail-subtitle {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+  }
+  .month-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    border: 1px solid var(--border);
+  }
+  .mds-cell {
+    text-align: center;
+    padding: 0 2px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mds-cell:last-child { border-right: none; }
+  .mds-num {
+    font-family: var(--font-num);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+  }
+  .mds-label {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+
+  /* 월별 상세 보기 - 탭 */
+  .month-detail-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .month-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .month-tab:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .month-tab.done:hover {
+    border-color: var(--success);
+    background: var(--success-soft);
+    color: var(--success);
+  }
+  .month-tab.pending:hover {
+    border-color: var(--danger);
+    background: #fde2e2;
+    color: var(--danger);
+  }
+  .month-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .month-tab.done.active {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .month-tab.pending.active {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
+  .month-tab-icon { font-size: 13px; }
+  .month-tab-count {
+    font-family: var(--font-num);
+    font-weight: 700;
+    background: rgba(255,255,255,0.2);
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+  }
+  .month-tab:not(.active) .month-tab-count {
+    background: var(--bg-subtle);
+    color: var(--text-tertiary);
+  }
+
+  /* 월별 상세 모바일 */
+  @media (max-width: 600px) {
+    .month-item-row {
+      padding: 14px 12px;
+      margin-bottom: 8px;
+    }
+    .month-item-row:hover {
+      transform: none;
+    }
+    .month-detail-header {
+      padding: 12px;
+    }
+    .month-detail-title { font-size: 16px; }
+    .mds-num { font-size: 20px; }
+    .mds-label { font-size: 10px; }
+    .month-tab {
+      padding: 9px 6px;
+      font-size: 12px;
+    }
+    .month-tab-label { display: none; }  /* 모바일에선 라벨 숨기고 아이콘 + 숫자만 */
+    .month-tab-icon { font-size: 14px; }
+    .month-tab-count { font-size: 12px; padding: 1px 6px; }
+  }
+  @media (max-width: 380px) {
+    .month-detail-header { padding: 10px; }
+    .mds-num { font-size: 18px; }
+    .mds-cell { padding: 0; }
+    .month-tab { padding: 8px 4px; }
+    .month-tab-icon { font-size: 13px; }
+  }
+
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-6px); }
@@ -894,6 +1066,215 @@
     margin-top: 6px;
     font-weight: 500;
     letter-spacing: 0.1px;
+  }
+
+  /* ============ 월별 통계 카드 ============ */
+  .monthly-stats-card {
+    max-width: 1200px;
+    margin: 0 auto 16px;
+    padding: 0 24px;
+  }
+  .monthly-stats-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .monthly-stats-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .monthly-stats-sub {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+  }
+  .monthly-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    box-shadow: var(--shadow-xs);
+  }
+  .month-cell {
+    background: var(--bg-subtle);
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 8px 4px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .month-cell:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .month-cell:active {
+    transform: translateY(0);
+    background: var(--bg-muted);
+  }
+  .month-cell.empty {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .month-cell.empty:hover {
+    background: var(--bg-subtle);
+    border-color: transparent;
+    transform: none;
+  }
+  .month-cell.current {
+    background: linear-gradient(135deg, var(--accent-soft) 0%, var(--bg-elevated) 100%);
+    border-color: var(--accent);
+  }
+  .month-cell.current::after {
+    content: '이번 달';
+    position: absolute;
+    top: -6px;
+    right: -2px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 8.5px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 6px;
+  }
+  .month-cell.complete {
+    background: linear-gradient(135deg, var(--success-soft) 0%, var(--bg-elevated) 100%);
+    border-color: var(--success);
+  }
+  .month-num {
+    font-family: var(--font-num);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+  .month-cell.complete .month-num { color: var(--success); }
+  .month-cell.current .month-num { color: var(--accent); }
+  .month-cell.empty .month-num { color: var(--text-tertiary); }
+  .month-stats {
+    font-family: var(--font-num);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.3;
+  }
+  .month-stats .done-count {
+    color: var(--success);
+  }
+  .month-stats .total-count {
+    color: var(--text-tertiary);
+  }
+  .month-pct {
+    font-family: var(--font-num);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+  .month-cell.complete .month-pct { color: var(--success); }
+  .month-cell.current .month-pct { color: var(--accent); }
+  .month-mini-bar {
+    height: 3px;
+    background: var(--bg-muted);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .month-mini-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .month-mini-fill.complete { background: var(--success); }
+
+  /* ===== 모바일 반응형 - 월별 통계 ===== */
+  /* 태블릿 (~880px): 6열 × 2줄 */
+  @media (max-width: 880px) {
+    .monthly-stats-card {
+      padding: 0 16px;
+      margin-bottom: 12px;
+    }
+    .monthly-stats-header {
+      margin-bottom: 8px;
+    }
+    .monthly-stats-title { font-size: 13px; }
+    .monthly-stats-sub { font-size: 11px; }
+    .monthly-stats-grid {
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      padding: 10px;
+    }
+    .month-cell {
+      padding: 8px 4px 7px;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .month-num { font-size: 13px; margin-bottom: 3px; }
+    .month-stats { font-size: 11px; }
+    .month-pct { font-size: 10px; margin-top: 1px; }
+    .month-mini-bar { height: 3px; margin-top: 3px; }
+    .month-cell.current::after {
+      font-size: 8px;
+      padding: 1px 4px;
+      top: -5px;
+      right: -1px;
+    }
+  }
+
+  /* 일반 모바일 (~600px): 4열 × 3줄 */
+  @media (max-width: 600px) {
+    .monthly-stats-card {
+      padding: 0 12px;
+    }
+    .monthly-stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 8px;
+    }
+    .month-cell {
+      padding: 9px 3px 8px;
+      min-height: 70px;
+    }
+    .month-num {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .month-stats { font-size: 11.5px; font-weight: 700; }
+    .month-pct { font-size: 10.5px; }
+    .month-mini-bar { height: 4px; margin-top: 4px; }
+  }
+
+  /* 작은 모바일 (~380px): 3열 × 4줄 */
+  @media (max-width: 380px) {
+    .monthly-stats-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+    .month-cell {
+      padding: 8px 2px 7px;
+      min-height: 66px;
+    }
+    .month-num { font-size: 13px; }
+    .month-stats { font-size: 11px; }
+    .month-pct { font-size: 10px; }
+    .month-cell.current::after {
+      content: '★';
+      font-size: 10px;
+      padding: 0 4px;
+    }
   }
 
   .global-bar-wrap {
@@ -1739,10 +2120,11 @@
     z-index: 201;
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    max-height: 85vh;
+    max-height: 90vh;
     overflow-y: auto;
     padding-bottom: env(safe-area-inset-bottom);
     -webkit-overflow-scrolling: touch;
+    box-shadow: 0 -8px 28px rgba(0,0,0,0.18);
   }
   .sheet.show { transform: translateY(0); }
   .sheet-handle {
@@ -1890,18 +2272,46 @@
     .check-text { font-size: 14px; line-height: 1.5; }
     .check-author { font-size: 11.5px; margin-top: 5px; }
 
+    /* 진행률 블록 - 모바일에서 패딩과 간격 조정 */
+    .quant-block {
+      margin-top: 8px;
+      padding: 10px 12px;
+    }
     .quant-row { gap: 10px; margin-top: 10px; }
     .quant-bar-wrap {
       flex: 1 1 100%;
       min-width: 0;
       width: 100%;
+      padding: 8px 0;
+    }
+    .quant-bar-wrap::before {
+      content: '👆 좌우로 드래그';
+      font-size: 9.5px;
+      top: -20px;
+    }
+    .quant-bar { height: 12px; }
+    .quant-bar-wrap:hover .quant-bar,
+    .quant-bar-wrap.dragging .quant-bar { height: 16px; }
+    .quant-info {
+      margin-top: 10px;
+      gap: 8px;
     }
     .quant-controls {
       width: 100%;
       justify-content: flex-end;
+      gap: 6px;
     }
-    .quant-btn { width: 38px; height: 38px; }
-    .quant-text { font-size: 12.5px; }
+    .quant-btn { width: 40px; height: 40px; font-size: 16px; }
+    .quant-text { font-size: 12.5px; font-weight: 600; }
+    .quant-pct { font-size: 13px; }
+
+    /* 인덱스 마커 모바일 */
+    .idx-marker {
+      width: 26px;
+      height: 26px;
+      font-size: 12px;
+      border-radius: 7px;
+    }
   }
 
   /* 작은 모바일 */
@@ -1909,6 +2319,20 @@
     .summary-num { font-size: 20px; }
     .check-text { font-size: 13.5px; }
     .dept-name { font-size: 14.5px; }
+
+    /* 진행률 영역 작은 모바일 */
+    .quant-block {
+      padding: 9px 10px;
+    }
+    .quant-btn { width: 36px; height: 36px; }
+    .quant-text { font-size: 12px; }
+    .check-row { padding: 12px 14px; gap: 10px; }
+    .idx-marker {
+      width: 24px;
+      height: 24px;
+      font-size: 11.5px;
+      border-radius: 6px;
+    }
   }
 
   /* 큰 모니터 - 정보 밀도 향상 */
@@ -2197,11 +2621,57 @@
   }
 
   @media (max-width: 600px) {
-    .modal-header { padding: 16px 18px 12px; }
-    .modal-body { padding: 16px 18px; }
-    .modal-footer { padding: 12px 16px; }
+    .modal-overlay {
+      padding: 8px;
+      align-items: flex-end;
+    }
+    .modal {
+      width: 100%;
+      max-height: calc(100vh - 32px);
+      border-radius: var(--radius-lg) var(--radius-lg) var(--radius-md) var(--radius-md);
+      animation: modalSlideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header { padding: 14px 16px 10px; }
+    .modal-body { padding: 14px 16px; }
+    .modal-footer {
+      padding: 12px 16px;
+      gap: 6px;
+    }
+    .modal-footer .btn {
+      flex: 1;
+      padding: 12px 10px;
+      font-size: 13.5px;
+      min-height: 44px;
+    }
     .six-w-grid, .form-row { grid-template-columns: 1fr; }
-    .modal-title { font-size: 16px; }
+    .modal-title { font-size: 15.5px; }
+
+    /* 폼 입력란 모바일 - 터치하기 쉽게 */
+    .form-input {
+      font-size: 14px;
+      padding: 11px 12px;
+      min-height: 44px;
+    }
+    .form-input[type="checkbox"] {
+      min-height: 0;
+      width: 18px;
+      height: 18px;
+    }
+    textarea.form-input { min-height: 80px; }
+    .form-label { font-size: 12.5px; margin-bottom: 5px; }
+    .form-hint { font-size: 11px; }
+  }
+  @media (max-width: 380px) {
+    .modal-overlay { padding: 4px; }
+    .modal { max-height: calc(100vh - 16px); }
+    .modal-header { padding: 12px 14px 8px; }
+    .modal-body { padding: 12px 14px; }
+    .modal-footer { padding: 10px 12px; }
+    .modal-title { font-size: 14.5px; }
   }
 
   /* 부서 추가 버튼 (전체) */
@@ -2284,7 +2754,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 25개 부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v27</span></div>
+        <div class="header-sub">서울야고보 · 25개 부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v29</span></div>
       </div>
     </div>
     <div class="conn-wrap">
@@ -2331,6 +2801,15 @@
     <div class="global-bar-track">
       <div class="global-bar-fill" id="global-bar" style="width:0%"></div>
     </div>
+  </div>
+
+  <!-- 월별 통계 (마스터 전용) -->
+  <div class="monthly-stats-card master-only" id="monthly-stats-card" style="display:none">
+    <div class="monthly-stats-header">
+      <span class="monthly-stats-title">📅 월별 업무 현황</span>
+      <span class="monthly-stats-sub">월을 클릭하면 해당 월 업무를 볼 수 있습니다</span>
+    </div>
+    <div class="monthly-stats-grid" id="monthly-stats-grid"></div>
   </div>
 </header>
 
@@ -2452,8 +2931,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 // ===== Supabase 설정값 (가이드 따라 본인 값 입력) =====
-const SUPABASE_URL = "https://atfdkfvcokdgfidxgdlo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0ZmRrZnZjb2tkZ2ZpZHhnZGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTU4NjMsImV4cCI6MjA5Mjg5MTg2M30.yuuvSCsraD-DgLHv9MXoUVbdlrQVfgYYOA4QpmSbO8g";
+const SUPABASE_URL = "여기에_본인_PROJECT_URL_입력";
+const SUPABASE_ANON_KEY = "여기에_본인_ANON_KEY_입력";
 // =====================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -6632,6 +7111,218 @@ function getGroupLabel(group){
   return ({inner: '내무부서', admin: '행정부서', culture: '문화·홍보·기능'})[group] || '기타';
 }
 
+// === 월별 업무 통계 (마스터 전용) ===
+function calcMonthlyStats(){
+  // 모든 부서의 연간 월별 계획 항목을 월별로 집계
+  const stats = {};
+  for(let m = 1; m <= 12; m++){
+    stats[m] = { total: 0, done: 0, items: [] };
+  }
+
+  const depts = getEffectiveDepts();
+  depts.forEach(dept => {
+    dept.sections.forEach(sec => {
+      if(sec.type !== 'event') return; // 연간 월별 계획만
+      sec.items.forEach(item => {
+        const month = getMonthFromText(item.t);
+        if(!month) return;
+        const detail = item.detail || {};
+        const completed = detail.completed === true;
+        stats[month].total++;
+        if(completed) stats[month].done++;
+        stats[month].items.push({
+          dept, section: sec, item,
+          completed, detail,
+        });
+      });
+    });
+  });
+  return stats;
+}
+
+function renderMonthlyStats(){
+  const card = document.getElementById('monthly-stats-card');
+  const grid = document.getElementById('monthly-stats-grid');
+  if(!card || !grid) return;
+
+  // 마스터에게만 표시
+  if(!isMaster(user)){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const stats = calcMonthlyStats();
+  const currentMonth = new Date().getMonth() + 1; // 1~12
+
+  let html = '';
+  for(let m = 1; m <= 12; m++){
+    const s = stats[m];
+    const pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+    const isComplete = s.total > 0 && s.done === s.total;
+    const isCurrent = m === currentMonth;
+    const isEmpty = s.total === 0;
+
+    let cls = 'month-cell';
+    if(isEmpty) cls += ' empty';
+    else if(isComplete) cls += ' complete';
+    else if(isCurrent) cls += ' current';
+
+    const onclick = isEmpty ? '' : `onclick="openMonthDetail(${m})"`;
+    html += `
+      <div class="${cls}" ${onclick}>
+        <div class="month-num">${m}월</div>
+        ${isEmpty ? `
+          <div class="month-stats" style="color:var(--text-tertiary)">없음</div>
+        ` : `
+          <div class="month-stats">
+            <span class="done-count">${s.done}</span><span class="total-count">/${s.total}</span>
+          </div>
+          <div class="month-pct">${pct}%</div>
+          <div class="month-mini-bar">
+            <div class="month-mini-fill ${isComplete?'complete':''}" style="width:${pct}%"></div>
+          </div>
+        `}
+      </div>
+    `;
+  }
+  grid.innerHTML = html;
+}
+
+// 월별 상세 보기 모달 - 그달의 업무 클릭 시 / "이번 달" 카드 클릭 시
+function openMonthDetail(month, filterType){
+  // filterType: 'all' (기본), 'done' (완료만), 'pending' (미완료만)
+  if(!filterType) filterType = 'all';
+
+  const stats = calcMonthlyStats();
+  const monthData = stats[month];
+  if(!monthData || monthData.total === 0){
+    showToast(`${month}월 업무가 없습니다`, 'info');
+    return;
+  }
+
+  const filtered = monthData.items.filter(it => {
+    if(filterType === 'done') return it.completed;
+    if(filterType === 'pending') return !it.completed;
+    return true;
+  });
+
+  // 그룹별로 정렬
+  const groupOrder = {inner: 0, admin: 1, culture: 2};
+  const sorted = [...filtered].sort((a, b) => {
+    const ga = groupOrder[a.dept.group] ?? 9;
+    const gb = groupOrder[b.dept.group] ?? 9;
+    if(ga !== gb) return ga - gb;
+    return a.dept.id.localeCompare(b.dept.id);
+  });
+
+  const total = monthData.total;
+  const done = monthData.done;
+  const pending = total - done;
+  const pct = total ? Math.round(done / total * 100) : 0;
+
+  // 헤더 (탭)
+  let body = `
+    <div class="month-detail-header">
+      <div class="month-detail-title-row">
+        <strong class="month-detail-title">📅 ${month}월 업무 현황</strong>
+        <span class="month-detail-subtitle">전체 부서 종합</span>
+      </div>
+      <div class="month-detail-stats">
+        <div class="mds-cell">
+          <span class="mds-num" style="color:var(--text)">${total}</span>
+          <span class="mds-label">전체</span>
+        </div>
+        <div class="mds-cell">
+          <span class="mds-num" style="color:var(--success)">${done}</span>
+          <span class="mds-label" style="color:var(--success)">완료</span>
+        </div>
+        <div class="mds-cell">
+          <span class="mds-num" style="color:var(--danger)">${pending}</span>
+          <span class="mds-label" style="color:var(--danger)">미완료</span>
+        </div>
+        <div class="mds-cell">
+          <span class="mds-num" style="color:var(--accent)">${pct}%</span>
+          <span class="mds-label" style="color:var(--accent)">달성률</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="month-detail-tabs">
+      <button class="month-tab ${filterType==='all'?'active':''}" onclick="openMonthDetail(${month},'all')">
+        <span class="month-tab-icon">📋</span>
+        <span class="month-tab-label">전체</span>
+        <span class="month-tab-count">${total}</span>
+      </button>
+      <button class="month-tab done ${filterType==='done'?'active':''}" onclick="openMonthDetail(${month},'done')">
+        <span class="month-tab-icon">✅</span>
+        <span class="month-tab-label">완료</span>
+        <span class="month-tab-count">${done}</span>
+      </button>
+      <button class="month-tab pending ${filterType==='pending'?'active':''}" onclick="openMonthDetail(${month},'pending')">
+        <span class="month-tab-icon">⬜</span>
+        <span class="month-tab-label">미완료</span>
+        <span class="month-tab-count">${pending}</span>
+      </button>
+    </div>
+  `;
+
+  if(filtered.length === 0){
+    body += `
+      <div style="text-align:center;padding:30px 20px;color:var(--text-tertiary)">
+        <div style="font-size:32px;margin-bottom:8px">📭</div>
+        <div style="font-size:13px">해당 항목이 없습니다</div>
+      </div>
+    `;
+  } else {
+    // 그룹별 헤더로 묶기
+    let lastGroup = null;
+    sorted.forEach(({dept, section, item, completed, detail}) => {
+      // 그룹 헤더
+      if(dept.group !== lastGroup){
+        const groupLabel = getGroupLabel(dept.group);
+        const groupClass = dept.group;
+        body += `
+          <div style="display:flex;align-items:center;gap:8px;margin:14px 0 8px;padding-top:6px;${lastGroup ? 'border-top:1px solid var(--border);' : ''}">
+            <span class="dept-group-badge ${groupClass}">${groupLabel}</span>
+          </div>
+        `;
+        lastGroup = dept.group;
+      }
+
+      const hasPlan = detail.plan && detail.plan.trim();
+      const hasFiles = detail.files && detail.files.length > 0;
+      const hasLink = detail.completedLink && detail.completedLink.trim();
+
+      body += `
+        <div class="month-item-row" onclick="closeModal();setTimeout(()=>{openMap['${dept.id}']=true;render();setTimeout(()=>{openEventDetail('${dept.id}','${section.id}','${item.id}')},150)},150)">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="width:8px;height:8px;border-radius:50%;background:${dept.color};flex-shrink:0;margin-top:8px"></span>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+                ${completed ? '<span class="status-badge done">✓ 완료</span>' : '<span class="status-badge late" style="background:var(--bg-muted);color:var(--text-tertiary);border:1px solid var(--border-strong)">☐ 미완료</span>'}
+                <span style="font-size:11px;color:var(--text-tertiary);font-weight:600">${escapeHtml(dept.name)}</span>
+              </div>
+              <div style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.5">${escapeHtml(item.t)}</div>
+              ${hasPlan || hasFiles || hasLink ? `
+                <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                  ${hasPlan ? `<span class="event-detail-icon">📋 계획서</span>` : ''}
+                  ${hasFiles ? `<span class="event-detail-icon">📎 ${detail.files.length}개</span>` : ''}
+                  ${hasLink ? `<a class="completion-pill" href="${escapeHtml(detail.completedLink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🔗 결과</a>` : ''}
+                  ${completed && detail.completedBy ? `<span style="font-size:10.5px;color:var(--text-tertiary)">${escapeHtml(detail.completedBy)}${detail.completedAt?' · '+fmtTime(detail.completedAt):''}</span>` : ''}
+                </div>
+              ` : !completed ? `<div style="font-size:11.5px;color:var(--text-quaternary);margin-top:4px">아직 작성되지 않음</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  const footer = `<button class="btn" onclick="closeModal()">닫기</button>`;
+  openModal(`${month}월 업무 상세`, body, footer);
+}
+
 function renderSidebarDeptList(){
   const container = document.getElementById('sidebar-dept-nav');
   if(!container) return;
@@ -7074,6 +7765,9 @@ function render(){
 
   // 사이드바 부서 목록도 다시 렌더 (펼침 상태 동기화)
   renderSidebarDeptList();
+
+  // 월별 통계 (마스터 전용)
+  renderMonthlyStats();
 }
 
 // 클릭 핸들러 (id 기반으로 호출하기 위한 헬퍼)
