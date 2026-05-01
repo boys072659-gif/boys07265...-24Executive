@@ -1044,7 +1044,95 @@
     top: 0;
     z-index: 100;
     padding-top: env(safe-area-inset-top);
+    transition: padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  /* 컴팩트 모드 - 헤더가 접혀서 한 줄로 */
+  .header.is-compact .summary-card,
+  .header.is-compact .global-bar-wrap,
+  .header.is-compact .monthly-stats-card {
+    display: none;
+  }
+  .header.is-compact .header-inner {
+    padding: 8px 24px;
+  }
+  .header.is-compact .header-emblem {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .header.is-compact .header-title {
+    font-size: 14.5px;
+  }
+  .header.is-compact .header-sub {
+    display: none;
+  }
+  .header.is-compact .compact-summary {
+    display: flex;
+  }
+  /* 컴팩트 요약 (한 줄) */
+  .compact-summary {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-num);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 8px;
+  }
+  .compact-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .compact-summary-item .cs-num {
+    font-weight: 700;
+  }
+  .compact-summary-item .cs-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  .compact-summary-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+  }
+  .compact-summary-pct {
+    color: var(--accent);
+  }
+  /* 컴팩트 토글 버튼 (헤더 우측) */
+  .header-collapse-btn {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .header-collapse-btn:hover {
+    background: var(--bg-muted);
+    border-color: var(--border-strong);
+  }
+  .header-collapse-btn svg {
+    transition: transform 0.25s;
+  }
+  .header.is-compact .header-collapse-btn svg {
+    transform: rotate(180deg);
+  }
+  /* 모바일에선 토글 버튼 숨김 (스크롤로 자동 처리됨) */
+  @media (max-width: 880px) {
+    .header-collapse-btn { display: none; }
+    .compact-summary { display: none !important; }  /* 모바일에선 컴팩트 요약 안 씀 */
+    .header.is-compact .header-emblem { width: 32px; height: 32px; font-size: 13px; }
+    .header.is-compact .header-title { font-size: 14px; }
+  }
+
   .header-inner {
     max-width: 1200px;
     margin: 0 auto;
@@ -2922,21 +3010,49 @@
 </div>
 
 <!-- 헤더 -->
-<header class="header">
+<header class="header" id="main-header">
   <div class="header-inner">
     <div class="header-brand">
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v31</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v32</span></div>
       </div>
     </div>
+
+    <!-- 컴팩트 모드 한 줄 요약 (헤더가 접혔을 때만 보임) -->
+    <div class="compact-summary" id="compact-summary">
+      <div class="compact-summary-item">
+        <span class="cs-num" id="cs-total">0</span>
+        <span class="cs-label">/ 전체</span>
+      </div>
+      <div class="compact-summary-divider"></div>
+      <div class="compact-summary-item">
+        <span class="cs-num" id="cs-done" style="color:var(--success)">0</span>
+        <span class="cs-label">완료</span>
+      </div>
+      <div class="compact-summary-divider"></div>
+      <div class="compact-summary-item">
+        <span class="cs-num compact-summary-pct" id="cs-pct">0%</span>
+      </div>
+      <div class="compact-summary-divider master-only" id="cs-divider-month" style="display:none"></div>
+      <div class="compact-summary-item master-only" id="cs-current-month" style="display:none">
+        <span class="cs-label" id="cs-month-label">5월</span>
+        <span class="cs-num" id="cs-month-stat">0/0</span>
+      </div>
+    </div>
+
     <div class="conn-wrap">
       <div class="conn-indicator">
         <span class="conn-dot" id="conn-dot"></span>
         <span class="conn-text-full" id="conn-text">연결 중</span>
       </div>
     </div>
+    <button class="header-collapse-btn" id="header-collapse-btn" onclick="toggleHeaderCompact()" title="현황판 접기/펼치기">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+      </svg>
+    </button>
     <button class="edit-mode-toggle" id="edit-toggle" onclick="toggleEditMode()" title="편집 모드 (수정/추가/삭제)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -7542,7 +7658,7 @@ function renderMonthlyStats(){
     let shouldCollapse;
     if(saved === '1') shouldCollapse = true;
     else if(saved === '0') shouldCollapse = false;
-    else shouldCollapse = isMobile; // 처음엔 모바일이면 접힘
+    else shouldCollapse = true; // 처음엔 모바일/PC 모두 접힘 (공간 절약, 사용자가 펼쳐서 사용)
     if(shouldCollapse) card.classList.add('collapsed');
     else card.classList.remove('collapsed');
   }
@@ -7557,6 +7673,64 @@ function toggleMonthlyStats(){
   try {
     localStorage.setItem('sjames_monthly_collapsed', card.classList.contains('collapsed') ? '1' : '0');
   } catch(e){}
+}
+
+// === 헤더 컴팩트 모드 (수동 토글) ===
+function toggleHeaderCompact(){
+  const header = document.getElementById('main-header');
+  if(!header) return;
+  header.classList.toggle('is-compact');
+  // 사용자가 수동으로 토글하면 자동 스크롤 축소 비활성화 (혼란 방지)
+  header.dataset.userCollapsed = header.classList.contains('is-compact') ? '1' : '0';
+  // 상태 저장
+  try {
+    localStorage.setItem('sjames_header_compact', header.classList.contains('is-compact') ? '1' : '0');
+  } catch(e){}
+}
+
+// === 스크롤 시 헤더 자동 축소 ===
+let _scrollHeaderTimer = null;
+let _lastScrollY = 0;
+function setupHeaderScroll(){
+  const header = document.getElementById('main-header');
+  if(!header) return;
+
+  // 첫 진입 시 저장된 상태 복원
+  try {
+    const saved = localStorage.getItem('sjames_header_compact');
+    if(saved === '1'){
+      header.classList.add('is-compact');
+      header.dataset.userCollapsed = '1';
+    }
+  } catch(e){}
+
+  window.addEventListener('scroll', () => {
+    if(_scrollHeaderTimer) return;
+    _scrollHeaderTimer = setTimeout(() => {
+      _scrollHeaderTimer = null;
+      const y = window.scrollY || window.pageYOffset;
+      // 사용자가 수동으로 펼쳐놓은 상태면 자동 축소 안 함
+      // 사용자가 수동으로 접어놓은 상태도 그대로 유지
+      const userToggled = header.dataset.userCollapsed === '1' || header.dataset.userCollapsed === '0';
+
+      // 자동 축소: 100px 이상 스크롤 시 컴팩트
+      // 자동 펼침: 30px 이내로 돌아오면 펼침
+      if(!userToggled){
+        if(y > 100 && !header.classList.contains('is-compact')){
+          header.classList.add('is-compact');
+        } else if(y < 30 && header.classList.contains('is-compact')){
+          header.classList.remove('is-compact');
+        }
+      }
+      _lastScrollY = y;
+    }, 80);
+  }, { passive: true });
+}
+// DOM 준비 후 스크롤 핸들러 등록
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', setupHeaderScroll);
+} else {
+  setupHeaderScroll();
 }
 
 // 월별 상세 보기 모달 - 그달의 업무 클릭 시 / "이번 달" 카드 클릭 시
@@ -7793,6 +7967,41 @@ function render(){
   const pct = totalAll ? Math.round(doneAll/totalAll*100) : 0;
   document.getElementById('s-pct').textContent = pct+'%';
   document.getElementById('global-bar').style.width = pct+'%';
+
+  // 컴팩트 요약 갱신 (헤더가 접혔을 때 보이는 한 줄)
+  const csTotal = document.getElementById('cs-total');
+  const csDone = document.getElementById('cs-done');
+  const csPct = document.getElementById('cs-pct');
+  if(csTotal) csTotal.textContent = totalAll;
+  if(csDone) csDone.textContent = doneAll;
+  if(csPct) csPct.textContent = pct + '%';
+
+  // 컴팩트 요약 - 이번 달 (마스터 전용)
+  if(isMaster(user)){
+    const csMonth = document.getElementById('cs-current-month');
+    const csDivider = document.getElementById('cs-divider-month');
+    const csMonthLabel = document.getElementById('cs-month-label');
+    const csMonthStat = document.getElementById('cs-month-stat');
+    if(csMonth && csMonthLabel && csMonthStat){
+      try {
+        const monthStats = calcMonthlyStats();
+        const cm = new Date().getMonth() + 1;
+        const md = monthStats[cm];
+        if(md && md.total > 0){
+          csMonthLabel.textContent = cm + '월';
+          csMonthStat.textContent = md.done + '/' + md.total;
+          csMonth.style.display = 'flex';
+          if(csDivider) csDivider.style.display = 'block';
+        } else {
+          csMonth.style.display = 'none';
+          if(csDivider) csDivider.style.display = 'none';
+        }
+      } catch(e){
+        csMonth.style.display = 'none';
+        if(csDivider) csDivider.style.display = 'none';
+      }
+    }
+  }
 
   // 사이드바 뱃지 (마스터일 때만 그룹 의미 있음)
   const groups = {all:0, inner:0, admin:0, culture:0};
