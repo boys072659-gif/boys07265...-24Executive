@@ -3138,7 +3138,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v33</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v34</span></div>
       </div>
     </div>
 
@@ -4737,6 +4737,8 @@ async function startListening(){
     } else {
       cloudTelegram = {};
       (data || []).forEach(row => {
+        // _config는 사용 안함 (이 기기 저장 방식만)
+        if(row.dept_id === '_config') return;
         cloudTelegram[row.dept_id] = {
           chat_id: row.chat_id,
           topic_id: row.topic_id || '',
@@ -4811,10 +4813,12 @@ async function startListening(){
         if(payload.old && payload.old.dept_id) delete cloudTelegram[payload.old.dept_id];
       } else {
         const row = payload.new;
-        if(row) cloudTelegram[row.dept_id] = {
-          chat_id: row.chat_id, topic_id: row.topic_id || '',
-          enabled: row.enabled !== false, note: row.note || ''
-        };
+        if(row && row.dept_id !== '_config'){
+          cloudTelegram[row.dept_id] = {
+            chat_id: row.chat_id, topic_id: row.topic_id || '',
+            enabled: row.enabled !== false, note: row.note || ''
+          };
+        }
       }
       const tgModal = document.getElementById('modal-overlay');
       if(tgModal && tgModal.classList.contains('show')){
@@ -6861,16 +6865,40 @@ function openTelegramBroadcast(){
     deptCheckboxes += `</div></div>`;
   });
 
+  // 저장된 토큰 불러오기 (이 기기에서만)
+  let savedToken = '';
+  try {
+    const localToken = localStorage.getItem('sjames_bot_token');
+    if(localToken) savedToken = localToken;
+  } catch(e){}
+
+  const tokenSourceHint = savedToken
+    ? '<span style="color:var(--success);font-weight:600">✅ 이 기기에 저장된 토큰이 자동 채워졌습니다</span>'
+    : 'BotFather에서 받은 토큰 · GitHub Secrets에 저장된 것과 동일';
+
   const body = `
     <div style="margin-bottom:14px;padding:12px;background:#fff8e1;border:1px solid #f0c674;border-radius:var(--radius-sm);font-size:12.5px;color:#8a5a16;line-height:1.6">
-      ⚠️ <b>중요:</b> 이 기능은 즉시 메시지를 발송합니다. 신중히 사용하세요.<br>
-      봇 토큰은 발송에만 사용되며 저장되지 않습니다.
+      ⚠️ <b>중요:</b> 이 기능은 즉시 메시지를 발송합니다. 신중히 사용하세요.
     </div>
 
     <div class="form-group">
       <label class="form-label">봇 토큰 <span class="required">*</span></label>
-      <input type="password" class="form-input" id="bcast-token" placeholder="1234567890:AAH-abc..." autocomplete="off">
-      <div class="form-hint">BotFather에서 받은 토큰. GitHub Secrets에 저장된 것과 동일</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="password" class="form-input" id="bcast-token" placeholder="1234567890:AAH-abc..." autocomplete="off" value="${escapeHtml(savedToken)}" style="flex:1">
+        <button class="btn" type="button" onclick="_toggleTokenVisibility()" style="padding:8px 12px;flex-shrink:0" id="bcast-token-eye" title="토큰 보기/숨기기">👁</button>
+        ${savedToken ? `<button class="btn" type="button" onclick="_clearSavedToken()" style="padding:8px 10px;flex-shrink:0;color:var(--danger)" title="저장된 토큰 삭제">🗑</button>` : ''}
+      </div>
+      <div class="form-hint">${tokenSourceHint}</div>
+    </div>
+
+    <div class="form-group" style="margin-top:-4px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);user-select:none">
+        <input type="checkbox" id="bcast-remember" ${savedToken?'checked':''} style="width:16px;height:16px;cursor:pointer">
+        <span style="flex:1">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">💾 이 기기에 토큰 저장</span>
+          <span style="display:block;font-size:11.5px;color:var(--text-tertiary);margin-top:2px">다음 방문 시 자동으로 채워집니다 (이 브라우저에만 저장)</span>
+        </span>
+      </label>
     </div>
 
     <div class="form-group">
@@ -6905,6 +6933,31 @@ function _toggleAllBcastDepts(checked){
 
 function _toggleGroupCheckboxes(group, checked){
   document.querySelectorAll(`.bcast-dept[data-group="${group}"]`).forEach(cb => cb.checked = checked);
+}
+
+// === 봇 토큰 저장/관리 ===
+function _toggleTokenVisibility(){
+  const input = document.getElementById('bcast-token');
+  const eye = document.getElementById('bcast-token-eye');
+  if(!input) return;
+  if(input.type === 'password'){
+    input.type = 'text';
+    if(eye) eye.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    if(eye) eye.textContent = '👁';
+  }
+}
+
+function _clearSavedToken(){
+  if(!confirm('이 기기에 저장된 봇 토큰을 삭제하시겠습니까?')) return;
+  try { localStorage.removeItem('sjames_bot_token'); } catch(e){}
+  // 입력란도 비움
+  const input = document.getElementById('bcast-token');
+  if(input) input.value = '';
+  showToast('✅ 저장된 토큰 삭제 완료', 'success');
+  // 모달 다시 그리기
+  setTimeout(() => openTelegramBroadcast(), 400);
 }
 
 async function _telegramSendMessage(token, chatId, topicId, text){
@@ -6954,6 +7007,17 @@ async function executeBroadcast(){
   if(message.length > 4000){
     showModalAlert('error', '메시지가 너무 깁니다 (4000자 이내)');
     return;
+  }
+
+  // 토큰 저장 처리 (체크박스 1개만)
+  const rememberCb = document.getElementById('bcast-remember');
+  const remember = rememberCb && rememberCb.checked;
+  if(remember){
+    try { localStorage.setItem('sjames_bot_token', token); } catch(e){
+      console.warn('[로컬 저장 실패]', e);
+    }
+  } else {
+    try { localStorage.removeItem('sjames_bot_token'); } catch(e){}
   }
 
   // 선택된 부서들
