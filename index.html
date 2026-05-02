@@ -294,6 +294,214 @@
   }
 
   /* 완료 조건 체크리스트 */
+  /* ============ 일괄 메시지 에디터 (텔레그램 발송) ============ */
+  .bcast-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border-bottom: none;
+    align-items: center;
+  }
+  .bcast-tool {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    transition: all 0.12s;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
+  }
+  .bcast-tool:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .bcast-tool:active { transform: scale(0.95); }
+  .bcast-tool.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .bcast-tool[onclick*="insertDeptName"],
+  .bcast-tool[onclick*="togglePreview"] {
+    width: auto;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .bcast-tool-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-strong);
+    margin: 0 2px;
+  }
+  /* 도구바 위에 textarea 붙도록 borders 조정 */
+  .bcast-toolbar + .bcast-emoji-panel + textarea,
+  .bcast-toolbar + textarea {
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
+    border-top: none !important;
+  }
+
+  /* 이모지 패널 */
+  .bcast-emoji-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .emoji-category { margin-bottom: 10px; }
+  .emoji-category:last-child { margin-bottom: 0; }
+  .emoji-cat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+  }
+  .emoji-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .emoji-item:hover {
+    background: var(--bg-subtle);
+  }
+  .emoji-item:active {
+    background: var(--accent-soft);
+    transform: scale(0.9);
+  }
+  @media (max-width: 600px) {
+    .emoji-grid { grid-template-columns: repeat(8, 1fr); }
+    .emoji-item { font-size: 20px; }
+    .bcast-tool { width: 32px; height: 32px; font-size: 14px; }
+  }
+
+  /* 미리보기 */
+  .bcast-preview {
+    margin-top: 10px;
+    padding: 12px;
+    background: #e8f4fb;
+    border: 1px solid #95c8e8;
+    border-radius: var(--radius-sm);
+  }
+  .bcast-preview-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1768b3;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+  }
+  .bcast-preview-bubble {
+    background: #fff;
+    border-radius: 12px 12px 12px 4px;
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #222;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+  .bcast-preview-bubble:empty::before {
+    content: '메시지를 입력하면 미리보기가 표시됩니다';
+    color: #aaa;
+    font-style: italic;
+  }
+  .bcast-preview-bubble b { font-weight: 700; }
+  .bcast-preview-bubble i { font-style: italic; }
+  .bcast-preview-bubble u { text-decoration: underline; }
+  .bcast-preview-bubble s { text-decoration: line-through; }
+  .bcast-preview-bubble code {
+    background: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'SF Mono', Monaco, Menlo, monospace;
+    font-size: 13px;
+  }
+  .bcast-preview-bubble pre {
+    background: #f5f5f5;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: 'SF Mono', Monaco, Menlo, monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    margin: 4px 0;
+  }
+  .bcast-preview-bubble blockquote {
+    border-left: 3px solid #5288c1;
+    padding-left: 10px;
+    margin: 4px 0;
+    color: #555;
+  }
+  .bcast-preview-bubble a { color: #2481cc; text-decoration: none; }
+  .bcast-preview-bubble tg-spoiler {
+    background: #999;
+    color: transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .bcast-preview-bubble tg-spoiler:hover { color: #222; background: #ddd; }
+  .bcast-preview-img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  /* 이미지 첨부 영역 */
+  .bcast-image-zone {
+    padding: 12px;
+    background: var(--bg-subtle);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+  .bcast-image-zone:has(#bcast-image-preview:not([style*="none"])) {
+    text-align: left;
+    border-style: solid;
+    background: var(--bg-elevated);
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    font-family: 'SF Mono', Monaco, Menlo, monospace;
+    font-size: 10.5px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    color: var(--text-secondary);
+  }
+
   .completion-checklist {
     margin-top: 12px;
     padding: 12px 14px;
@@ -3138,7 +3346,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v34</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v36</span></div>
       </div>
     </div>
 
@@ -3354,8 +3562,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 // ===== Supabase 설정값 (가이드 따라 본인 값 입력) =====
-const SUPABASE_URL = "https://atfdkfvcokdgfidxgdlo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0ZmRrZnZjb2tkZ2ZpZHhnZGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTU4NjMsImV4cCI6MjA5Mjg5MTg2M30.yuuvSCsraD-DgLHv9MXoUVbdlrQVfgYYOA4QpmSbO8g";
+const SUPABASE_URL = "여기에_본인_PROJECT_URL_입력";
+const SUPABASE_ANON_KEY = "여기에_본인_ANON_KEY_입력";
 // =====================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -6903,8 +7111,157 @@ function openTelegramBroadcast(){
 
     <div class="form-group">
       <label class="form-label">메시지 내용 <span class="required">*</span></label>
-      <textarea class="form-input" id="bcast-message" rows="6" placeholder="발송할 메시지를 입력하세요&#10;&#10;Markdown 지원:&#10;*굵게*  _기울임_  [링크](https://...)" style="resize:vertical;font-size:13.5px;line-height:1.6"></textarea>
-      <div class="form-hint">텔레그램 Markdown 형식 지원. 부서명을 자동으로 넣으려면 [부서명] 사용</div>
+
+      <!-- 서식 도구바 -->
+      <div class="bcast-toolbar">
+        <button type="button" class="bcast-tool" onclick="_insertFormat('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('underline')" title="밑줄 (Ctrl+U)"><u>U</u></button>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('strike')" title="취소선"><s>S</s></button>
+        <span class="bcast-tool-divider"></span>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('code')" title="고정폭 글자"><code style="font-size:11px">{ }</code></button>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('pre')" title="코드 블록">▦</button>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('quote')" title="인용">❝</button>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('spoiler')" title="스포일러 (가려진 텍스트)">▓</button>
+        <span class="bcast-tool-divider"></span>
+        <button type="button" class="bcast-tool" onclick="_insertFormat('link')" title="링크">🔗</button>
+        <button type="button" class="bcast-tool" onclick="_insertDeptName()" title="부서명 자동 치환">[부서명]</button>
+        <span class="bcast-tool-divider"></span>
+        <button type="button" class="bcast-tool" onclick="_toggleEmojiPanel()" title="이모지" id="bcast-emoji-btn">😀</button>
+        <button type="button" class="bcast-tool" onclick="_togglePreview()" title="미리보기" id="bcast-preview-btn">👁 미리보기</button>
+      </div>
+
+      <!-- 이모지 패널 (기본 숨김) -->
+      <div class="bcast-emoji-panel" id="bcast-emoji-panel" style="display:none">
+        <div class="emoji-category">
+          <div class="emoji-cat-label">📢 알림·강조</div>
+          <div class="emoji-grid">
+            <span class="emoji-item" onclick="_insertEmoji('📢')">📢</span>
+            <span class="emoji-item" onclick="_insertEmoji('📣')">📣</span>
+            <span class="emoji-item" onclick="_insertEmoji('🔔')">🔔</span>
+            <span class="emoji-item" onclick="_insertEmoji('🚨')">🚨</span>
+            <span class="emoji-item" onclick="_insertEmoji('⚠️')">⚠️</span>
+            <span class="emoji-item" onclick="_insertEmoji('❗')">❗</span>
+            <span class="emoji-item" onclick="_insertEmoji('❓')">❓</span>
+            <span class="emoji-item" onclick="_insertEmoji('💡')">💡</span>
+            <span class="emoji-item" onclick="_insertEmoji('⭐')">⭐</span>
+            <span class="emoji-item" onclick="_insertEmoji('✨')">✨</span>
+          </div>
+        </div>
+        <div class="emoji-category">
+          <div class="emoji-cat-label">📅 일정·업무</div>
+          <div class="emoji-grid">
+            <span class="emoji-item" onclick="_insertEmoji('📅')">📅</span>
+            <span class="emoji-item" onclick="_insertEmoji('📆')">📆</span>
+            <span class="emoji-item" onclick="_insertEmoji('🗓️')">🗓️</span>
+            <span class="emoji-item" onclick="_insertEmoji('🕐')">🕐</span>
+            <span class="emoji-item" onclick="_insertEmoji('⏰')">⏰</span>
+            <span class="emoji-item" onclick="_insertEmoji('⏳')">⏳</span>
+            <span class="emoji-item" onclick="_insertEmoji('📋')">📋</span>
+            <span class="emoji-item" onclick="_insertEmoji('📝')">📝</span>
+            <span class="emoji-item" onclick="_insertEmoji('📌')">📌</span>
+            <span class="emoji-item" onclick="_insertEmoji('📎')">📎</span>
+          </div>
+        </div>
+        <div class="emoji-category">
+          <div class="emoji-cat-label">✅ 상태·확인</div>
+          <div class="emoji-grid">
+            <span class="emoji-item" onclick="_insertEmoji('✅')">✅</span>
+            <span class="emoji-item" onclick="_insertEmoji('☑️')">☑️</span>
+            <span class="emoji-item" onclick="_insertEmoji('✔️')">✔️</span>
+            <span class="emoji-item" onclick="_insertEmoji('❌')">❌</span>
+            <span class="emoji-item" onclick="_insertEmoji('🚫')">🚫</span>
+            <span class="emoji-item" onclick="_insertEmoji('⛔')">⛔</span>
+            <span class="emoji-item" onclick="_insertEmoji('🔴')">🔴</span>
+            <span class="emoji-item" onclick="_insertEmoji('🟢')">🟢</span>
+            <span class="emoji-item" onclick="_insertEmoji('🟡')">🟡</span>
+            <span class="emoji-item" onclick="_insertEmoji('🔵')">🔵</span>
+          </div>
+        </div>
+        <div class="emoji-category">
+          <div class="emoji-cat-label">😀 표정·감정</div>
+          <div class="emoji-grid">
+            <span class="emoji-item" onclick="_insertEmoji('😀')">😀</span>
+            <span class="emoji-item" onclick="_insertEmoji('😊')">😊</span>
+            <span class="emoji-item" onclick="_insertEmoji('🙏')">🙏</span>
+            <span class="emoji-item" onclick="_insertEmoji('🤝')">🤝</span>
+            <span class="emoji-item" onclick="_insertEmoji('👍')">👍</span>
+            <span class="emoji-item" onclick="_insertEmoji('👏')">👏</span>
+            <span class="emoji-item" onclick="_insertEmoji('💪')">💪</span>
+            <span class="emoji-item" onclick="_insertEmoji('❤️')">❤️</span>
+            <span class="emoji-item" onclick="_insertEmoji('🎉')">🎉</span>
+            <span class="emoji-item" onclick="_insertEmoji('🎊')">🎊</span>
+          </div>
+        </div>
+        <div class="emoji-category">
+          <div class="emoji-cat-label">🏢 교회·종교</div>
+          <div class="emoji-grid">
+            <span class="emoji-item" onclick="_insertEmoji('⛪')">⛪</span>
+            <span class="emoji-item" onclick="_insertEmoji('✝️')">✝️</span>
+            <span class="emoji-item" onclick="_insertEmoji('🙌')">🙌</span>
+            <span class="emoji-item" onclick="_insertEmoji('🕊️')">🕊️</span>
+            <span class="emoji-item" onclick="_insertEmoji('📖')">📖</span>
+            <span class="emoji-item" onclick="_insertEmoji('🎵')">🎵</span>
+            <span class="emoji-item" onclick="_insertEmoji('🎶')">🎶</span>
+            <span class="emoji-item" onclick="_insertEmoji('💒')">💒</span>
+            <span class="emoji-item" onclick="_insertEmoji('🌟')">🌟</span>
+            <span class="emoji-item" onclick="_insertEmoji('🌹')">🌹</span>
+          </div>
+        </div>
+      </div>
+
+      <textarea class="form-input" id="bcast-message" rows="8" placeholder="발송할 메시지를 입력하세요&#10;&#10;HTML 서식 지원:&#10;<b>굵게</b>  <i>기울임</i>  <u>밑줄</u>  <s>취소선</s>&#10;<code>코드</code>  <a href='URL'>링크</a>&#10;<blockquote>인용</blockquote>  <tg-spoiler>스포일러</tg-spoiler>" style="resize:vertical;font-size:13.5px;line-height:1.6;font-family:'Pretendard Variable',-apple-system,sans-serif"></textarea>
+
+      <!-- 미리보기 (기본 숨김) -->
+      <div class="bcast-preview" id="bcast-preview" style="display:none">
+        <div class="bcast-preview-label">📱 텔레그램 미리보기</div>
+        <div class="bcast-preview-bubble" id="bcast-preview-bubble"></div>
+      </div>
+
+      <div class="form-hint">
+        <b>HTML 서식</b> · <code>&lt;b&gt;</code> 굵게 · <code>&lt;i&gt;</code> 기울임 · <code>&lt;u&gt;</code> 밑줄 · <code>&lt;s&gt;</code> 취소선 · <code>&lt;code&gt;</code> 코드 · <code>&lt;a href="URL"&gt;링크&lt;/a&gt;</code> · <code>&lt;tg-spoiler&gt;</code> 스포일러<br>
+        <b>[부서명]</b> 사용 시 부서별로 자동 치환됨 · <kbd>Ctrl+B</kbd>/<kbd>Ctrl+I</kbd>/<kbd>Ctrl+U</kbd> 단축키 지원
+      </div>
+    </div>
+
+    <!-- 이미지 첨부 -->
+    <div class="form-group">
+      <label class="form-label">📷 이미지 첨부 (선택)</label>
+      <div class="bcast-image-zone" id="bcast-image-zone">
+        <input type="file" id="bcast-image-input" accept="image/*" style="display:none" onchange="_handleBcastImage(event)">
+        <div id="bcast-image-empty">
+          <button type="button" class="btn" onclick="document.getElementById('bcast-image-input').click()">
+            🖼️ 이미지 선택
+          </button>
+          <div class="form-hint" style="margin-top:6px">JPG, PNG, GIF · 최대 10MB · 메시지가 사진 캡션으로 첨부됨</div>
+        </div>
+        <div id="bcast-image-preview" style="display:none">
+          <img id="bcast-image-thumb" src="" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid var(--border)">
+          <div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+            <span id="bcast-image-info" style="font-size:12px;color:var(--text-secondary);flex:1"></span>
+            <button type="button" class="btn" onclick="_clearBcastImage()" style="padding:5px 10px;color:var(--danger)">🗑 제거</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 공식 헤더 옵션 -->
+    <div class="form-group">
+      <label class="form-label">📋 공식 발신 헤더</label>
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:10px 12px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);user-select:none">
+        <input type="checkbox" id="bcast-add-header" checked onchange="_refreshPreview()" style="width:16px;height:16px;cursor:pointer;margin-top:2px">
+        <span style="flex:1">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">메시지 위에 부서별 공식 헤더 자동 삽입</span>
+          <span style="display:block;font-size:11.5px;color:var(--text-tertiary);margin-top:4px;line-height:1.5">
+            발신 부서·수신 부서가 굵게 표시되며 부서별로 자동 변경됩니다.<br>
+            예) <b>[총무부 공지]</b> / <b>수신: 03 내무부</b>
+          </span>
+        </span>
+      </label>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <label style="font-size:11.5px;color:var(--text-secondary);font-weight:600">발신 부서 표기:</label>
+        <input type="text" class="form-input" id="bcast-sender-name" value="총무부 공지" style="flex:1;padding:6px 10px;font-size:12.5px" placeholder="총무부 공지" oninput="_refreshPreview()">
+      </div>
     </div>
 
     <div class="form-group">
@@ -6929,6 +7286,231 @@ function openTelegramBroadcast(){
 
 function _toggleAllBcastDepts(checked){
   document.querySelectorAll('.bcast-dept').forEach(cb => cb.checked = checked);
+}
+
+// === 서식 삽입 ===
+function _insertFormat(type){
+  const ta = document.getElementById('bcast-message');
+  if(!ta) return;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const text = ta.value;
+  const sel = text.slice(start, end);
+
+  let inserted = '', cursorOffset = 0;
+  switch(type){
+    case 'bold':       inserted = `<b>${sel || '굵게'}</b>`; cursorOffset = 3; break;
+    case 'italic':     inserted = `<i>${sel || '기울임'}</i>`; cursorOffset = 3; break;
+    case 'underline':  inserted = `<u>${sel || '밑줄'}</u>`; cursorOffset = 3; break;
+    case 'strike':     inserted = `<s>${sel || '취소선'}</s>`; cursorOffset = 3; break;
+    case 'code':       inserted = `<code>${sel || '코드'}</code>`; cursorOffset = 6; break;
+    case 'pre':        inserted = `<pre>${sel || '코드 블록'}</pre>`; cursorOffset = 5; break;
+    case 'quote':      inserted = `<blockquote>${sel || '인용문'}</blockquote>`; cursorOffset = 12; break;
+    case 'spoiler':    inserted = `<tg-spoiler>${sel || '가려진 텍스트'}</tg-spoiler>`; cursorOffset = 12; break;
+    case 'link': {
+      const url = prompt('링크 URL을 입력하세요:', 'https://');
+      if(!url) return;
+      inserted = `<a href="${url}">${sel || '링크 텍스트'}</a>`;
+      cursorOffset = `<a href="${url}">`.length;
+      break;
+    }
+  }
+
+  ta.value = text.slice(0, start) + inserted + text.slice(end);
+  ta.focus();
+  // 커서를 삽입된 태그 안 텍스트 위치로
+  if(sel){
+    // 선택영역이 있던 경우: 선택 유지
+    ta.setSelectionRange(start + cursorOffset, start + cursorOffset + sel.length);
+  } else {
+    // 빈 경우: 텍스트 부분 자동 선택해서 바로 입력 가능
+    const placeholderLen = inserted.length - cursorOffset - (type === 'link' ? 4 : (cursorOffset - (type==='code'?6:type==='quote'||type==='spoiler'?12:type==='pre'?5:3)));
+    // 단순화: 삽입된 placeholder 길이만큼 선택
+    let phLen = 0;
+    if(type === 'bold') phLen = 2; if(type === 'italic') phLen = 3; if(type === 'underline') phLen = 2;
+    if(type === 'strike') phLen = 3; if(type === 'code') phLen = 2; if(type === 'pre') phLen = 5;
+    if(type === 'quote') phLen = 3; if(type === 'spoiler') phLen = 7; if(type === 'link') phLen = 6;
+    ta.setSelectionRange(start + cursorOffset, start + cursorOffset + phLen);
+  }
+  _refreshPreview();
+}
+
+function _insertEmoji(emoji){
+  const ta = document.getElementById('bcast-message');
+  if(!ta) return;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  ta.value = ta.value.slice(0, start) + emoji + ta.value.slice(end);
+  ta.focus();
+  ta.setSelectionRange(start + emoji.length, start + emoji.length);
+  _refreshPreview();
+}
+
+function _insertDeptName(){
+  _insertEmoji('[부서명]');
+}
+
+function _toggleEmojiPanel(){
+  const panel = document.getElementById('bcast-emoji-panel');
+  const btn = document.getElementById('bcast-emoji-btn');
+  if(!panel || !btn) return;
+  if(panel.style.display === 'none'){
+    panel.style.display = 'block';
+    btn.classList.add('active');
+  } else {
+    panel.style.display = 'none';
+    btn.classList.remove('active');
+  }
+}
+
+function _togglePreview(){
+  const preview = document.getElementById('bcast-preview');
+  const btn = document.getElementById('bcast-preview-btn');
+  if(!preview || !btn) return;
+  if(preview.style.display === 'none'){
+    preview.style.display = 'block';
+    btn.classList.add('active');
+    _refreshPreview();
+  } else {
+    preview.style.display = 'none';
+    btn.classList.remove('active');
+  }
+}
+
+function _refreshPreview(){
+  const preview = document.getElementById('bcast-preview');
+  const bubble = document.getElementById('bcast-preview-bubble');
+  if(!preview || !bubble || preview.style.display === 'none') return;
+  const ta = document.getElementById('bcast-message');
+  if(!ta) return;
+
+  // 미리보기용 첫 등록된 부서 이름 (예시) - 없으면 기본값
+  const sampleDept = (() => {
+    if(typeof cloudTelegram !== 'undefined' && typeof getEffectiveDepts === 'function'){
+      const depts = getEffectiveDepts();
+      const found = depts.find(d => cloudTelegram[d.id] && cloudTelegram[d.id].chat_id);
+      if(found) return found.name;
+    }
+    return '03 내무부';
+  })();
+
+  // [부서명] 치환 (미리보기에서 어떻게 보일지)
+  let msg = ta.value.replace(/\[부서명\]/g, sampleDept);
+
+  // 공식 헤더 추가 (옵션 켜져있으면)
+  const headerCb = document.getElementById('bcast-add-header');
+  const senderInputEl = document.getElementById('bcast-sender-name');
+  if(headerCb && headerCb.checked){
+    const senderText = (senderInputEl && senderInputEl.value.trim()) || '총무부 공지';
+    msg = `<b>[${senderText}]</b>\n<b>수신: ${sampleDept}</b>\n\n` + msg;
+  }
+
+  // 사용자 입력 → HTML 안전 렌더 (텔레그램과 비슷하게)
+  const html = _telegramHtmlPreview(msg);
+  // 이미지 미리보기 (있으면 메시지 위에)
+  const imgData = window._bcastImageDataUrl;
+  bubble.innerHTML = (imgData ? `<img class="bcast-preview-img" src="${imgData}">` : '') + html;
+}
+
+// 텔레그램 HTML 서식을 안전하게 렌더 (허용된 태그만 통과)
+function _telegramHtmlPreview(input){
+  if(!input) return '';
+  // 텔레그램이 지원하는 태그만 허용
+  const ALLOWED = /^(b|strong|i|em|u|ins|s|strike|del|code|pre|a|blockquote|tg-spoiler|br)$/i;
+  // 1. 모든 < > 일단 escape
+  let safe = input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // 2. 허용된 태그만 다시 풀어줌
+  safe = safe.replace(/&lt;(\/?)([a-z][a-z0-9-]*)((?:\s+[a-z]+="[^"<>]*")*)\s*\/?&gt;/gi, (m, slash, tag, attrs) => {
+    if(!ALLOWED.test(tag)) return m;  // 비허용 태그는 escape 유지
+    // <a href="..."> 만 속성 허용
+    if(tag.toLowerCase() === 'a' && attrs){
+      const hrefMatch = attrs.match(/href="([^"<>]*)"/i);
+      if(hrefMatch){
+        const href = hrefMatch[1].replace(/&amp;/g, '&');
+        return `<${slash}a href="${href}">`;
+      }
+      return slash ? `</a>` : `<a>`;
+    }
+    return `<${slash}${tag.toLowerCase()}>`;
+  });
+  return safe;
+}
+
+// === 이미지 첨부 ===
+window._bcastImageFile = null;
+window._bcastImageDataUrl = null;
+
+function _handleBcastImage(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+  // 10MB 제한
+  if(file.size > 10 * 1024 * 1024){
+    showModalAlert('error', '이미지는 10MB 이하여야 합니다');
+    event.target.value = '';
+    return;
+  }
+  if(!file.type.startsWith('image/')){
+    showModalAlert('error', '이미지 파일만 첨부 가능합니다 (JPG, PNG, GIF)');
+    event.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    window._bcastImageFile = file;
+    window._bcastImageDataUrl = e.target.result;
+    document.getElementById('bcast-image-thumb').src = e.target.result;
+    document.getElementById('bcast-image-info').textContent = `${file.name} · ${(file.size/1024).toFixed(0)}KB`;
+    document.getElementById('bcast-image-empty').style.display = 'none';
+    document.getElementById('bcast-image-preview').style.display = 'block';
+    _refreshPreview();
+  };
+  reader.readAsDataURL(file);
+}
+
+function _clearBcastImage(){
+  window._bcastImageFile = null;
+  window._bcastImageDataUrl = null;
+  const input = document.getElementById('bcast-image-input');
+  if(input) input.value = '';
+  document.getElementById('bcast-image-empty').style.display = 'block';
+  document.getElementById('bcast-image-preview').style.display = 'none';
+  _refreshPreview();
+}
+
+// 메시지 입력 시 미리보기 자동 갱신 + 키보드 단축키
+function _bcastTextareaInit(){
+  const ta = document.getElementById('bcast-message');
+  if(!ta || ta.dataset.inited) return;
+  ta.dataset.inited = '1';
+  ta.addEventListener('input', _refreshPreview);
+  ta.addEventListener('keydown', e => {
+    if(!(e.ctrlKey || e.metaKey)) return;
+    let type = null;
+    if(e.key === 'b' || e.key === 'B') type = 'bold';
+    else if(e.key === 'i' || e.key === 'I') type = 'italic';
+    else if(e.key === 'u' || e.key === 'U') type = 'underline';
+    if(type){
+      e.preventDefault();
+      _insertFormat(type);
+    }
+  });
+}
+// 모달 열릴 때마다 textarea 초기화
+const _origOpenModal = window.openModal;
+if(_origOpenModal && !window._bcastModalPatched){
+  window._bcastModalPatched = true;
+  window.openModal = function(...args){
+    const r = _origOpenModal.apply(this, args);
+    setTimeout(() => {
+      _bcastTextareaInit();
+      // 새 모달 열릴 때 이미지 상태 초기화 (이전 모달 잔존 방지)
+      if(!document.getElementById('bcast-message')){
+        window._bcastImageFile = null;
+        window._bcastImageDataUrl = null;
+      }
+    }, 50);
+    return r;
+  };
 }
 
 function _toggleGroupCheckboxes(group, checked){
@@ -6960,13 +7542,17 @@ function _clearSavedToken(){
   setTimeout(() => openTelegramBroadcast(), 400);
 }
 
-async function _telegramSendMessage(token, chatId, topicId, text){
+async function _telegramSendMessage(token, chatId, topicId, text, imageFile){
+  // 이미지가 있으면 sendPhoto, 없으면 sendMessage
+  if(imageFile){
+    return await _telegramSendPhoto(token, chatId, topicId, text, imageFile);
+  }
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   const payload = {
     chat_id: chatId,
     text: text,
-    parse_mode: 'Markdown',
-    disable_web_page_preview: true,
+    parse_mode: 'HTML',  // HTML 모드 (MarkdownV2보다 escape 부담 적음)
+    disable_web_page_preview: false,  // 링크 미리보기 허용
   };
   if(topicId){
     const tid = parseInt(topicId);
@@ -6977,6 +7563,35 @@ async function _telegramSendMessage(token, chatId, topicId, text){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if(data.ok) return { ok: true };
+    return { ok: false, error: data.description || `HTTP ${resp.status}` };
+  } catch(e){
+    return { ok: false, error: e.message || '네트워크 오류' };
+  }
+}
+
+// 이미지와 함께 발송 (sendPhoto API)
+async function _telegramSendPhoto(token, chatId, topicId, caption, imageFile){
+  const url = `https://api.telegram.org/bot${token}/sendPhoto`;
+  // multipart/form-data로 보내야 함
+  const fd = new FormData();
+  fd.append('chat_id', chatId);
+  fd.append('photo', imageFile);
+  if(caption){
+    // 텔레그램 캡션은 1024자 제한
+    fd.append('caption', caption.length > 1024 ? caption.slice(0, 1020) + '…' : caption);
+    fd.append('parse_mode', 'HTML');
+  }
+  if(topicId){
+    const tid = parseInt(topicId);
+    if(!isNaN(tid)) fd.append('message_thread_id', String(tid));
+  }
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      body: fd
     });
     const data = await resp.json();
     if(data.ok) return { ok: true };
@@ -7000,12 +7615,25 @@ async function executeBroadcast(){
     showModalAlert('error', '봇 토큰 형식이 올바르지 않습니다.\n예: 1234567890:AAH-abc...');
     return;
   }
-  if(!message){
-    showModalAlert('error', '메시지 내용을 입력해주세요');
+  if(!message && !window._bcastImageFile){
+    showModalAlert('error', '메시지 내용 또는 이미지를 입력해주세요');
     return;
   }
-  if(message.length > 4000){
-    showModalAlert('error', '메시지가 너무 깁니다 (4000자 이내)');
+  // 텔레그램 한도 - 메시지 4096자, 이미지 캡션 1024자
+  const hasImage = !!window._bcastImageFile;
+  const limit = hasImage ? 1024 : 4096;
+  // 헤더가 추가될 때 길이 보정 (대략 50~80자)
+  const headerCb = document.getElementById('bcast-add-header');
+  const senderInputEl = document.getElementById('bcast-sender-name');
+  const willAddHeader = headerCb && headerCb.checked;
+  const senderText = (senderInputEl && senderInputEl.value.trim()) || '총무부 공지';
+  const headerLength = willAddHeader ? (`<b>[${senderText}]</b>\n<b>수신: 가장긴_부서_이름_50자</b>\n\n`).length : 0;
+  const effectiveLength = message.length + headerLength;
+
+  if(effectiveLength > limit){
+    showModalAlert('error', hasImage
+      ? `이미지 캡션은 ${limit}자 이내여야 합니다 (헤더 포함 약 ${effectiveLength}자)\n공식 헤더를 끄거나 메시지를 줄여주세요`
+      : `메시지가 너무 깁니다. ${limit}자 이내로 작성해주세요 (헤더 포함 약 ${effectiveLength}자)`);
     return;
   }
 
@@ -7019,6 +7647,12 @@ async function executeBroadcast(){
   } else {
     try { localStorage.removeItem('sjames_bot_token'); } catch(e){}
   }
+
+  // 공식 헤더 옵션
+  const headerCb = document.getElementById('bcast-add-header');
+  const addHeader = headerCb && headerCb.checked;
+  const senderInputEl = document.getElementById('bcast-sender-name');
+  const senderName = (senderInputEl && senderInputEl.value.trim()) || '총무부 공지';
 
   // 선택된 부서들
   const selected = [];
@@ -7054,10 +7688,15 @@ async function executeBroadcast(){
       continue;
     }
 
-    // [부서명] 자동 치환
-    const personalizedMsg = message.replace(/\[부서명\]/g, deptName);
+    // [부서명] 자동 치환 + 공식 헤더 자동 삽입
+    let personalizedMsg = message.replace(/\[부서명\]/g, deptName);
+    if(addHeader){
+      const senderText = senderName || '총무부 공지';
+      const headerHtml = `<b>[${senderText}]</b>\n<b>수신: ${deptName}</b>\n\n`;
+      personalizedMsg = headerHtml + personalizedMsg;
+    }
 
-    const result = await _telegramSendMessage(token, tg.chat_id, tg.topic_id, personalizedMsg);
+    const result = await _telegramSendMessage(token, tg.chat_id, tg.topic_id, personalizedMsg, window._bcastImageFile);
     if(result.ok){
       successCount++;
     } else {
