@@ -110,6 +110,26 @@ overrides = sb_get('checklist_overrides', 'limit=1000')
 items = sb_get('checklist_items', 'limit=2000')
 print(f'  → overrides {len(overrides)}건, items {len(items)}건')
 
+# v33+ 연도 prefix 처리: 현재 연도(KST)의 데이터만 사용
+# Y2026_, Y2027_ 같은 prefix가 있으면 그것만, 없으면 옛 데이터로 인식
+ACTIVE_YEAR = TODAY.year
+YEAR_PREFIX = f'Y{ACTIVE_YEAR}_'
+
+def has_year_prefix(s):
+    return bool(s) and len(s) > 6 and s[0] == 'Y' and s[5] == '_' and s[1:5].isdigit()
+
+def matches_active_year(s):
+    if not s: return False
+    if has_year_prefix(s):
+        return s.startswith(YEAR_PREFIX)
+    # prefix 없는 옛 데이터는 BASE_YEAR(2026)로 간주
+    return ACTIVE_YEAR == 2026
+
+# 연도 필터 적용
+overrides = [ov for ov in overrides if matches_active_year(ov.get('id'))]
+items = [it for it in items if matches_active_year(it.get('item_key'))]
+print(f'  → {ACTIVE_YEAR}년 필터 후: overrides {len(overrides)}건, items {len(items)}건')
+
 # 이미 발송했는지 확인
 print('[3/4] 발송 로그 확인...')
 log_id_template = f'_{NOTIFY_TYPE}_{TODAY.isoformat()}'
@@ -275,13 +295,27 @@ for item_id, item in all_items.items():
         continue
     detail = detail_by_item_id.get(item_id, {})
     is_completed = detail.get('completed') is True
+    # v33+ 데이터 구조: planFiles, resultFiles 분리
+    # 옛 데이터 호환: detail.files가 있으면 planFiles로 인식
+    plan_files = detail.get('planFiles') or detail.get('files') or []
+    result_files = detail.get('resultFiles') or []
+    plan_text = (detail.get('plan') or '').strip()
+    result_memo = (detail.get('resultMemo') or '').strip()
+
     entry = {
         'title': title,
         'completed': is_completed,
         'completedBy': detail.get('completedBy'),
         'completedLink': detail.get('completedLink'),
-        'hasPlan': bool((detail.get('plan') or '').strip()),
-        'hasFiles': bool(detail.get('files')),
+        # 계획보고 여부: 텍스트 또는 파일이 있으면 OK
+        'hasPlanReport': bool(plan_text) or len(plan_files) > 0,
+        # 결과보고 여부
+        'hasResultReport': bool(result_memo) or len(result_files) > 0,
+        # 텔레그램 보고 링크
+        'hasLink': bool((detail.get('completedLink') or '').strip()),
+        # 파일/계획 표시 아이콘용
+        'hasPlan': bool(plan_text),
+        'hasFiles': len(plan_files) > 0 or len(result_files) > 0,
     }
     if is_completed:
         dept_monthly[dept_id]['completed'].append(entry)
@@ -295,13 +329,19 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
     completed = monthly_data['completed']
     pending = monthly_data['pending']
     total = len(completed) + len(pending)
+    all_items = completed + pending
 
     if total == 0:
         return None  # 그달 항목이 없으면 발송 안 함
 
     pct = int(len(completed) / total * 100) if total else 0
 
-    # 알림 종류별 헤더
+    # 미제출 항목 분류 (v33+ 계획보고/결과보고 분리 기준)
+    no_plan_items = [it for it in all_items if not it.get('hasPlanReport')]
+    no_result_items = [it for it in pending if not it.get('hasResultReport')]
+    no_link_items = [it for it in pending if not it.get('hasLink')]
+
+    # 알림 종류별 헤더 + 인사말
     if notify_type == 'monthly':
         header = f'📅 *[{dept_name}]* {TARGET_MONTH}월 계획 알림'
         intro = f'이번 달 계획을 안내드립니다.\n진행 부탁드립니다 🙏'
@@ -319,6 +359,27 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
 
     parts = [header, '', intro, '', progress_line, '']
 
+    # ★ 매월 1일: 계획보고 미제출 안내 (강조)
+    if notify_type == 'monthly' and no_plan_items:
+        parts.append(f'📋 *계획보고 미제출 ({len(no_plan_items)}건)*')
+        parts.append('_아래 항목의 계획보고를 부탁드립니다._')
+        for it in no_plan_items:
+            parts.append(f'  📝 {it["title"]}')
+        parts.append('')
+
+    # ★ 마감 D-1: 결과보고 미제출 안내 (강조)
+    if notify_type == 'deadline' and no_result_items:
+        parts.append(f'📊 *결과보고 미제출 ({len(no_result_items)}건)*')
+        parts.append('_내일 마감 전 결과보고 부탁드립니다._')
+        for it in no_result_items:
+            parts.append(f'  📈 {it["title"]}')
+        parts.append('')
+        # 텔레그램 링크 미입력도 함께 안내 (D-1)
+        if no_link_items:
+            parts.append(f'🔗 *텔레그램 보고 링크 미입력 ({len(no_link_items)}건)*')
+            parts.append('_보고 후 링크 첨부 부탁드립니다._')
+            parts.append('')
+
     # 완료 항목
     if completed:
         parts.append(f'✅ *완료된 항목 ({len(completed)})*')
@@ -333,10 +394,16 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
         parts.append(f'⬜ *미완료 항목 ({len(pending)})*')
         for p in pending:
             extra = []
-            if p.get('hasPlan'): extra.append('📋')
-            if p.get('hasFiles'): extra.append('📎')
-            extra_str = (' ' + ''.join(extra)) if extra else ''
+            if p.get('hasPlanReport'): extra.append('📋')
+            if p.get('hasResultReport'): extra.append('📊')
+            if p.get('hasLink'): extra.append('🔗')
+            extra_str = (' ' + ' '.join(extra)) if extra else ''
             parts.append(f'  ☐ {p["title"]}{extra_str}')
+        parts.append('')
+
+    # 안내 범례 (어떤 아이콘이 뭔지)
+    if pending and notify_type != 'monthly':
+        parts.append('_📋 계획보고 · 📊 결과보고 · 🔗 보고 링크_')
         parts.append('')
 
     # 점검표 링크
