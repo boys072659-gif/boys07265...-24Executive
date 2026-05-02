@@ -292,6 +292,102 @@
   .completion-box.cannot-complete .completion-toggle-label {
     color: #8a5a16;
   }
+
+  /* 완료 조건 체크리스트 */
+  .completion-checklist {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .cc-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+  }
+  .cc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .cc-item.done {
+    color: var(--success);
+  }
+  .cc-item.done .cc-text b {
+    color: var(--success);
+  }
+  .cc-status {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .cc-text b {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .cc-ready {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--success-soft);
+    border: 1px solid var(--success);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    color: var(--success);
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* 계획보고 / 결과보고 섹션 */
+  .report-section {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+  }
+  .report-section.plan-section {
+    border-left: 4px solid #5b8de8;
+  }
+  .report-section.result-section {
+    border-left: 4px solid #2ea043;
+  }
+  .report-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    flex-wrap: wrap;
+  }
+  .report-section-icon { font-size: 16px; }
+  .report-section-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--bg-subtle);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+  .report-section-meta {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  @media (max-width: 600px) {
+    .report-section { padding: 12px 14px; }
+    .report-section-title { font-size: 13px; }
+  }
   .completion-header {
     display: flex;
     align-items: center;
@@ -1114,6 +1210,32 @@
     cursor: pointer;
     transition: all 0.15s;
     flex-shrink: 0;
+  }
+  /* 연도 선택 드롭다운 */
+  .year-select {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 28px 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px;
+    flex-shrink: 0;
+    height: 32px;
+  }
+  .year-select:hover {
+    background-color: var(--bg-muted);
+    border-color: var(--border-strong);
+  }
+  @media (max-width: 880px) {
+    .year-select { font-size: 12px; padding: 5px 24px 5px 8px; height: 30px; }
   }
   .header-collapse-btn:hover {
     background: var(--bg-muted);
@@ -3016,7 +3138,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v32</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v33</span></div>
       </div>
     </div>
 
@@ -3048,6 +3170,11 @@
         <span class="conn-text-full" id="conn-text">연결 중</span>
       </div>
     </div>
+    <!-- 연도 선택 (마스터 전용) -->
+    <select class="year-select master-only" id="year-select" onchange="changeYear(this.value)" style="display:none">
+      <!-- JS에서 옵션 채움 -->
+    </select>
+
     <button class="header-collapse-btn" id="header-collapse-btn" onclick="toggleHeaderCompact()" title="현황판 접기/펼치기">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="18 15 12 9 6 15"></polyline>
@@ -3141,6 +3268,7 @@
       <a class="nav-item master-only" onclick="openMasterDownloadModal()" href="#" id="nav-master-download" style="display:none">📦 월별 일괄 다운로드</a>
       <a class="nav-item master-only" onclick="openAdminPanel()" href="#" id="nav-admin-panel" style="display:none">🔐 부서 비밀번호 관리</a>
       <a class="nav-item master-only" onclick="openTelegramPanel()" href="#" id="nav-telegram-panel" style="display:none">📡 텔레그램 봇 관리</a>
+      <a class="nav-item master-only" onclick="migrateOldDataToBaseYear()" href="#" id="nav-migrate" style="display:none">📦 옛 데이터 → 2026년 마이그레이션</a>
       <a class="nav-item" onclick="openChangeMyPassword()" href="#">🔑 내 비밀번호 변경</a>
       <a class="nav-item" onclick="exportTxt()" href="#">진행현황 내보내기</a>
       <a class="nav-item master-only" onclick="resetAll()" href="#" style="color:var(--danger)" id="nav-reset">전체 초기화</a>
@@ -3226,8 +3354,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 // ===== Supabase 설정값 (가이드 따라 본인 값 입력) =====
-const SUPABASE_URL = "https://atfdkfvcokdgfidxgdlo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0ZmRrZnZjb2tkZ2ZpZHhnZGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMTU4NjMsImV4cCI6MjA5Mjg5MTg2M30.yuuvSCsraD-DgLHv9MXoUVbdlrQVfgYYOA4QpmSbO8g";
+const SUPABASE_URL = "여기에_본인_PROJECT_URL_입력";
+const SUPABASE_ANON_KEY = "여기에_본인_ANON_KEY_입력";
 // =====================================================
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -3962,6 +4090,144 @@ let editMode = false;
 let unsubscribe = null;
 let realtimeChannel = null;
 
+// 연도별 데이터 분리 (2026년부터 시작 - 현재 데이터)
+const BASE_YEAR = 2026;
+const CURRENT_YEAR = new Date().getFullYear();
+let activeYear = (() => {
+  // localStorage에 저장된 연도가 있으면 그걸로, 아니면 올해
+  try {
+    const saved = localStorage.getItem('sjames_active_year');
+    if(saved){
+      const y = parseInt(saved);
+      if(y >= BASE_YEAR && y <= CURRENT_YEAR + 5) return y;
+    }
+  } catch(e){}
+  return CURRENT_YEAR < BASE_YEAR ? BASE_YEAR : CURRENT_YEAR;
+})();
+
+function changeYear(year){
+  const y = parseInt(year);
+  if(isNaN(y)) return;
+  if(y === activeYear) return;
+  activeYear = y;
+  try { localStorage.setItem('sjames_active_year', String(y)); } catch(e){}
+  showToast(`${y}년 데이터로 전환`, 'info');
+  // 데이터 다시 로드
+  if(typeof startListening === 'function' && user){
+    startListening();
+  }
+}
+
+// === 옛 데이터 마이그레이션 (prefix 없는 데이터를 BASE_YEAR로) ===
+// 기존에 입력했던 데이터(올해 = 2026)를 Y2026_ prefix로 이동
+async function migrateOldDataToBaseYear(){
+  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+  if(!window._sbReady){ showToast('연결 대기 중', 'error'); return; }
+
+  const confirmed = confirm(
+    `📦 옛 데이터를 ${BASE_YEAR}년 데이터로 마이그레이션합니다.\n\n` +
+    `기존에 입력하신 모든 체크 항목, 계획서, 첨부파일 메타정보가\n` +
+    `${BASE_YEAR}년 폴더로 이동됩니다.\n\n` +
+    `이 작업은 한 번만 실행하면 됩니다.\n` +
+    `진행하시겠습니까?`
+  );
+  if(!confirmed) return;
+
+  showToast('마이그레이션 시작...', 'info');
+  const sb = window._sb;
+  const BASE_PREFIX = 'Y' + BASE_YEAR + '_';
+  let cntItems = 0, cntOverrides = 0, errCount = 0;
+
+  // 1) checklist_items - prefix 없는 row를 prefix 붙은 row로 복사 후 원본 삭제
+  try {
+    const { data, error } = await sb.from('checklist_items').select('*');
+    if(error) throw error;
+    for(const row of (data || [])){
+      // 이미 prefix 있으면 스킵 (Y로 시작하는 4자리 + _)
+      if(/^Y\d{4}_/.test(row.item_key)) continue;
+      const newKey = BASE_PREFIX + row.item_key;
+      try {
+        // 새 키로 upsert
+        const { error: e1 } = await sb.from('checklist_items').upsert({
+          item_key: newKey,
+          checked: row.checked,
+          value: row.value,
+          updated_by: row.updated_by,
+          updated_dept: row.updated_dept,
+          updated_at: row.updated_at
+        }, { onConflict: 'item_key' });
+        if(e1) throw e1;
+        // 원본 삭제
+        const { error: e2 } = await sb.from('checklist_items').delete().eq('item_key', row.item_key);
+        if(e2) throw e2;
+        cntItems++;
+      } catch(e){
+        console.error('[mig items]', row.item_key, e);
+        errCount++;
+      }
+    }
+  } catch(e){
+    console.error('[mig items load]', e);
+    showToast('items 로드 실패: ' + e.message, 'error');
+    return;
+  }
+
+  // 2) checklist_overrides
+  try {
+    const { data, error } = await sb.from('checklist_overrides').select('*');
+    if(error) throw error;
+    for(const row of (data || [])){
+      if(/^Y\d{4}_/.test(row.id)) continue;
+      const newId = BASE_PREFIX + row.id;
+      try {
+        const { error: e1 } = await sb.from('checklist_overrides').upsert({
+          id: newId,
+          kind: row.kind,
+          action: row.action,
+          target_id: row.target_id,
+          dept_id: row.dept_id,
+          section_id: row.section_id,
+          payload: row.payload,
+          updated_by: row.updated_by,
+          updated_at: row.updated_at
+        }, { onConflict: 'id' });
+        if(e1) throw e1;
+        const { error: e2 } = await sb.from('checklist_overrides').delete().eq('id', row.id);
+        if(e2) throw e2;
+        cntOverrides++;
+      } catch(e){
+        console.error('[mig overrides]', row.id, e);
+        errCount++;
+      }
+    }
+  } catch(e){
+    console.error('[mig overrides load]', e);
+  }
+
+  showToast(`✅ 마이그레이션 완료: items ${cntItems}건, overrides ${cntOverrides}건${errCount?` · 실패 ${errCount}건`:''}`, 'success');
+  // 데이터 다시 로드
+  setTimeout(() => startListening(), 500);
+}
+
+function renderYearSelect(){
+  const sel = document.getElementById('year-select');
+  if(!sel) return;
+  if(!isMaster(user)){
+    sel.style.display = 'none';
+    return;
+  }
+  sel.style.display = '';
+  // 옵션: BASE_YEAR ~ CURRENT_YEAR + 1
+  const maxYear = Math.max(CURRENT_YEAR + 1, activeYear + 1);
+  let opts = '';
+  for(let y = BASE_YEAR; y <= maxYear; y++){
+    const isCur = y === CURRENT_YEAR ? ' (올해)' : '';
+    const sel = y === activeYear ? ' selected' : '';
+    opts += `<option value="${y}"${sel}>${y}년${isCur}</option>`;
+  }
+  document.getElementById('year-select').innerHTML = opts;
+}
+
 // === ID 생성 ===
 function genId(prefix){
   return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -4285,6 +4551,9 @@ function updateUserDisplay(){
   const html = `<div class="user-avatar">${escapeHtml(avatarText)}</div><div class="user-info-text"><b>${escapeHtml(mainText)}${masterBadge}</b><small>${escapeHtml(subText)}</small></div>`;
   const pc = document.getElementById('user-info-pc');
   if(pc) pc.innerHTML = html;
+
+  // 연도 선택 (마스터만)
+  renderYearSelect();
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
@@ -4394,12 +4663,19 @@ async function startListening(){
   const sb = window._sb;
   setConn('connecting', '연결 중...');
 
-  // 1) 체크 항목
+  // 현재 활성 연도의 prefix
+  const yp = yearPrefix();
+  console.log('[연도 필터]', activeYear, 'prefix:', yp);
+
+  // 1) 체크 항목 - 연도 prefix 매칭만 가져옴
   try {
     const { data, error } = await sb.from('checklist_items').select('*');
     if(error) throw error;
     cloudState = {};
     (data || []).forEach(row => {
+      // 연도 prefix가 다르면 스킵 (다른 연도 데이터)
+      // 옛 데이터 (prefix 없음)는 마이그레이션 필요 - 일단 무시
+      if(!row.item_key.startsWith(yp)) return;
       cloudState[row.item_key] = {
         checked: row.checked, value: row.value,
         by: row.updated_by, dept: row.updated_dept,
@@ -4413,15 +4689,16 @@ async function startListening(){
     return;
   }
 
-  // 2) 오버라이드 (구조 변경)
+  // 2) 오버라이드 - 연도 prefix 매칭만
   try {
     const { data, error } = await sb.from('checklist_overrides').select('*');
     if(error){
-      // 테이블 없으면 무시 (구버전 호환)
       console.warn('overrides 테이블 없음, 구조 편집 비활성화');
     } else {
       cloudOverrides = {};
       (data || []).forEach(row => {
+        // 연도 prefix 매칭 안 되면 스킵
+        if(!row.id.startsWith(yp)) return;
         cloudOverrides[row.id] = {
           id: row.id,
           kind: row.kind,
@@ -4491,6 +4768,8 @@ async function startListening(){
       }
       const row = payload.new;
       if(!row) return;
+      // 연도 prefix 다르면 무시 (다른 연도 데이터)
+      if(!row.item_key.startsWith(yearPrefix())) return;
       cloudState[row.item_key] = {
         checked: row.checked, value: row.value,
         by: row.updated_by, dept: row.updated_dept,
@@ -4503,6 +4782,8 @@ async function startListening(){
         if(payload.old && payload.old.id) delete cloudOverrides[payload.old.id];
       } else {
         const row = payload.new;
+        // 연도 prefix 다르면 무시
+        if(row && !row.id.startsWith(yearPrefix())) return;
         if(row) cloudOverrides[row.id] = {
           id: row.id, kind: row.kind, action: row.action,
           target_id: row.target_id, dept_id: row.dept_id,
@@ -4639,7 +4920,11 @@ async function deleteOverride(overrideId){
 
 // === 항목 키(체크용) ===
 // 항목 ID 자체를 키로 씀 (인덱스 대신)
-function getItemKey(item){ return 'item_' + item.id; }
+// 연도 prefix를 항목 키에 적용 (2026년 데이터: Y2026_item_xxx)
+// 이렇게 하면 같은 DB 테이블에서 연도별 데이터가 자동 분리됨
+function yearPrefix(){ return 'Y' + activeYear + '_'; }
+function getItemKey(item){ return yearPrefix() + 'item_' + item.id; }
+function getOverrideKey(baseId){ return yearPrefix() + baseId; }
 
 function getItemState(item){ return cloudState[getItemKey(item)] || null; }
 
@@ -4678,21 +4963,28 @@ async function toggleEventComplete(deptId, sectionId, itemId, ev){
   if(!canEditDept(dept)){ showToast('이 부서는 수정 권한이 없습니다', 'error'); return; }
 
   // 현재 완료 상태 확인
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
   const wasCompleted = existing.completed === true;
   const willBeCompleted = !wasCompleted;
 
-  // 미완료 → 완료 전환 시 검증: 유효한 텔레그램 보고 링크 필수
+  // 미완료 → 완료 전환 시 검증: 계획보고 + 결과보고 + 텔레그램 링크 모두 필수
   if(willBeCompleted){
     const link = (existing.completedLink || '').trim();
-    if(!link){
-      showToast('⚠️ 완료 처리하려면 텔레그램 보고 링크가 필요합니다', 'error');
-      // 모달 자동으로 열어서 사용자가 입력하도록 유도
-      setTimeout(() => openEventDetail(deptId, sectionId, itemId), 600);
-      return;
-    }
-    if(!isValidUrl(link)){
-      showToast('⚠️ 저장된 보고 링크가 올바르지 않습니다. 다시 입력해주세요', 'error');
+    const planFiles = existing.planFiles || existing.files || [];
+    const resultFiles = existing.resultFiles || [];
+    const planText = (existing.plan || '').trim();
+    const resultMemo = (existing.resultMemo || '').trim();
+
+    const hasPlan = planText.length > 0 || planFiles.length > 0;
+    const hasResult = resultMemo.length > 0 || resultFiles.length > 0;
+    const hasLink = link.length > 0 && isValidUrl(link);
+
+    if(!hasPlan || !hasResult || !hasLink){
+      const missing = [];
+      if(!hasPlan) missing.push('📋 계획보고');
+      if(!hasResult) missing.push('📊 결과보고');
+      if(!hasLink) missing.push('🔗 텔레그램 보고 링크');
+      showToast(`⚠️ 완료 처리하려면 ${missing.join(', ')}이(가) 필요합니다`, 'error');
       setTimeout(() => openEventDetail(deptId, sectionId, itemId), 600);
       return;
     }
@@ -4702,12 +4994,15 @@ async function toggleEventComplete(deptId, sectionId, itemId, ev){
   const updated = {
     ...existing,
     plan: existing.plan || '',
-    files: existing.files || [],
+    resultMemo: existing.resultMemo || '',
+    planFiles: existing.planFiles || existing.files || [],
+    resultFiles: existing.resultFiles || [],
     completed: willBeCompleted,
     completedAt: willBeCompleted ? Date.now() : null,
     completedBy: willBeCompleted ? user.name : null,
     completedLink: existing.completedLink || ''
   };
+  delete updated.files;  // 옛 키 제거
 
   // 동시에 체크리스트 항목도 체크 (체크박스가 칠해지도록)
   const item = dept.sections.flatMap(s => s.items).find(i => i.id === itemId);
@@ -4719,7 +5014,7 @@ async function toggleEventComplete(deptId, sectionId, itemId, ev){
   }
 
   const ok = await writeOverride({
-    id: 'detail_' + itemId,
+    id: yearPrefix() + 'detail_' + itemId,
     kind: 'detail',
     action: 'update',
     target_id: itemId,
@@ -4874,7 +5169,7 @@ async function saveItem(deptId, sectionId, itemId){
     if(hasTarget){ payload.target = target; payload.unit = unit; }
     else { payload.target = null; payload.unit = null; }
     ok = await writeOverride({
-      id: 'item_update_' + itemId,
+      id: yearPrefix() + 'item_update_' + itemId,
       kind: 'item',
       action: 'update',
       target_id: itemId,
@@ -4888,7 +5183,7 @@ async function saveItem(deptId, sectionId, itemId){
     const payload = { id: newId, t: text };
     if(hasTarget){ payload.target = target; payload.unit = unit; }
     ok = await writeOverride({
-      id: 'item_add_' + newId,
+      id: yearPrefix() + 'item_add_' + newId,
       kind: 'item',
       action: 'add',
       target_id: newId,
@@ -4921,7 +5216,7 @@ async function deleteItem(deptId, sectionId, itemId){
   const isCustom = !!cloudOverrides['item_add_' + itemId];
   if(!isCustom){
     await writeOverride({
-      id: 'item_delete_' + itemId,
+      id: yearPrefix() + 'item_delete_' + itemId,
       kind: 'item',
       action: 'delete',
       target_id: itemId,
@@ -4942,12 +5237,19 @@ function openEventDetail(deptId, sectionId, itemId){
   const item = section.items.find(i => i.id === itemId);
   const detail = item.detail || {};
   const editable = canEditDept(dept);
-  const files = detail.files || []; // [{name, path, size, type, uploadedBy, uploadedAt}, ...]
 
-  const filesHtml = files.length > 0 ? `
-    <div class="form-group">
-      <label class="form-label">📎 첨부 파일 (${files.length}개)</label>
-      <div class="file-list" id="file-list">
+  // ====== 데이터 마이그레이션: 옛 files 배열 → planFiles로 ======
+  // 옛 데이터 호환: detail.files가 있으면 detail.planFiles로 인식
+  const planFiles = detail.planFiles || detail.files || [];  // [{name, path, size, type, uploadedBy, uploadedAt}, ...]
+  const resultFiles = detail.resultFiles || [];
+
+  // ====== 계획보고 / 결과보고 섹션 헬퍼 ======
+  function buildFileListHtml(files, kind){
+    // kind: 'plan' or 'result'
+    if(!files.length) return '';
+    const kindLabel = kind === 'plan' ? '계획' : '결과';
+    return `
+      <div class="file-list" id="file-list-${kind}">
         ${files.map((f, idx) => `
           <div class="file-item">
             <div class="file-icon">${fileIcon(f.name)}</div>
@@ -4958,60 +5260,104 @@ function openEventDetail(deptId, sectionId, itemId){
             <button class="file-action" onclick="downloadFile('${escapeHtml(f.path).replace(/'/g,"\\'")}','${escapeHtml(f.name).replace(/'/g,"\\'")}')" title="다운로드">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
-            ${editable ? `<button class="file-action" onclick="replaceFile('${deptId}','${sectionId}','${itemId}',${idx})" title="다른 파일로 교체">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-            </button>` : ''}
-            ${editable ? `<button class="file-action danger" onclick="removeFile('${deptId}','${sectionId}','${itemId}',${idx})" title="삭제">
+            ${editable ? `<button class="file-action danger" onclick="removeFileV2('${deptId}','${sectionId}','${itemId}','${kind}',${idx})" title="삭제">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
             </button>` : ''}
           </div>
         `).join('')}
       </div>
-    </div>
-  ` : '';
+    `;
+  }
 
-  const uploadHtml = editable ? `
-    <div class="form-group">
-      <label class="form-label">📎 파일 첨부</label>
-      <div class="file-upload-zone" id="upload-zone">
-        <input type="file" id="file-input" style="display:none" onchange="handleFileSelect('${deptId}','${sectionId}','${itemId}')">
-        <button class="btn" onclick="document.getElementById('file-input').click()" type="button">
+  function buildUploadHtml(kind){
+    if(!editable) return '';
+    const kindLabel = kind === 'plan' ? '계획서' : '결과보고서';
+    const kindIcon = kind === 'plan' ? '📋' : '📊';
+    return `
+      <div class="file-upload-zone">
+        <input type="file" id="file-input-${kind}" style="display:none" multiple onchange="handleFileSelectV2('${deptId}','${sectionId}','${itemId}','${kind}')">
+        <button class="btn" onclick="document.getElementById('file-input-${kind}').click()" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-          파일 선택 (hwp · docx · xlsx · pptx · pdf 등)
+          ${kindIcon} ${kindLabel} 파일 선택 (여러 개 가능)
         </button>
-        <div class="form-hint">최대 50MB. 첨부된 파일은 모든 부서장이 다운로드할 수 있습니다.</div>
+        <div class="form-hint">최대 50MB · 한글·docx·xlsx·pptx·pdf·이미지 등</div>
       </div>
-    </div>
-  ` : '';
+    `;
+  }
 
+  // 계획서 텍스트 (편집 영역 또는 읽기 전용)
   const planText = detail.plan || '';
-  const planSection = editable ? `
+  const planTextSection = editable ? `
     <div class="form-group">
-      <label class="form-label">📝 세부 계획서</label>
-      <textarea class="form-textarea" id="d-plan" rows="10" style="min-height:200px" placeholder="육하원칙(언제·어디서·누가·무엇을·어떻게·왜)에 의해 자세히 기록해주세요.&#10;&#10;예시)&#10;• 일시: 2026년 5월 15일 오후 2시~5시&#10;• 장소: 본당 1층 대예배실&#10;• 참석 대상: 부서장 및 임원 전원 (약 80명)&#10;• 진행 내용: 상반기 결산 보고 후 종합 토론&#10;• 진행 방법: 부서별 5분 발표 → 질의응답&#10;• 목적: 하반기 사업 방향 수립을 위한 현황 점검&#10;• 준비 사항: 자료는 사전 공유, 다과 준비 필요">${escapeHtml(planText)}</textarea>
-      <div class="form-hint">육하원칙(언제·어디서·누가·무엇을·어떻게·왜)에 의해 자세히 기록해주세요.</div>
+      <label class="form-label">📝 세부 계획 (텍스트 작성)</label>
+      <textarea class="form-textarea" id="d-plan" rows="6" style="min-height:130px" placeholder="육하원칙(언제·어디서·누가·무엇을·어떻게·왜)에 의해 작성해주세요.&#10;&#10;예시)&#10;• 일시: 2026년 5월 15일 오후 2시~5시&#10;• 장소: 본당 1층 대예배실&#10;• 참석 대상: 부서장 및 임원 전원 (약 80명)&#10;• 진행 내용: 상반기 결산 보고 후 종합 토론">${escapeHtml(planText)}</textarea>
+      <div class="form-hint">텍스트만 작성해도 됩니다. 또는 아래 파일로 첨부 가능.</div>
     </div>
   ` : (planText ? `
     <div class="form-group">
-      <label class="form-label">📝 세부 계획서</label>
-      <div style="padding:14px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:keep-all">${escapeHtml(planText)}</div>
+      <label class="form-label">📝 세부 계획 (텍스트)</label>
+      <div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:keep-all">${escapeHtml(planText)}</div>
     </div>
-  ` : `
-    <div style="padding:24px;text-align:center;color:var(--text-tertiary);font-size:13px">아직 세부 계획서가 작성되지 않았습니다</div>
-  `);
+  ` : '');
 
+  // ====== 본문 구성: 보고 링크 → 계획보고 → 결과보고 순서 ======
   const body = `
     <div style="margin-bottom: 16px; padding: 12px 14px; background: var(--bg-subtle); border-radius: var(--radius-sm); font-size: 13.5px;">
       <strong style="font-size: 14px;">${escapeHtml(item.t)}</strong>
       <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px;">${escapeHtml(dept.name)}</div>
     </div>
+
     ${buildCompletionSection(deptId, sectionId, itemId, detail, editable)}
-    ${planSection}
-    ${filesHtml}
-    ${uploadHtml}
+
+    <!-- 계획보고 영역 -->
+    <div class="report-section plan-section">
+      <div class="report-section-title">
+        <span class="report-section-icon">📋</span>
+        <span>계획보고</span>
+        <span class="report-section-count" id="plan-count">${planFiles.length}개 파일</span>
+        ${detail.planUploadedAt ? `<span class="report-section-meta">${fmtTime(detail.planUploadedAt)}</span>` : ''}
+      </div>
+      ${planTextSection}
+      ${planFiles.length > 0 ? `
+        <div class="form-group">
+          <label class="form-label">📎 첨부 파일</label>
+          ${buildFileListHtml(planFiles, 'plan')}
+        </div>
+      ` : ''}
+      ${buildUploadHtml('plan')}
+    </div>
+
+    <!-- 결과보고 영역 -->
+    <div class="report-section result-section">
+      <div class="report-section-title">
+        <span class="report-section-icon">📊</span>
+        <span>결과보고</span>
+        <span class="report-section-count" id="result-count">${resultFiles.length}개 파일</span>
+        ${detail.resultUploadedAt ? `<span class="report-section-meta">${fmtTime(detail.resultUploadedAt)}</span>` : ''}
+      </div>
+      ${editable ? `
+        <div class="form-group">
+          <label class="form-label">📝 결과 메모 (텍스트, 선택)</label>
+          <textarea class="form-textarea" id="d-result" rows="4" style="min-height:90px" placeholder="결과 보고 내용을 텍스트로 작성하시려면 입력하세요. 또는 파일로 첨부.">${escapeHtml(detail.resultMemo || '')}</textarea>
+          <div class="form-hint">텍스트 또는 파일 중 어느 쪽이든 가능합니다.</div>
+        </div>
+      ` : (detail.resultMemo ? `
+        <div class="form-group">
+          <label class="form-label">📝 결과 메모</label>
+          <div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:keep-all">${escapeHtml(detail.resultMemo)}</div>
+        </div>
+      ` : '')}
+      ${resultFiles.length > 0 ? `
+        <div class="form-group">
+          <label class="form-label">📎 결과 첨부 파일</label>
+          ${buildFileListHtml(resultFiles, 'result')}
+        </div>
+      ` : ''}
+      ${buildUploadHtml('result')}
+    </div>
   `;
 
-  const hasContent = planText || files.length > 0;
+  const hasContent = planText || (detail.resultMemo && detail.resultMemo.trim()) || planFiles.length > 0 || resultFiles.length > 0;
   const footer = editable ? `
     ${hasContent ? `<button class="btn btn-danger" onclick="clearEventDetail('${deptId}','${sectionId}','${itemId}')">전체 삭제</button>` : ''}
     <button class="btn" onclick="closeModal()">취소</button>
@@ -5047,37 +5393,35 @@ function buildCompletionSection(deptId, sectionId, itemId, detail, editable){
     `;
   }
 
-  // 편집 가능 - 완료 가능 여부 사전 계산 (유효한 링크가 반드시 있어야 함)
+  // 편집 가능 - 완료 가능 여부 사전 계산 (3가지 모두 필요)
+  const planFiles = detail.planFiles || detail.files || [];
+  const resultFiles = detail.resultFiles || [];
+  const planText = (detail.plan || '').trim();
+  const resultMemo = (detail.resultMemo || '').trim();
+  const hasPlan = planText.length > 0 || planFiles.length > 0;
+  const hasResult = resultMemo.length > 0 || resultFiles.length > 0;
   const hasValidLink = link && isValidUrl(link);
-  const canComplete = hasValidLink;
+  const canComplete = hasPlan && hasResult && hasValidLink;
 
-  // 안내 메시지 - 상태에 따라 다르게
+  // 안내 메시지 - 3가지 체크리스트
   let completionHint = '';
   if(!completed){
-    if(!link){
-      // 링크 없음
-      completionHint = `<div style="margin-top:10px;padding:12px;background:#fff8e1;border:1.5px solid #f0c674;border-radius:var(--radius-sm);font-size:12.5px;color:#8a5a16;line-height:1.6">
-        ⚠️ <b>완료 처리를 위해 텔레그램 보고 링크가 필요합니다.</b><br>
-        <span style="font-size:11.5px">텔레그램에서 보고 메시지를 보낸 후, 해당 메시지의 링크를 복사해서 위에 입력하세요.</span><br>
-        <span style="font-size:11px;color:#a06a26">예: https://t.me/c/1234567890/123</span>
-      </div>`;
-    } else if(!hasValidLink){
-      // 링크 있는데 형식 오류
-      completionHint = `<div style="margin-top:10px;padding:12px;background:#fde2e2;border:1.5px solid #ee6464;border-radius:var(--radius-sm);font-size:12.5px;color:#b3201d;line-height:1.6">
-        ❌ <b>저장된 링크가 올바른 형식이 아닙니다.</b><br>
-        <span style="font-size:11.5px">https:// 또는 http://로 시작하는 정확한 주소를 입력하고 [저장]을 다시 눌러주세요.</span>
-      </div>`;
-    } else if(!isTelegramUrl(link)){
-      // 텔레그램이 아닌 링크
-      completionHint = `<div style="margin-top:10px;padding:10px 12px;background:#e7f4ff;border:1px solid #5cb3ff;border-radius:var(--radius-sm);font-size:12px;color:#1768b3;line-height:1.5">
-        ℹ️ 텔레그램(t.me) 링크가 아닙니다. 정상적인 링크라면 그대로 완료 처리 가능합니다.
-      </div>`;
-    } else {
-      // 유효한 텔레그램 링크
-      completionHint = `<div style="margin-top:10px;padding:10px 12px;background:#e3f7ed;border:1px solid #2ea043;border-radius:var(--radius-sm);font-size:12px;color:#167b48;line-height:1.5">
-        ✅ <b>텔레그램 보고 링크 확인.</b> 위 토글을 켜서 완료 처리하세요.
-      </div>`;
-    }
+    completionHint = `<div class="completion-checklist">
+      <div class="cc-title">📌 완료 처리를 위한 3가지 조건</div>
+      <div class="cc-item ${hasPlan?'done':''}">
+        <span class="cc-status">${hasPlan?'✅':'⬜'}</span>
+        <span class="cc-text"><b>📋 계획보고</b> ${hasPlan?'(완료)':'(텍스트 또는 파일)'}</span>
+      </div>
+      <div class="cc-item ${hasResult?'done':''}">
+        <span class="cc-status">${hasResult?'✅':'⬜'}</span>
+        <span class="cc-text"><b>📊 결과보고</b> ${hasResult?'(완료)':'(텍스트 또는 파일)'}</span>
+      </div>
+      <div class="cc-item ${hasValidLink?'done':''}">
+        <span class="cc-status">${hasValidLink?'✅':(link?'❌':'⬜')}</span>
+        <span class="cc-text"><b>🔗 텔레그램 보고 링크</b> ${hasValidLink?'(확인됨)':(link?'(형식 오류)':'(미입력)')}</span>
+      </div>
+      ${canComplete ? `<div class="cc-ready">✨ 모든 조건이 충족되었습니다. 위 토글을 켜서 완료하세요.</div>` : ''}
+    </div>`;
   }
 
   return `
@@ -5109,43 +5453,53 @@ async function onCompletionToggle(deptId, sectionId, itemId){
   const checkbox = document.getElementById('comp-toggle');
   const completed = checkbox.checked;
 
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
 
-  // 미완료 → 완료 전환 시 검증: 유효한 텔레그램 보고 링크 필수
+  // 미완료 → 완료 전환 시 검증: 계획보고 + 결과보고 + 텔레그램 링크 모두 필수
   if(completed){
-    // 모달 안 입력 중인 링크도 함께 검증 (저장 안 된 입력값도 인정)
+    // 모달 안 입력 중인 데이터들도 함께 검증
     const linkInputEl = document.getElementById('comp-link');
     const linkInput = linkInputEl ? linkInputEl.value.trim() : '';
+    const planInputEl = document.getElementById('d-plan');
+    const planInput = planInputEl ? planInputEl.value.trim() : '';
+    const resultInputEl = document.getElementById('d-result');
+    const resultInput = resultInputEl ? resultInputEl.value.trim() : '';
+
     const savedLink = (existing.completedLink || '').trim();
     const effectiveLink = linkInput || savedLink;
 
-    if(!effectiveLink){
-      // 토글 원복
+    const planFiles = existing.planFiles || existing.files || [];
+    const resultFiles = existing.resultFiles || [];
+    const savedPlan = (existing.plan || '').trim();
+    const savedResult = (existing.resultMemo || '').trim();
+
+    const hasPlan = (savedPlan || planInput) || planFiles.length > 0;
+    const hasResult = (savedResult || resultInput) || resultFiles.length > 0;
+    const hasValidLink = effectiveLink && isValidUrl(effectiveLink);
+
+    if(!hasPlan || !hasResult || !hasValidLink){
       checkbox.checked = false;
-      showModalAlert('error', '⚠️ 완료 처리하려면 텔레그램 보고 링크가 필요합니다.\n\n링크 입력 후 [저장] 버튼을 누르고 다시 시도해주세요.');
-      setTimeout(() => {
-        if(linkInputEl) linkInputEl.focus();
-      }, 100);
+      const missing = [];
+      if(!hasPlan) missing.push('• 📋 계획보고 (텍스트 또는 파일)');
+      if(!hasResult) missing.push('• 📊 결과보고 (텍스트 또는 파일)');
+      if(!hasValidLink) missing.push('• 🔗 유효한 텔레그램 보고 링크');
+      showModalAlert('error', `⚠️ 완료 처리를 위해 다음이 모두 필요합니다:\n\n${missing.join('\n')}\n\n먼저 [저장] 또는 파일 업로드를 완료하고 다시 시도해주세요.`);
       return;
     }
-    if(!isValidUrl(effectiveLink)){
-      checkbox.checked = false;
-      showModalAlert('error', '⚠️ 보고 링크가 올바른 형식이 아닙니다.\n\n예시: https://t.me/c/1234567890/123\n\nhttps://로 시작하는 정확한 주소를 입력해주세요.');
-      setTimeout(() => {
-        if(linkInputEl){
-          linkInputEl.focus();
-          linkInputEl.select();
-        }
-      }, 100);
-      return;
-    }
-    // 입력 중인 링크가 아직 저장 안 됐으면 자동 저장
+
+    // 입력 중인 링크가 아직 저장 안 됐으면 자동 저장 안내
     if(linkInput && linkInput !== savedLink){
-      checkbox.checked = false;  // 일단 토글 원복
-      showModalAlert('info', '먼저 [저장] 버튼을 눌러 보고 링크를 저장한 후 완료 처리해주세요');
+      checkbox.checked = false;
+      showModalAlert('info', '먼저 보고 링크 [저장] 버튼을 누른 후 완료 처리해주세요');
       setTimeout(() => {
         if(linkInputEl) linkInputEl.focus();
       }, 100);
+      return;
+    }
+    // 입력 중인 텍스트가 저장 안 된 경우도 안내
+    if((planInput && planInput !== savedPlan) || (resultInput && resultInput !== savedResult)){
+      checkbox.checked = false;
+      showModalAlert('info', '먼저 모달 하단의 [저장] 버튼을 누른 후 완료 처리해주세요');
       return;
     }
   }
@@ -5171,7 +5525,7 @@ async function onCompletionToggle(deptId, sectionId, itemId){
   }
 
   const ok = await writeOverride({
-    id: 'detail_' + itemId,
+    id: yearPrefix() + 'detail_' + itemId,
     kind: 'detail',
     action: 'update',
     target_id: itemId,
@@ -5242,7 +5596,7 @@ async function saveCompletionLink(deptId, sectionId, itemId){
     }
   }
 
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
   const updated = {
     ...existing,
     plan: existing.plan || '',
@@ -5251,7 +5605,7 @@ async function saveCompletionLink(deptId, sectionId, itemId){
   };
 
   const ok = await writeOverride({
-    id: 'detail_' + itemId,
+    id: yearPrefix() + 'detail_' + itemId,
     kind: 'detail',
     action: 'update',
     target_id: itemId,
@@ -5271,6 +5625,8 @@ async function saveCompletionLink(deptId, sectionId, itemId){
 async function saveEventDetail(deptId, sectionId, itemId){
   const planEl = document.getElementById('d-plan');
   const plan = planEl ? planEl.value.trim() : '';
+  const resultEl = document.getElementById('d-result');
+  const resultMemo = resultEl ? resultEl.value.trim() : '';
 
   // 저장 버튼 찾기 + 비활성화
   const footer = document.getElementById('modal-footer');
@@ -5283,20 +5639,30 @@ async function saveEventDetail(deptId, sectionId, itemId){
   }
 
   // 기존 detail에서 files와 완료 정보 보존
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
+  // 옛 files 키 마이그레이션
+  const planFilesExisting = existing.planFiles || existing.files || [];
+  const resultFilesExisting = existing.resultFiles || [];
+
   const detail = {
     plan: plan,
-    files: existing.files || [],
+    resultMemo: resultMemo,
+    planFiles: planFilesExisting,
+    resultFiles: resultFilesExisting,
+    planUploadedAt: existing.planUploadedAt || null,
+    resultUploadedAt: existing.resultUploadedAt || null,
+    planUploadedBy: existing.planUploadedBy || null,
+    resultUploadedBy: existing.resultUploadedBy || null,
     completed: existing.completed || false,
     completedAt: existing.completedAt || null,
     completedBy: existing.completedBy || null,
     completedLink: existing.completedLink || ''
   };
 
-  console.log('[저장 시작] saveEventDetail', {deptId, sectionId, itemId, planLength: plan.length, fileCount: detail.files.length});
+  console.log('[저장 시작] saveEventDetail', {deptId, sectionId, itemId, planLength: plan.length, planFiles: detail.planFiles.length, resultFiles: detail.resultFiles.length});
 
   const ok = await writeOverride({
-    id: 'detail_' + itemId,
+    id: yearPrefix() + 'detail_' + itemId,
     kind: 'detail',
     action: 'update',
     target_id: itemId,
@@ -5342,7 +5708,7 @@ function showModalAlert(type, msg){
 async function clearEventDetail(deptId, sectionId, itemId){
   if(!confirm('세부 계획과 첨부파일을 모두 삭제하시겠습니까?\n(첨부파일은 저장소에서도 삭제됩니다)')) return;
   // 첨부 파일도 storage에서 삭제
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
   const files = existing.files || [];
   if(files.length > 0 && window._sb){
     try {
@@ -5350,7 +5716,7 @@ async function clearEventDetail(deptId, sectionId, itemId){
       await window._sb.storage.from('attachments').remove(paths);
     } catch(e){ console.warn('파일 삭제 실패:', e); }
   }
-  await deleteOverride('detail_' + itemId);
+  await deleteOverride(yearPrefix() + 'detail_' + itemId);
   showToast('세부 계획 삭제됨');
   closeModal();
 }
@@ -5370,7 +5736,7 @@ async function handleFileSelect(deptId, sectionId, itemId){
   if(!window._sbReady){ showToast('연결 대기 중'); return; }
 
   // 같은 파일명이 이미 있는지 확인
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
   const existingFiles = existing.files || [];
   const dupIdx = existingFiles.findIndex(f => f.name === file.name);
 
@@ -5387,6 +5753,153 @@ async function handleFileSelect(deptId, sectionId, itemId){
 
   await uploadNewFile(deptId, sectionId, itemId, file);
   fileInput.value = '';
+}
+
+// === V2: 다중 파일 업로드 + 계획/결과 분리 ===
+async function handleFileSelectV2(deptId, sectionId, itemId, kind){
+  // kind: 'plan' or 'result'
+  const fileInput = document.getElementById('file-input-' + kind);
+  const files = Array.from(fileInput.files || []);
+  if(files.length === 0) return;
+
+  if(!window._sbReady){ showToast('연결 대기 중'); fileInput.value = ''; return; }
+
+  // 50MB 검사
+  for(const f of files){
+    if(f.size > 50 * 1024 * 1024){
+      showToast(`"${f.name}"은(는) 50MB를 초과합니다`, 'error');
+      fileInput.value = '';
+      return;
+    }
+  }
+
+  showToast(`업로드 중: ${files.length}개 파일`, 'info');
+  const fileKey = kind === 'plan' ? 'planFiles' : 'resultFiles';
+  const timeKey = kind === 'plan' ? 'planUploadedAt' : 'resultUploadedAt';
+  let successCount = 0;
+  let failCount = 0;
+  const newFiles = [];
+
+  for(const file of files){
+    try {
+      const sb = window._sb;
+      const ext = file.name.split('.').pop();
+      const safeName = `${kind}_${itemId}_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+      const path = `events/${deptId}/${itemId}/${safeName}`;
+
+      const { data, error } = await sb.storage
+        .from('attachments')
+        .upload(path, file, { contentType: file.type || 'application/octet-stream' });
+      if(error) throw error;
+
+      newFiles.push({
+        name: file.name,
+        path: data.path,
+        size: file.size,
+        type: file.type,
+        uploadedBy: user.name,
+        uploadedAt: Date.now(),
+        kind: kind  // 'plan' or 'result'
+      });
+      successCount++;
+    } catch(e){
+      console.error('[업로드 실패]', file.name, e);
+      failCount++;
+      showToast(`"${file.name}" 업로드 실패`, 'error');
+    }
+  }
+
+  // 메타 저장 (현재 입력 중인 텍스트도 보존)
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
+  const planTextarea = document.getElementById('d-plan');
+  const resultTextarea = document.getElementById('d-result');
+  const updated = {
+    ...existing,
+    plan: planTextarea ? planTextarea.value : (existing.plan || ''),
+    resultMemo: resultTextarea ? resultTextarea.value : (existing.resultMemo || ''),
+    planFiles: existing.planFiles || existing.files || [],  // 옛 files 마이그레이션
+    resultFiles: existing.resultFiles || [],
+  };
+  // 옛 files 키는 더 이상 안 씀 (planFiles로 마이그레이션됨)
+  delete updated.files;
+
+  // 새 파일 추가
+  updated[fileKey] = [...updated[fileKey], ...newFiles];
+  updated[timeKey] = Date.now();
+  if(kind === 'plan') updated.planUploadedBy = user.name;
+  else updated.resultUploadedBy = user.name;
+
+  const ok = await writeOverride({
+    id: yearPrefix() + 'detail_' + itemId,
+    kind: 'detail',
+    action: 'update',
+    target_id: itemId,
+    dept_id: deptId,
+    section_id: sectionId,
+    payload: updated
+  });
+
+  fileInput.value = '';
+
+  if(ok){
+    const kindLabel = kind === 'plan' ? '계획' : '결과';
+    showToast(`✅ ${kindLabel}보고 ${successCount}개 업로드 완료${failCount?` · ${failCount}개 실패`:''}`, 'success');
+    openEventDetail(deptId, sectionId, itemId);
+  } else {
+    showToast('메타 저장 실패. 다시 시도해주세요.', 'error');
+  }
+}
+
+async function removeFileV2(deptId, sectionId, itemId, kind, idx){
+  const fileKey = kind === 'plan' ? 'planFiles' : 'resultFiles';
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
+  const list = existing[fileKey] || (kind === 'plan' ? (existing.files || []) : []);
+  if(idx < 0 || idx >= list.length) return;
+  const removeFile = list[idx];
+  if(!confirm(`"${removeFile.name}" 파일을 삭제하시겠습니까?`)) return;
+
+  // Storage에서 삭제
+  try {
+    const sb = window._sb;
+    await sb.storage.from('attachments').remove([removeFile.path]);
+  } catch(e){
+    console.warn('[Storage 삭제 실패]', e);
+    // 메타는 삭제 진행
+  }
+
+  // 메타 갱신
+  const newList = [...list];
+  newList.splice(idx, 1);
+
+  // 현재 입력값 보존
+  const planTextarea = document.getElementById('d-plan');
+  const resultTextarea = document.getElementById('d-result');
+  const updated = {
+    ...existing,
+    plan: planTextarea ? planTextarea.value : (existing.plan || ''),
+    resultMemo: resultTextarea ? resultTextarea.value : (existing.resultMemo || ''),
+    planFiles: existing.planFiles || existing.files || [],
+    resultFiles: existing.resultFiles || [],
+  };
+  delete updated.files;
+  updated[fileKey] = newList;
+
+  const ok = await writeOverride({
+    id: yearPrefix() + 'detail_' + itemId,
+    kind: 'detail',
+    action: 'update',
+    target_id: itemId,
+    dept_id: deptId,
+    section_id: sectionId,
+    payload: updated
+  });
+
+  if(ok){
+    showToast(`삭제 완료: ${removeFile.name}`, 'success');
+    openEventDetail(deptId, sectionId, itemId);
+  } else {
+    showToast('삭제 실패', 'error');
+  }
 }
 
 // 새 파일 업로드 (덮어쓰기 아님)
@@ -5409,7 +5922,7 @@ async function uploadNewFile(deptId, sectionId, itemId, file){
     }
     console.log('[Storage 업로드 완료]', data.path);
 
-    const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+    const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
     const newFile = {
       name: file.name,
       path: data.path,
@@ -5423,7 +5936,7 @@ async function uploadNewFile(deptId, sectionId, itemId, file){
       files: [...(existing.files || []), newFile]
     };
     const ok = await writeOverride({
-      id: 'detail_' + itemId,
+      id: yearPrefix() + 'detail_' + itemId,
       kind: 'detail',
       action: 'update',
       target_id: itemId,
@@ -5455,7 +5968,7 @@ async function replaceFileAtIndex(deptId, sectionId, itemId, fileIdx, newFile){
 
   try {
     const sb = window._sb;
-    const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+    const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
     const files = existing.files || [];
     const oldFile = files[fileIdx];
     if(!oldFile){
@@ -5488,7 +6001,7 @@ async function replaceFileAtIndex(deptId, sectionId, itemId, fileIdx, newFile){
       files: updatedFiles
     };
     const ok = await writeOverride({
-      id: 'detail_' + itemId,
+      id: yearPrefix() + 'detail_' + itemId,
       kind: 'detail',
       action: 'update',
       target_id: itemId,
@@ -5599,7 +6112,7 @@ function collectFilesByDept(dept, monthFilter){
 
 // 텍스트 계획서 + 파일 모두 수집 (zip 다운로드용)
 function collectContentByDept(dept, monthFilter){
-  // 결과: [{ itemText, month, deptName, plan: '...', files: [{name, path, ...}] }, ...]
+  // 결과: [{ itemText, month, deptName, plan, planFiles, resultFiles, ...}]
   const result = [];
   dept.sections.forEach(sec => {
     if(sec.type !== 'event') return;
@@ -5608,15 +6121,22 @@ function collectContentByDept(dept, monthFilter){
       if(monthFilter && month !== monthFilter) return;
       const detail = item.detail || {};
       const plan = (detail.plan || '').trim();
-      const files = detail.files || [];
-      // 텍스트도 없고 파일도 없으면 스킵
-      if(!plan && files.length === 0) return;
+      const resultMemo = (detail.resultMemo || '').trim();
+      // 옛 데이터 마이그레이션: detail.files → planFiles
+      const planFiles = detail.planFiles || detail.files || [];
+      const resultFiles = detail.resultFiles || [];
+      // 아무 내용도 없으면 스킵
+      if(!plan && !resultMemo && planFiles.length === 0 && resultFiles.length === 0) return;
       result.push({
         itemText: item.t,
         deptName: dept.name,
         month: month,
         plan: plan,
-        files: files
+        resultMemo: resultMemo,
+        planFiles: planFiles,
+        resultFiles: resultFiles,
+        // 호환성: 옛 코드에서 .files를 참조하면 합쳐서 반환
+        files: [...planFiles, ...resultFiles]
       });
     });
   });
@@ -5667,21 +6187,28 @@ async function downloadDeptFiles(deptId, monthFilter){
     const zip = new JSZip();
     const monthLabel = monthFilter ? `${monthFilter}월` : '전체';
 
-    // 부서 전체 요약본 (먼저 추가)
-    const summary = buildDeptSummaryText(dept.name, items, monthLabel);
-    zip.file(`_${sanitize(dept.name)}_${monthLabel}_요약.txt`, textToBlob(summary));
-
+    // 요약 텍스트 / 계획서.txt 생성하지 않음 (사용자 요청)
+    // 첨부파일만 정리해서 zip
     for(const item of items){
       const folderName = sanitize((item.month?item.month+'월_':'') + item.itemText).slice(0, 60);
-      // 1. 계획서 텍스트 파일 - UTF-8 Blob으로 변환
-      const planText = buildPlanTextFile(item);
-      zip.file(`${folderName}/_계획서.txt`, textToBlob(planText));
-      // 2. 첨부파일들
-      for(const f of (item.files || [])){
+      // 계획보고 / 결과보고 폴더 분리
+      const planFiles = item.planFiles || item.files || [];
+      const resultFiles = item.resultFiles || [];
+
+      for(const f of planFiles){
         try {
           const { data, error } = await sb.storage.from('attachments').download(f.path);
           if(error) throw error;
-          zip.file(`${folderName}/${sanitize(f.name)}`, data);
+          zip.file(`${folderName}/계획보고/${sanitize(f.name)}`, data);
+        } catch(e){
+          console.warn('파일 추가 실패:', f.name, e);
+        }
+      }
+      for(const f of resultFiles){
+        try {
+          const { data, error } = await sb.storage.from('attachments').download(f.path);
+          if(error) throw error;
+          zip.file(`${folderName}/결과보고/${sanitize(f.name)}`, data);
         } catch(e){
           console.warn('파일 추가 실패:', f.name, e);
         }
@@ -5762,34 +6289,43 @@ async function downloadAllByMonth(monthFilter){
     const monthLabel = monthFilter ? `${monthFilter}월` : '전체';
     let success = 0, fail = 0;
 
-    // 부서별로 묶어서 요약 텍스트 추가
+    // 부서별로 묶기 (정렬 목적)
     const byDept = {};
     allItems.forEach(it => {
       if(!byDept[it.deptName]) byDept[it.deptName] = [];
       byDept[it.deptName].push(it);
     });
 
-    // 부서별 통합 요약본 (한 부서의 모든 항목 텍스트를 하나로)
-    Object.keys(byDept).forEach(deptName => {
-      const items = byDept[deptName];
-      const summary = buildDeptSummaryText(deptName, items, monthLabel);
-      const deptFolder = sanitize(deptName).slice(0, 50);
-      zip.file(`${deptFolder}/_${deptFolder}_요약.txt`, textToBlob(summary));
-    });
+    // 요약 텍스트 / 계획서.txt 생성하지 않음 (사용자 요청)
+    // 부서별 → 항목별 → 계획보고/결과보고 폴더로 분리해서 첨부파일만
 
-    // 각 항목별로 폴더 + 텍스트 + 첨부파일
     let processedFiles = 0;
     for(const it of allItems){
       const deptFolder = sanitize(it.deptName).slice(0, 50);
       const itemFolder = sanitize((it.month?it.month+'월_':'') + it.itemText).slice(0, 60);
-      // 항목별 계획서 (텍스트가 있는 경우만)
-      zip.file(`${deptFolder}/${itemFolder}/_계획서.txt`, textToBlob(buildPlanTextFile(it)));
-      // 첨부파일
-      for(const f of (it.files || [])){
+      const planFiles = it.planFiles || it.files || [];
+      const resultFiles = it.resultFiles || [];
+
+      for(const f of planFiles){
         try {
           const { data, error } = await sb.storage.from('attachments').download(f.path);
           if(error) throw error;
-          zip.file(`${deptFolder}/${itemFolder}/${sanitize(f.name)}`, data);
+          zip.file(`${deptFolder}/${itemFolder}/계획보고/${sanitize(f.name)}`, data);
+          success++;
+        } catch(e){
+          console.warn('파일 추가 실패:', f.name, e);
+          fail++;
+        }
+        processedFiles++;
+        if(processedFiles % 10 === 0){
+          showToast(`압축 진행: ${processedFiles}/${totalFiles}`, 'info');
+        }
+      }
+      for(const f of resultFiles){
+        try {
+          const { data, error } = await sb.storage.from('attachments').download(f.path);
+          if(error) throw error;
+          zip.file(`${deptFolder}/${itemFolder}/결과보고/${sanitize(f.name)}`, data);
           success++;
         } catch(e){
           console.warn('파일 추가 실패:', f.name, e);
@@ -5803,24 +6339,7 @@ async function downloadAllByMonth(monthFilter){
     }
 
     // 전체 요약본 (모든 부서)
-    const overall = [];
-    overall.push(`SJAMES 24행정부서 ${monthLabel} 연간계획 통합본`);
-    overall.push(''.padEnd(70, '='));
-    overall.push(`작성일: ${new Date().toLocaleDateString('ko-KR')}`);
-    overall.push(`참여 부서: ${Object.keys(byDept).length}개`);
-    overall.push(`총 항목: ${allItems.length}개`);
-    overall.push(`총 첨부파일: ${totalFiles}개`);
-    overall.push('');
-    Object.keys(byDept).forEach(deptName => {
-      overall.push(`▶ ${deptName} (${byDept[deptName].length}개 항목)`);
-      byDept[deptName].forEach(it => {
-        const planHint = it.plan ? ' [📋 계획서 작성됨]' : '';
-        const fileHint = it.files?.length ? ' [📎'+it.files.length+']' : '';
-        overall.push(`  - ${it.month?it.month+'월: ':''}${it.itemText}${planHint}${fileHint}`);
-      });
-      overall.push('');
-    });
-    zip.file(`_전체_${monthLabel}_목록.txt`, textToBlob(overall.join('\n')));
+    // 전체 목록 텍스트도 제거 (사용자 요청)
 
     showToast('압축 파일 생성 중...', 'info');
     const blob = await zip.generateAsync({
@@ -6974,7 +7493,7 @@ function showMonthDetail(month){
 
 async function removeFile(deptId, sectionId, itemId, fileIdx){
   if(!confirm('이 파일을 삭제하시겠습니까?')) return;
-  const existing = (cloudOverrides['detail_' + itemId] && cloudOverrides['detail_' + itemId].payload) || {};
+  const existing = (cloudOverrides[yearPrefix() + 'detail_' + itemId] && cloudOverrides[yearPrefix() + 'detail_' + itemId].payload) || {};
   const files = existing.files || [];
   const target = files[fileIdx];
   if(!target) return;
@@ -6987,7 +7506,7 @@ async function removeFile(deptId, sectionId, itemId, fileIdx){
       files: files.filter((_, i) => i !== fileIdx)
     };
     await writeOverride({
-      id: 'detail_' + itemId,
+      id: yearPrefix() + 'detail_' + itemId,
       kind: 'detail',
       action: 'update',
       target_id: itemId,
@@ -7115,7 +7634,7 @@ async function saveDept(deptId){
   let ok = false;
   if(deptId){
     ok = await writeOverride({
-      id: 'dept_update_' + deptId,
+      id: yearPrefix() + 'dept_update_' + deptId,
       kind: 'dept',
       action: 'update',
       target_id: deptId,
@@ -7129,7 +7648,7 @@ async function saveDept(deptId){
       { id: genId('section'), title: '연간 월별 계획', type: 'event', items: [] }
     ];
     ok = await writeOverride({
-      id: 'dept_add_' + newId,
+      id: yearPrefix() + 'dept_add_' + newId,
       kind: 'dept',
       action: 'add',
       target_id: newId,
@@ -7159,7 +7678,7 @@ async function deleteDept(deptId){
   // 기본 부서는 delete override 등록
   if(DEPTS.find(d => d.id === deptId)){
     await writeOverride({
-      id: 'dept_delete_' + deptId,
+      id: yearPrefix() + 'dept_delete_' + deptId,
       kind: 'dept',
       action: 'delete',
       target_id: deptId,
@@ -7443,6 +7962,7 @@ function openSheet(type){
         ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();openMasterDownloadModal()">📦 월별 일괄 다운로드</a>` : ''}
         ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();openAdminPanel()">🔐 부서 비밀번호 관리</a>` : ''}
         ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();openTelegramPanel()">📡 텔레그램 봇 관리</a>` : ''}
+        ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();migrateOldDataToBaseYear()">📦 옛 데이터 → ${BASE_YEAR}년 마이그레이션</a>` : ''}
         <a class="sheet-item" onclick="closeSheet();openChangeMyPassword()">🔑 내 비밀번호 변경</a>
         <a class="sheet-item" onclick="exportTxt()">진행현황 내보내기</a>
         ${isMaster(user) ? `<a class="sheet-item danger" onclick="resetAll()">체크 전체 초기화</a>` : ''}
