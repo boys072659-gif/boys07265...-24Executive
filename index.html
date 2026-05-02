@@ -7648,11 +7648,10 @@ async function executeBroadcast(){
     try { localStorage.removeItem('sjames_bot_token'); } catch(e){}
   }
 
-  // 공식 헤더 옵션
-  const headerCb = document.getElementById('bcast-add-header');
-  const addHeader = headerCb && headerCb.checked;
-  const senderInputEl = document.getElementById('bcast-sender-name');
-  const senderName = (senderInputEl && senderInputEl.value.trim()) || '총무부 공지';
+  // 공식 헤더 옵션 - 위에서 이미 willAddHeader, senderText 선언됨
+  // 발송 시 사용할 변수명으로 그대로 활용
+  const addHeader = willAddHeader;
+  const senderName = senderText;
 
   // 선택된 부서들
   const selected = [];
