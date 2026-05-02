@@ -3346,7 +3346,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v36</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v37</span></div>
       </div>
     </div>
 
@@ -6337,8 +6337,12 @@ function collectContentByDept(dept, monthFilter){
       // 옛 데이터 마이그레이션: detail.files → planFiles
       const planFiles = detail.planFiles || detail.files || [];
       const resultFiles = detail.resultFiles || [];
+      const completedLink = (detail.completedLink || '').trim();
+      const completed = !!detail.completed;
+      const completedBy = detail.completedBy || '';
+      const completedAt = detail.completedAt || null;
       // 아무 내용도 없으면 스킵
-      if(!plan && !resultMemo && planFiles.length === 0 && resultFiles.length === 0) return;
+      if(!plan && !resultMemo && planFiles.length === 0 && resultFiles.length === 0 && !completedLink) return;
       result.push({
         itemText: item.t,
         deptName: dept.name,
@@ -6347,6 +6351,14 @@ function collectContentByDept(dept, monthFilter){
         resultMemo: resultMemo,
         planFiles: planFiles,
         resultFiles: resultFiles,
+        completedLink: completedLink,
+        completed: completed,
+        completedBy: completedBy,
+        completedAt: completedAt,
+        planUploadedAt: detail.planUploadedAt || null,
+        resultUploadedAt: detail.resultUploadedAt || null,
+        planUploadedBy: detail.planUploadedBy || '',
+        resultUploadedBy: detail.resultUploadedBy || '',
         // 호환성: 옛 코드에서 .files를 참조하면 합쳐서 반환
         files: [...planFiles, ...resultFiles]
       });
@@ -6356,24 +6368,78 @@ function collectContentByDept(dept, monthFilter){
 }
 
 // 계획서 텍스트를 파일로 변환
+// 항목별 보고서 텍스트 파일 (계획서 + 결과보고 + 링크 + 첨부)
 function buildPlanTextFile(item){
   const lines = [];
   lines.push(`[${item.deptName}] ${item.itemText}`);
   lines.push(''.padEnd(60, '='));
   lines.push('');
+
+  // 완료 상태
+  if(item.completed){
+    const dateStr = item.completedAt ? new Date(item.completedAt).toLocaleString('ko-KR') : '';
+    lines.push(`✅ 완료${item.completedBy?` (${item.completedBy})`:''}${dateStr?` · ${dateStr}`:''}`);
+  } else {
+    lines.push('⬜ 미완료');
+  }
+  lines.push('');
+
+  // 텔레그램 보고 링크
+  if(item.completedLink){
+    lines.push('🔗 텔레그램 보고 링크');
+    lines.push(''.padEnd(60, '-'));
+    lines.push(item.completedLink);
+    lines.push('');
+  }
+
+  // 세부 계획 텍스트
+  lines.push('📋 세부 계획서');
+  lines.push(''.padEnd(60, '-'));
   if(item.plan){
     lines.push(item.plan);
   } else {
-    lines.push('(작성된 계획서 없음)');
+    lines.push('(작성된 텍스트 없음)');
   }
   lines.push('');
-  if(item.files && item.files.length > 0){
-    lines.push(''.padEnd(60, '-'));
-    lines.push(`첨부파일 ${item.files.length}개:`);
-    item.files.forEach(f => {
-      lines.push(`  · ${f.name} (${formatFileSize(f.size)}${f.uploadedBy?', '+f.uploadedBy:''})`);
+
+  // 계획 첨부파일 목록
+  if(item.planFiles && item.planFiles.length > 0){
+    lines.push(`📎 계획보고 첨부파일 (${item.planFiles.length}개)`);
+    item.planFiles.forEach(f => {
+      const meta = [
+        formatFileSize(f.size),
+        f.uploadedBy || '',
+        f.uploadedAt ? new Date(f.uploadedAt).toLocaleString('ko-KR') : ''
+      ].filter(Boolean).join(' · ');
+      lines.push(`  · ${f.name}${meta ? ' ('+meta+')' : ''}`);
     });
+    lines.push('');
   }
+
+  // 결과 메모 텍스트
+  lines.push('📊 결과보고');
+  lines.push(''.padEnd(60, '-'));
+  if(item.resultMemo){
+    lines.push(item.resultMemo);
+  } else {
+    lines.push('(작성된 텍스트 없음)');
+  }
+  lines.push('');
+
+  // 결과 첨부파일 목록
+  if(item.resultFiles && item.resultFiles.length > 0){
+    lines.push(`📎 결과보고 첨부파일 (${item.resultFiles.length}개)`);
+    item.resultFiles.forEach(f => {
+      const meta = [
+        formatFileSize(f.size),
+        f.uploadedBy || '',
+        f.uploadedAt ? new Date(f.uploadedAt).toLocaleString('ko-KR') : ''
+      ].filter(Boolean).join(' · ');
+      lines.push(`  · ${f.name}${meta ? ' ('+meta+')' : ''}`);
+    });
+    lines.push('');
+  }
+
   return lines.join('\n');
 }
 
@@ -6399,13 +6465,20 @@ async function downloadDeptFiles(deptId, monthFilter){
     const zip = new JSZip();
     const monthLabel = monthFilter ? `${monthFilter}월` : '전체';
 
-    // 요약 텍스트 / 계획서.txt 생성하지 않음 (사용자 요청)
-    // 첨부파일만 정리해서 zip
+    // ★ 부서 통합 보고서 (zip 최상단)
+    const summaryText = buildDeptSummaryText(dept.name, items, monthLabel);
+    zip.file(`_${sanitize(dept.name)}_${monthLabel}_통합보고.txt`, textToBlob(summaryText));
+
+    // 항목별로 폴더 구성: 보고서.txt + 계획보고/ + 결과보고/
     for(const item of items){
       const folderName = sanitize((item.month?item.month+'월_':'') + item.itemText).slice(0, 60);
       // 계획보고 / 결과보고 폴더 분리
       const planFiles = item.planFiles || item.files || [];
       const resultFiles = item.resultFiles || [];
+
+      // ★ 항목 보고서 텍스트 (계획+결과+링크+첨부 목록)
+      const reportText = buildPlanTextFile(item);
+      zip.file(`${folderName}/_보고서.txt`, textToBlob(reportText));
 
       for(const f of planFiles){
         try {
@@ -6452,22 +6525,62 @@ function textToBlob(text){
 // 부서 요약 텍스트 생성
 function buildDeptSummaryText(deptName, items, monthLabel){
   const lines = [];
-  lines.push(`[${deptName}] ${monthLabel} 연간계획 모음`);
+  const totalFiles = items.reduce((s,i)=>s+((i.planFiles||[]).length+(i.resultFiles||[]).length),0);
+  const completedCnt = items.filter(i => i.completed).length;
+
+  lines.push(`[${deptName}] ${monthLabel} 통합 보고서`);
   lines.push(''.padEnd(70, '='));
   lines.push(`작성일: ${new Date().toLocaleDateString('ko-KR')}`);
-  lines.push(`총 ${items.length}개 항목, 첨부파일 ${items.reduce((s,i)=>s+(i.files?.length||0),0)}개`);
+  lines.push(`총 ${items.length}개 항목 (완료 ${completedCnt} / 미완료 ${items.length - completedCnt})`);
+  lines.push(`첨부파일: 계획보고 ${items.reduce((s,i)=>s+(i.planFiles||[]).length,0)}개 + 결과보고 ${items.reduce((s,i)=>s+(i.resultFiles||[]).length,0)}개 = 총 ${totalFiles}개`);
   lines.push('');
+
   items.forEach((it, idx) => {
     lines.push('');
-    lines.push(`<${idx+1}> ${it.month?it.month+'월 - ':''}${it.itemText}`);
-    lines.push(''.padEnd(70, '-'));
-    lines.push(it.plan || '(작성된 계획서 없음)');
-    if(it.files && it.files.length > 0){
-      lines.push('');
-      lines.push(`첨부파일 ${it.files.length}개:`);
-      it.files.forEach(f => lines.push(`  · ${f.name}`));
+    lines.push(''.padEnd(70, '━'));
+    const status = it.completed ? '✅ 완료' : '⬜ 미완료';
+    lines.push(`<${idx+1}> ${it.month?it.month+'월 · ':''}${it.itemText}  [${status}]`);
+    lines.push(''.padEnd(70, '━'));
+
+    // 완료 정보
+    if(it.completed){
+      const dateStr = it.completedAt ? new Date(it.completedAt).toLocaleString('ko-KR') : '';
+      lines.push(`✅ 완료 처리: ${it.completedBy || '-'}${dateStr?` · ${dateStr}`:''}`);
     }
+
+    // 텔레그램 보고 링크
+    if(it.completedLink){
+      lines.push(`🔗 보고 링크: ${it.completedLink}`);
+    }
+
+    lines.push('');
+    // 세부 계획
+    lines.push('📋 세부 계획서');
+    lines.push(''.padEnd(60, '·'));
+    lines.push(it.plan || '(작성된 텍스트 없음)');
+
+    // 계획 첨부
+    if(it.planFiles && it.planFiles.length > 0){
+      lines.push('');
+      lines.push(`📎 계획보고 첨부 (${it.planFiles.length}개)`);
+      it.planFiles.forEach(f => lines.push(`  · ${f.name}`));
+    }
+
+    lines.push('');
+    // 결과 보고
+    lines.push('📊 결과보고');
+    lines.push(''.padEnd(60, '·'));
+    lines.push(it.resultMemo || '(작성된 텍스트 없음)');
+
+    // 결과 첨부
+    if(it.resultFiles && it.resultFiles.length > 0){
+      lines.push('');
+      lines.push(`📎 결과보고 첨부 (${it.resultFiles.length}개)`);
+      it.resultFiles.forEach(f => lines.push(`  · ${f.name}`));
+    }
+    lines.push('');
   });
+
   return lines.join('\n');
 }
 
@@ -6508,8 +6621,13 @@ async function downloadAllByMonth(monthFilter){
       byDept[it.deptName].push(it);
     });
 
-    // 요약 텍스트 / 계획서.txt 생성하지 않음 (사용자 요청)
-    // 부서별 → 항목별 → 계획보고/결과보고 폴더로 분리해서 첨부파일만
+    // ★ 부서별 통합 보고서 (한 부서의 모든 항목 텍스트 모음)
+    Object.keys(byDept).forEach(deptName => {
+      const deptItems = byDept[deptName];
+      const deptFolder = sanitize(deptName).slice(0, 50);
+      const summary = buildDeptSummaryText(deptName, deptItems, monthLabel);
+      zip.file(`${deptFolder}/_${deptFolder}_${monthLabel}_통합보고.txt`, textToBlob(summary));
+    });
 
     let processedFiles = 0;
     for(const it of allItems){
@@ -6517,6 +6635,10 @@ async function downloadAllByMonth(monthFilter){
       const itemFolder = sanitize((it.month?it.month+'월_':'') + it.itemText).slice(0, 60);
       const planFiles = it.planFiles || it.files || [];
       const resultFiles = it.resultFiles || [];
+
+      // ★ 항목별 보고서 텍스트 (계획+결과+링크+첨부 목록)
+      const reportText = buildPlanTextFile(it);
+      zip.file(`${deptFolder}/${itemFolder}/_보고서.txt`, textToBlob(reportText));
 
       for(const f of planFiles){
         try {
