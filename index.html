@@ -3478,6 +3478,7 @@
       <a class="nav-item master-only" onclick="openTelegramPanel()" href="#" id="nav-telegram-panel" style="display:none">📡 텔레그램 봇 관리</a>
       <a class="nav-item master-only" onclick="migrateOldDataToBaseYear()" href="#" id="nav-migrate" style="display:none">📦 옛 데이터 → 2026년 마이그레이션</a>
       <a class="nav-item master-only" onclick="cleanupStaleItemStates()" href="#" id="nav-cleanup" style="display:none">🧹 잘못된 완료표시 정리</a>
+      <a class="nav-item master-only" onclick="validateAllCompletions()" href="#" id="nav-validate" style="display:none">🔍 완료 조건 미달 항목 검증</a>
       <a class="nav-item" onclick="openChangeMyPassword()" href="#">🔑 내 비밀번호 변경</a>
       <a class="nav-item" onclick="exportTxt()" href="#">진행현황 내보내기</a>
       <a class="nav-item master-only" onclick="resetAll()" href="#" style="color:var(--danger)" id="nav-reset">전체 초기화</a>
@@ -4470,6 +4471,112 @@ async function cleanupStaleItemStates(){
   setTimeout(() => render(), 500);
 }
 
+// === 완료 조건 미달 항목 일괄 검증/해제 ===
+// 이미 완료처리됐지만 3가지 보고 조건(계획+결과+링크) 중 하나라도 빠진 항목들
+async function validateAllCompletions(){
+  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+  if(!window._sbReady){ showToast('연결 대기 중', 'error'); return; }
+
+  // 먼저 검사 (스캔)
+  const violations = [];
+  const depts = getEffectiveDepts();
+  depts.forEach(dept => {
+    dept.sections.forEach(sec => {
+      if(sec.type !== 'event') return;
+      sec.items.forEach(item => {
+        const detail = item.detail || {};
+        if(detail.completed !== true) return;  // 완료 표시된 것만
+
+        const planFiles = detail.planFiles || detail.files || [];
+        const resultFiles = detail.resultFiles || [];
+        const planText = (detail.plan || '').trim();
+        const resultMemo = (detail.resultMemo || '').trim();
+        const link = (detail.completedLink || '').trim();
+
+        const hasPlan = planText.length > 0 || planFiles.length > 0;
+        const hasResult = resultMemo.length > 0 || resultFiles.length > 0;
+        const hasValidLink = link.length > 0 && (typeof isValidUrl === 'function' ? isValidUrl(link) : true);
+
+        if(!hasPlan || !hasResult || !hasValidLink){
+          const missing = [];
+          if(!hasPlan) missing.push('계획');
+          if(!hasResult) missing.push('결과');
+          if(!hasValidLink) missing.push('링크');
+          violations.push({
+            deptId: dept.id,
+            deptName: dept.name,
+            sectionId: sec.id,
+            itemId: item.id,
+            itemTitle: item.t,
+            missing: missing,
+            detail: detail
+          });
+        }
+      });
+    });
+  });
+
+  if(violations.length === 0){
+    showToast('✅ 완료 조건 미달 항목 없음 (모두 정상)', 'success');
+    return;
+  }
+
+  // 사용자 확인
+  const list = violations.slice(0, 10).map(v =>
+    `· [${v.deptName}] ${v.itemTitle}\n    누락: ${v.missing.join(', ')}`
+  ).join('\n');
+  const moreText = violations.length > 10 ? `\n... 외 ${violations.length - 10}건` : '';
+
+  const confirmed = confirm(
+    `⚠️ 완료 조건 미달 항목 ${violations.length}건 발견\n\n` +
+    `${list}${moreText}\n\n` +
+    `이 항목들을 모두 미완료로 자동 해제하시겠습니까?\n` +
+    `(작성자가 빠진 보고를 다시 채우면 다시 완료 처리 가능)`
+  );
+  if(!confirmed) return;
+
+  showToast('완료 해제 진행 중...', 'info');
+  const sb = window._sb;
+  let success = 0, fail = 0;
+
+  for(const v of violations){
+    try {
+      const updated = {
+        ...v.detail,
+        completed: false,
+        completedAt: null,
+        completedBy: null
+        // completedLink는 유지 (링크가 잘못됐을 뿐 보존)
+      };
+      const id = yearPrefix() + 'detail_' + v.itemId;
+      const { error } = await sb.from('checklist_overrides').upsert({
+        id: id,
+        kind: 'detail',
+        action: 'update',
+        target_id: v.itemId,
+        dept_id: v.deptId,
+        section_id: v.sectionId,
+        payload: updated,
+        updated_by: user.name,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+      if(error) throw error;
+      cloudOverrides[id] = {
+        id, kind: 'detail', action: 'update',
+        target_id: v.itemId, dept_id: v.deptId, section_id: v.sectionId,
+        payload: updated
+      };
+      success++;
+    } catch(e){
+      console.error('[validate]', v.itemTitle, e);
+      fail++;
+    }
+  }
+
+  showToast(`✅ 완료 해제: ${success}건${fail?` · 실패 ${fail}건`:''}`, 'success');
+  setTimeout(() => render(), 500);
+}
+
 function renderYearSelect(){
   const sel = document.getElementById('year-select');
   if(!sel) return;
@@ -4612,13 +4719,26 @@ function deptSortKey(dept){
 // 항목 텍스트의 월 추출 → 정렬 키 생성
 // "1월 시무식" → 1, "5월 가정의 달" → 5, 월 없으면 13(맨뒤)
 function itemSortKey(item){
-  if(!item || !item.t) return 13;
-  // 텍스트에서 첫 번째 "N월" 패턴 찾기 (앞 공백/특수문자 허용)
-  const m = item.t.match(/(\d{1,2})\s*월/);
-  if(!m) return 13;  // "월" 없으면 맨 뒤로
-  const month = parseInt(m[1]);
-  if(isNaN(month) || month < 1 || month > 12) return 13;
-  return month;
+  if(!item || !item.t) return 1300;  // 월 없는 항목은 맨 뒤로 (13.00월 = 13*100 = 1300)
+  // 월 매칭 (앞 공백/특수문자 허용)
+  const monthMatch = item.t.match(/(\d{1,2})\s*월/);
+  if(!monthMatch) return 1300;
+  const month = parseInt(monthMatch[1]);
+  if(isNaN(month) || month < 1 || month > 12) return 1300;
+
+  // "N월" 뒤에 오는 일자 파싱 - "N월" 위치부터 그 뒤 텍스트만 검사
+  const afterMonth = item.t.slice(monthMatch.index + monthMatch[0].length);
+  // 다음 공백 전까지에서 "N일" 패턴 찾기 (예: "5월 9일", "5월 30일")
+  // 또는 숫자만 있는 경우도 (예: "5월 9", "5월 9일·창고")
+  const dayMatch = afterMonth.match(/^\s*(\d{1,2})\s*(?:일|\b)/);
+  let day = 0;  // 일 정보 없으면 0 (월의 맨 앞으로)
+  if(dayMatch){
+    const d = parseInt(dayMatch[1]);
+    if(!isNaN(d) && d >= 1 && d <= 31) day = d;
+  }
+
+  // 정렬 키 = 월 * 100 + 일 (예: 5월9일 = 509, 5월30일 = 530, 5월(일없음) = 500)
+  return month * 100 + day;
 }
 
 function avatar(name){ return name ? name.charAt(0) : '?'; }
@@ -5172,6 +5292,37 @@ async function writeOverride(override){
     showToast('로그인이 필요합니다', 'error');
     return false;
   }
+
+  // ★ detail 저장 시: 3가지 보고 조건 자동 검증 → 미충족 시 완료 자동 해제
+  if(override.kind === 'detail' && override.payload && override.payload.completed === true){
+    const p = override.payload;
+    const planFiles = p.planFiles || [];
+    const resultFiles = p.resultFiles || [];
+    const planText = (p.plan || '').trim();
+    const resultMemo = (p.resultMemo || '').trim();
+    const link = (p.completedLink || '').trim();
+
+    const hasPlan = planText.length > 0 || planFiles.length > 0;
+    const hasResult = resultMemo.length > 0 || resultFiles.length > 0;
+    const hasValidLink = link.length > 0 && (typeof isValidUrl === 'function' ? isValidUrl(link) : true);
+
+    if(!hasPlan || !hasResult || !hasValidLink){
+      // 완료 조건 미달 → 자동 해제
+      override.payload = {
+        ...p,
+        completed: false,
+        completedAt: null,
+        completedBy: null
+        // completedLink는 그대로 (사용자가 다시 링크 입력만 하면 복구되도록)
+      };
+      const missing = [];
+      if(!hasPlan) missing.push('계획보고');
+      if(!hasResult) missing.push('결과보고');
+      if(!hasValidLink) missing.push('텔레그램 링크');
+      showToast(`⚠️ ${missing.join(', ')} 미제출로 완료 자동 해제`, 'info');
+    }
+  }
+
   const sb = window._sb;
   // 낙관적 적용
   cloudOverrides[override.id] = override;
@@ -8877,6 +9028,7 @@ function openSheet(type){
         ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();openTelegramPanel()">📡 텔레그램 봇 관리</a>` : ''}
         ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();migrateOldDataToBaseYear()">📦 옛 데이터 → ${BASE_YEAR}년 마이그레이션</a>` : ''}
         ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();cleanupStaleItemStates()">🧹 잘못된 완료표시 정리</a>` : ''}
+        ${isMaster(user) ? `<a class="sheet-item" onclick="closeSheet();validateAllCompletions()">🔍 완료 조건 미달 항목 검증</a>` : ''}
         <a class="sheet-item" onclick="closeSheet();openChangeMyPassword()">🔑 내 비밀번호 변경</a>
         <a class="sheet-item" onclick="exportTxt()">진행현황 내보내기</a>
         ${isMaster(user) ? `<a class="sheet-item danger" onclick="resetAll()">체크 전체 초기화</a>` : ''}
