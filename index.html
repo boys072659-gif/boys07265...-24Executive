@@ -3346,7 +3346,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v37</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v38</span></div>
       </div>
     </div>
 
@@ -4529,7 +4529,42 @@ function getEffectiveDepts(){
     }
   });
 
+  // ★ 부서 자동 정렬 (이름 앞의 숫자 기준)
+  // 예: "03 내무부" → 3, "10 문화부" → 10, "3-1 자문회" → 3.1
+  depts.sort((a, b) => deptSortKey(a) - deptSortKey(b));
+
+  // ★ 섹션 내 항목들 자동 정렬 (월별 행사 항목만)
+  depts.forEach(dept => {
+    dept.sections.forEach(sec => {
+      if(sec.type === 'event' && sec.items && sec.items.length > 0){
+        sec.items.sort((a, b) => itemSortKey(a) - itemSortKey(b));
+      }
+    });
+  });
+
   return depts;
+}
+
+// 부서명 앞의 숫자 추출 → 정렬 키 생성
+// "03 내무부" → 3, "3-1 자문회" → 3.1, "10 문화부" → 10
+function deptSortKey(dept){
+  if(!dept || !dept.name) return 9999;
+  const m = dept.name.match(/^(\d+)(?:[-.](\d+))?/);
+  if(!m) return 9999;  // 숫자 없으면 맨 뒤로
+  const main = parseInt(m[1]);
+  const sub = m[2] ? parseInt(m[2]) : 0;
+  return main + sub / 100;  // 3-1 → 3.01, 3-2 → 3.02
+}
+
+// 항목 텍스트의 월 추출 → 정렬 키 생성
+// "1월 시무식" → 1, "5월 가정의 달" → 5, 월 없으면 13(맨뒤)
+function itemSortKey(item){
+  if(!item || !item.t) return 13;
+  const m = item.t.match(/^(\d{1,2})월/);
+  if(!m) return 13;  // "월" 없으면 맨 뒤로
+  const month = parseInt(m[1]);
+  if(month < 1 || month > 12) return 13;
+  return month;
 }
 
 function avatar(name){ return name ? name.charAt(0) : '?'; }
