@@ -502,231 +502,6 @@
     color: var(--text-secondary);
   }
 
-  /* ============ 모바일 스와이프 시스템 ============ */
-  /* 스와이프 힌트 (한 번만 표시) */
-  .swipe-hint {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    padding: 16px 22px;
-    border-radius: 12px;
-    z-index: 9999;
-    font-size: 13.5px;
-    line-height: 1.6;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-    text-align: center;
-    pointer-events: none;
-    opacity: 0;
-    animation: swipeHintFade 3.5s ease-out forwards;
-    max-width: 320px;
-  }
-  @keyframes swipeHintFade {
-    0%   { opacity: 0; }
-    15%  { opacity: 1; }
-    85%  { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  .swipe-hint b { color: #ffd166; }
-  .swipe-hint .si-icon { font-size: 18px; }
-
-  /* 스와이프 인디케이터 (하단 작은 점) */
-  .swipe-indicator {
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 6px;
-    z-index: 200;
-    background: rgba(255,255,255,0.9);
-    padding: 6px 12px;
-    border-radius: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-size: 11px;
-    color: var(--text-tertiary);
-    align-items: center;
-  }
-  .swipe-indicator .arrow {
-    font-size: 14px;
-  }
-  @media (min-width: 881px) {
-    .swipe-indicator { display: none; }
-  }
-
-  /* ============ 부서별 빠른 이동 페이지 ============ */
-  .quickmove-overlay {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    overflow: hidden;
-  }
-  .quickmove-overlay.show {
-    transform: translateX(0);
-  }
-  .quickmove-header {
-    background: var(--accent);
-    color: #fff;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-  }
-  .quickmove-back {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    color: #fff;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    transition: background 0.15s;
-  }
-  .quickmove-back:hover { background: rgba(255,255,255,0.3); }
-  .quickmove-title {
-    font-size: 17px;
-    font-weight: 700;
-    flex: 1;
-  }
-  .quickmove-subtitle {
-    font-size: 11.5px;
-    opacity: 0.8;
-    margin-top: 2px;
-  }
-  .quickmove-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .quickmove-group {
-    margin-bottom: 22px;
-  }
-  .quickmove-group-title {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--text-tertiary);
-    margin-bottom: 10px;
-    padding: 0 4px;
-    letter-spacing: -0.2px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .quickmove-group-title::before {
-    content: '';
-    width: 4px;
-    height: 14px;
-    background: var(--accent);
-    border-radius: 2px;
-  }
-  .quickmove-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-  @media (min-width: 600px) {
-    .quickmove-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-  .quickmove-card {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 14px 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    text-align: left;
-    position: relative;
-    overflow: hidden;
-  }
-  .quickmove-card:active {
-    transform: scale(0.96);
-  }
-  .quickmove-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  .quickmove-card-bar {
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-  }
-  .quickmove-card-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 6px;
-    line-height: 1.3;
-    word-break: keep-all;
-  }
-  .quickmove-card-stats {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .quickmove-card-progress {
-    flex: 1;
-    height: 5px;
-    background: var(--bg-subtle);
-    border-radius: 3px;
-    overflow: hidden;
-    min-width: 50px;
-  }
-  .quickmove-card-progress-fill {
-    height: 100%;
-    background: var(--success);
-    transition: width 0.3s;
-    border-radius: 3px;
-  }
-  .quickmove-card-progress-fill.zero { background: var(--text-tertiary); }
-  .quickmove-card-pct {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-secondary);
-    min-width: 32px;
-    text-align: right;
-  }
-
-  /* ============ 월별 통합 보기에서 완료/미완료 정렬 ============ */
-  .month-section-divider {
-    margin: 18px 0 10px;
-    padding: 8px 12px;
-    background: var(--bg-subtle);
-    border-radius: var(--radius-sm);
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-left: 3px solid var(--accent);
-  }
-  .month-section-divider.completed { border-left-color: var(--success); }
-  .month-section-divider.pending { border-left-color: #f0a020; }
-  .month-section-divider .badge {
-    background: var(--bg-elevated);
-    padding: 1px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-weight: 600;
-  }
-
   .completion-checklist {
     margin-top: 12px;
     padding: 12px 14px;
@@ -3571,7 +3346,7 @@
       <div class="header-emblem">SJ</div>
       <div class="header-text">
         <div class="header-title">SJAMES 24행정부서 연간계획</div>
-        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v40</span></div>
+        <div class="header-sub">서울야고보 · 24행정부서 통합 대시보드 <span style="opacity:0.5;font-size:10px;margin-left:6px">v41</span></div>
       </div>
     </div>
 
@@ -8731,18 +8506,13 @@ function showMonthDetail(month){
     sortedDeptNames.forEach(deptName => {
       const group = byDept[deptName];
 
-      // ★ 부서 안에서 완료/미완료로 분리 + 각 그룹 안에서 월·일 순 정렬
-      const completedItems = [];
-      const pendingItems = [];
-      group.items.forEach(entry => {
-        const isCompleted = entry.item.detail && entry.item.detail.completed === true;
-        if(isCompleted) completedItems.push(entry);
-        else pendingItems.push(entry);
+      // ★ 부서 안에서 정렬: 미완료 먼저 (위) → 완료 (아래) + 같은 그룹 안에서는 일자 순
+      group.items.sort((a, b) => {
+        const aDone = !!(a.item.detail && a.item.detail.completed);
+        const bDone = !!(b.item.detail && b.item.detail.completed);
+        if(aDone !== bDone) return aDone ? 1 : -1;  // 미완료(false)가 위로
+        return itemSortKey(a.item) - itemSortKey(b.item);  // 같은 상태끼리는 일자 순
       });
-      // 각 그룹 안에서 월·일 순 정렬
-      const sortByMonthDay = (a, b) => itemSortKey(a.item) - itemSortKey(b.item);
-      completedItems.sort(sortByMonthDay);
-      pendingItems.sort(sortByMonthDay);
 
       body += `
         <div style="margin-bottom:18px">
@@ -8750,54 +8520,37 @@ function showMonthDetail(month){
             <div style="width:8px;height:8px;border-radius:50%;background:${group.dept.color}"></div>
             <strong style="font-size:14px">${escapeHtml(deptName)}</strong>
             <span style="font-size:11.5px;color:var(--text-tertiary)">${escapeHtml(group.dept.leader||'')} ${escapeHtml(group.dept.leaderTitle||'')}</span>
-            <span style="margin-left:auto;font-size:11px;color:var(--text-tertiary)">완료 ${completedItems.length} · 미완료 ${pendingItems.length}</span>
           </div>
       `;
 
-      // 항목 렌더링 헬퍼
-      function renderItem({dept, section, item}){
+      group.items.forEach(({dept, section, item}) => {
         const detail = item.detail || {};
-        const planText = (detail.plan || '').trim();
-        const planFiles = detail.planFiles || detail.files || [];
-        const resultFiles = detail.resultFiles || [];
-        const hasPlan = planText.length > 0 || planFiles.length > 0;
-        const totalFiles = planFiles.length + resultFiles.length;
+        const hasPlan = detail.plan && detail.plan.trim();
+        const hasFiles = detail.files && detail.files.length > 0;
         const isCompleted = detail.completed === true;
         const hasLink = detail.completedLink && detail.completedLink.trim();
 
-        return `
+        body += `
           <div class="month-overview-item" onclick="closeModal();setTimeout(()=>openEventDetail('${dept.id}','${section.id}','${item.id}'),200)">
             <div style="display:flex;align-items:flex-start;gap:8px">
               <div style="flex:1;min-width:0">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
                   ${isCompleted ? '<span class="status-badge done">✓ 완료</span>' : ''}
-                  <div style="font-size:13.5px;font-weight:600;line-height:1.5;color:var(--text);flex:1;min-width:0;${isCompleted?'text-decoration:line-through;text-decoration-color:var(--text-tertiary);color:var(--text-secondary)':''}">${escapeHtml(item.t)}</div>
+                  <div style="font-size:13.5px;font-weight:600;line-height:1.5;color:var(--text);flex:1;min-width:0">${escapeHtml(item.t)}</div>
                 </div>
-                ${hasPlan || totalFiles > 0 || hasLink ? `
+                ${hasPlan || hasFiles || hasLink ? `
                   <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                    ${planText ? `<span class="event-detail-icon">📋 계획</span>` : ''}
-                    ${planFiles.length > 0 ? `<span class="event-detail-icon">📋 ${planFiles.length}</span>` : ''}
-                    ${resultFiles.length > 0 ? `<span class="event-detail-icon">📊 ${resultFiles.length}</span>` : ''}
+                    ${hasPlan ? `<span class="event-detail-icon">📋 계획서</span>` : ''}
+                    ${hasFiles ? `<span class="event-detail-icon">📎 ${detail.files.length}개</span>` : ''}
                     ${hasLink ? `<a class="completion-pill" href="${escapeHtml(detail.completedLink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🔗 결과 링크</a>` : ''}
                   </div>
                 ` : `<div style="font-size:11.5px;color:var(--text-quaternary);margin-top:4px">아직 작성되지 않음</div>`}
-                ${planText ? `<div style="margin-top:8px;padding:8px 10px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:keep-all;max-height:80px;overflow:hidden;position:relative">${escapeHtml(planText.slice(0, 200))}${planText.length>200?'...':''}</div>` : ''}
+                ${hasPlan ? `<div style="margin-top:8px;padding:8px 10px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:keep-all;max-height:80px;overflow:hidden;position:relative">${escapeHtml(detail.plan.slice(0, 200))}${detail.plan.length>200?'...':''}</div>` : ''}
               </div>
             </div>
           </div>
         `;
-      }
-
-      // 완료 섹션
-      if(completedItems.length > 0){
-        body += `<div class="month-section-divider completed">✅ 완료 <span class="badge">${completedItems.length}</span></div>`;
-        completedItems.forEach(e => { body += renderItem(e); });
-      }
-      // 미완료 섹션
-      if(pendingItems.length > 0){
-        body += `<div class="month-section-divider pending">⬜ 미완료 <span class="badge">${pendingItems.length}</span></div>`;
-        pendingItems.forEach(e => { body += renderItem(e); });
-      }
+      });
 
       body += `</div>`;
     });
@@ -10374,146 +10127,91 @@ setInterval(()=>{ if(user) render(); }, 60000);
 
 </script>
 <script>
-/* ============================================================
- * 모바일 스와이프 제스처 시스템 (v39)
- *  - 메인 → 오른쪽으로 밀기 → 이번 달 월별 통합 보기 (마스터만)
- *  - 메인 → 왼쪽으로 밀기 → 부서별 빠른 이동 페이지
- *  - 모달/오버레이 → 오른쪽으로 밀기 → 닫기 (이전 페이지)
- * ============================================================ */
+/* ================================================
+ * 모바일 스와이프 (v41 안전 버전)
+ *  - 마스터(총무부)만 작동
+ *  - 모바일(880px 이하)에서만 작동
+ *  - passive 이벤트로 스크롤 방해 안 함
+ * ================================================ */
 (function(){
   'use strict';
 
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchStartT = 0;
-  let isSwiping = false;
-  const SWIPE_MIN_DISTANCE = 80;     // 최소 80px 이동
-  const SWIPE_MAX_VERTICAL = 60;     // 수직 이동은 60px 이하
-  const SWIPE_MAX_DURATION = 600;    // 600ms 이내
-  const EDGE_START_RANGE = 30;       // 가장자리 30px에서 시작해야 (브라우저 뒤로가기 충돌 방지)
+  let sx = 0, sy = 0, st = 0, tracking = false;
 
-  function isMobileViewport(){
-    return window.innerWidth <= 880;
+  function isMobile(){ return window.innerWidth <= 880; }
+  function isMasterUser(){
+    return typeof isMaster === 'function' && window.user && isMaster(window.user);
   }
 
-  // 스와이프 시작
-  function onTouchStart(e){
-    if(!isMobileViewport()) return;
-    if(e.touches.length !== 1) return;
-    const t = e.touches[0];
-    touchStartX = t.clientX;
-    touchStartY = t.clientY;
-    touchStartT = Date.now();
-    isSwiping = true;
+  function onStart(e){
+    if(!isMobile()) return;
+    if(!isMasterUser()) return;
+    if(!e.touches || e.touches.length !== 1) return;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    st = Date.now();
+    tracking = true;
   }
 
-  function onTouchEnd(e){
-    if(!isSwiping || !isMobileViewport()) return;
-    isSwiping = false;
+  function onEnd(e){
+    if(!tracking) return;
+    tracking = false;
     if(!e.changedTouches || e.changedTouches.length === 0) return;
+
     const t = e.changedTouches[0];
-    const dx = t.clientX - touchStartX;
-    const dy = t.clientY - touchStartY;
-    const dt = Date.now() - touchStartT;
+    const dx = t.clientX - sx;
+    const dy = t.clientY - sy;
+    const dt = Date.now() - st;
 
-    // 수직 이동이 너무 크면 무시 (스크롤로 간주)
-    if(Math.abs(dy) > SWIPE_MAX_VERTICAL) return;
-    if(dt > SWIPE_MAX_DURATION) return;
-    if(Math.abs(dx) < SWIPE_MIN_DISTANCE) return;
+    // 너무 짧거나 느리면 무시
+    if(Math.abs(dx) < 90) return;
+    if(Math.abs(dy) > 60) return;
+    if(dt > 600) return;
 
-    // 활성화된 모달/오버레이가 있는지 확인
-    const isLoginVisible = document.getElementById('login-overlay')?.style.display !== 'none';
-    const isModalOpen = document.getElementById('modal-overlay')?.classList.contains('show');
-    const isSheetOpen = document.getElementById('mobile-sheet')?.classList.contains('show');
+    // 모달/시트가 열려있으면 → 오른쪽 스와이프로 닫기 (모두 가능)
+    const modalOpen = document.getElementById('modal-overlay')?.classList.contains('show');
+    const sheetOpen = document.getElementById('mobile-sheet')?.classList.contains('show');
+    const loginOpen = document.getElementById('login-overlay')?.style.display !== 'none';
 
-    // 로그인 화면에서는 스와이프 무시
-    if(isLoginVisible) return;
+    if(loginOpen) return;
 
-    // 우측 스와이프 (→) : 이전으로 / 닫기 / 월별 통합 보기 (마스터 전용)
     if(dx > 0){
-      // 1순위: 모달이 열려있으면 닫기 (마스터/일반 모두 사용 가능 - "이전 페이지" 효과)
-      if(isModalOpen){
+      // 오른쪽 스와이프
+      if(modalOpen){
         if(typeof closeModal === 'function') closeModal();
         return;
       }
-      // 2순위: 시트가 열려있으면 닫기 (마스터/일반 모두 사용 가능)
-      if(isSheetOpen){
+      if(sheetOpen){
         if(typeof closeSheet === 'function') closeSheet();
         return;
       }
-      // 메인 화면에서 → 가장자리(왼쪽)에서 시작했어야 함
-      if(touchStartX > EDGE_START_RANGE) return;
-
-      // ★ 마스터만 작동: 이번 달 월별 통합 보기
-      if(typeof isMaster === 'function' && isMaster(window.user)){
-        const currentMonth = new Date().getMonth() + 1;
-        if(typeof showMonthDetail === 'function'){
-          showMonthDetail(currentMonth);
-        }
+      // 메인 화면: 왼쪽 가장자리에서 시작했어야 함
+      if(sx > 30) return;
+      // 이번 달 통합 보기 (마스터 전용)
+      const currentMonth = new Date().getMonth() + 1;
+      if(typeof showMonthDetail === 'function'){
+        showMonthDetail(currentMonth);
       }
-      // 일반 부서장은 메인 화면에서 오른쪽 스와이프 시 아무 동작 안 함
       return;
     }
 
-    // 좌측 스와이프 (←) : 메뉴 시트 열기 (햄버거 메뉴와 동일)
     if(dx < 0){
-      // 모달/시트가 이미 열려있으면 무시
-      if(isModalOpen || isSheetOpen) return;
-      // 우측 가장자리에서 시작했어야 함
-      if(touchStartX < window.innerWidth - EDGE_START_RANGE) return;
-
-      // ★ 마스터만 작동
-      if(typeof isMaster === 'function' && isMaster(window.user)){
-        if(typeof openSheet === 'function'){
-          openSheet('menu');
-        }
+      // 왼쪽 스와이프
+      if(modalOpen || sheetOpen) return;
+      // 오른쪽 가장자리에서 시작했어야 함
+      if(sx < window.innerWidth - 30) return;
+      // 메뉴 시트 열기 (햄버거 메뉴와 동일)
+      if(typeof openSheet === 'function'){
+        openSheet('menu');
       }
-      // 일반 부서장은 작동 안 함
       return;
     }
   }
 
-  document.addEventListener('touchstart', onTouchStart, { passive: true });
-  document.addEventListener('touchend', onTouchEnd, { passive: true });
-
-  // 첫 방문 시 한 번 힌트 표시 (마스터 전용)
-  document.addEventListener('DOMContentLoaded', () => {
-    if(!isMobileViewport()) return;
-    try {
-      const hintShown = localStorage.getItem('sjames_swipe_hint_v40');
-      if(hintShown) return;
-      // 로그인 후 일정 시간 뒤 표시
-      setTimeout(() => {
-        if(document.getElementById('login-overlay')?.style.display !== 'none') return;
-        // ★ 마스터만 안내
-        if(typeof isMaster !== 'function' || !isMaster(window.user)) return;
-        showSwipeHint();
-        try { localStorage.setItem('sjames_swipe_hint_v40', '1'); } catch(e){}
-      }, 2500);
-    } catch(e){}
-  });
-
-  function showSwipeHint(){
-    const hint = document.createElement('div');
-    hint.className = 'swipe-hint';
-    hint.innerHTML = `
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px">✨ 새 기능: 스와이프로 빠르게!</div>
-      <div style="font-size:12.5px;line-height:1.7">
-        <span class="si-icon">👉</span> 오른쪽으로 밀기 → <b>이번 달 통합 보기</b><br>
-        <span class="si-icon">👈</span> 왼쪽으로 밀기 → <b>메뉴 열기</b><br>
-        <span style="font-size:11px;opacity:0.85">모달 안에서는 오른쪽 밀기로 닫기</span>
-      </div>
-    `;
-    document.body.appendChild(hint);
-    setTimeout(() => { if(hint.parentNode) hint.parentNode.removeChild(hint); }, 4500);
-  }
-
-  // 외부에서 다시 보고 싶을 때
-  window.showSwipeHint = showSwipeHint;
+  // passive: true → 브라우저 스크롤 방해 안 함
+  document.addEventListener('touchstart', onStart, { passive: true });
+  document.addEventListener('touchend',   onEnd,   { passive: true });
 })();
-
-/* 부서별 빠른 이동 함수 제거됨 (v40 - 사용자 요청에 따라)
- * 왼쪽 스와이프는 이제 openSheet('menu')만 호출 (햄버거 메뉴와 동일) */
 </script>
 </body>
 </html>
