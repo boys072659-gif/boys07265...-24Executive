@@ -2,21 +2,24 @@ name: SJAMES 텔레그램 알림
 
 on:
   schedule:
-    # 매일 KST 09:00 = UTC 00:00 실행
-    # cron 형식: 분 시 일 월 요일 (UTC 기준)
+    # ★ 매일 KST 09:00 = UTC 00:00 (계획보고 관련 알림)
     - cron: '0 0 * * *'
+    # ★ 매일 KST 18:00 = UTC 09:00 (결과보고 관련 알림 - 20일~말일만)
+    - cron: '0 9 * * *'
   workflow_dispatch:
     inputs:
       force_type:
-        description: '수동 발송 종류'
+        description: '수동 발송 종류 (테스트용)'
         required: false
         default: ''
         type: choice
         options:
           - ''
-          - 'monthly'
-          - 'midmonth'
-          - 'deadline'
+          - 'monthly'         # 월간 시작 (1일 09시)
+          - 'midmonth'        # 중간 점검 (15일 09시)
+          - 'deadline'        # 마감 D-1 (말일-1 09시)
+          - 'plan_reminder'   # 계획보고 미제출 (5일~말일-1 09시)
+          - 'result_reminder' # 결과보고 미제출 (20일~말일 18시)
 
 jobs:
   notify:

@@ -33,25 +33,43 @@ if not all([SUPABASE_URL, SUPABASE_KEY, BOT_TOKEN]):
 # KST 타임존 (UTC+9)
 KST = datetime.utcnow() + timedelta(hours=9)
 TODAY = KST.date()
+KST_HOUR = KST.hour  # 0~23 시간
 print(f'[{TODAY}] 실행 시작 (KST {KST.strftime("%H:%M")})')
 
 # ─────────────────────────────────────────────────────
 # 오늘이 어떤 알림 날짜인지 판별
+# 발송 시각:
+#   - 09시: 계획보고 관련 (monthly, midmonth, deadline, plan_reminder)
+#   - 18시: 결과보고 관련 (result_reminder)
 # ─────────────────────────────────────────────────────
 def determine_notify_type():
-    if FORCE_TYPE in ('monthly', 'midmonth', 'deadline'):
+    if FORCE_TYPE in ('monthly', 'midmonth', 'deadline', 'plan_reminder', 'result_reminder'):
         print(f'[FORCE] 수동 발송 모드: {FORCE_TYPE}')
         return FORCE_TYPE
 
     day = TODAY.day
     last_day = calendar.monthrange(TODAY.year, TODAY.month)[1]
 
+    # ★ 18시 발송: 결과보고 미제출 안내 (20일 ~ 마지막날)
+    # 부서에서 그 달 항목 중 결과보고 안 올린 게 있으면 매일 18시에 안내
+    if 17 <= KST_HOUR <= 23:
+        if 20 <= day <= last_day:
+            return 'result_reminder'
+        return None  # 18시지만 20일 이전이면 발송 안 함
+
+    # ─── 09시 발송 (오전) ───
+    # 우선순위: 1일/15일/D-1은 정해진 알림으로
     if day == 1:
         return 'monthly'      # 매월 1일: 월간 알림
     if day == 15:
         return 'midmonth'     # 매월 15일: 중간 점검
     if day == last_day - 1:
         return 'deadline'     # 마감 하루 전
+
+    # 5일 이후 매일: 계획보고 미제출 부서에 알림
+    if day >= 5 and day < last_day:
+        return 'plan_reminder'
+
     return None
 
 NOTIFY_TYPE = determine_notify_type()
@@ -340,6 +358,66 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
     no_plan_items = [it for it in all_items if not it.get('hasPlanReport')]
     no_result_items = [it for it in pending if not it.get('hasResultReport')]
     no_link_items = [it for it in pending if not it.get('hasLink')]
+
+    # ★ plan_reminder: 계획보고 미제출 항목이 있는 부서에만 발송
+    if notify_type == 'plan_reminder':
+        if not no_plan_items:
+            return None  # 계획보고 다 올렸으면 발송 X (이게 핵심)
+
+        header = f'📋 *[{dept_name}]* {TARGET_MONTH}월 계획보고 안내'
+        intro = (
+            f'{TARGET_MONTH}월 계획보고가 아직 등록되지 않은 항목이 있습니다.\n'
+            f'아래 항목의 *계획보고*를 부탁드립니다 🙏'
+        )
+
+        parts = [header, '', intro, '']
+        parts.append(f'📋 *계획보고 미제출 ({len(no_plan_items)}건)*')
+        for it in no_plan_items:
+            parts.append(f'  📝 {it["title"]}')
+        parts.append('')
+        parts.append('_세부 계획서(텍스트)나 파일 중 하나라도 등록되면 안내가 자동으로 멈춥니다._')
+        parts.append('')
+
+        if APP_URL:
+            parts.append(f'🔗 점검표: {APP_URL}')
+
+        return '\n'.join(parts)
+
+    # ★ result_reminder: 결과보고 미제출 항목이 있는 부서에만 발송 (20일~말일 18시)
+    if notify_type == 'result_reminder':
+        if not no_result_items:
+            return None  # 결과보고 다 올렸으면 발송 X
+
+        last_day = calendar.monthrange(TODAY.year, TODAY.month)[1]
+        days_left = last_day - TODAY.day  # 마감까지 남은 일수
+        remaining_text = '오늘이 마감일입니다!' if days_left == 0 else f'마감까지 *{days_left}일* 남았습니다.'
+
+        header = f'📊 *[{dept_name}]* {TARGET_MONTH}월 결과보고 안내'
+        intro = (
+            f'{TARGET_MONTH}월 진행하신 업무의 *결과보고*가 아직 등록되지 않았습니다.\n'
+            f'{remaining_text}\n'
+            f'완료된 업무는 결과보고를 부탁드립니다 🙏'
+        )
+
+        parts = [header, '', intro, '']
+        parts.append(f'📊 *결과보고 미제출 ({len(no_result_items)}건)*')
+        for it in no_result_items:
+            # 텔레그램 보고 링크 미제출 여부도 함께 표시
+            missing_marks = []
+            if not it.get('hasResultReport'): missing_marks.append('📊')
+            if not it.get('hasLink'): missing_marks.append('🔗')
+            mark_str = ' '.join(missing_marks)
+            parts.append(f'  📈 {it["title"]} {mark_str}')
+        parts.append('')
+        parts.append('_📊 결과보고 · 🔗 텔레그램 보고 링크_')
+        parts.append('')
+        parts.append('_결과보고(텍스트 또는 파일)가 등록되면 안내가 자동으로 멈춥니다._')
+        parts.append('')
+
+        if APP_URL:
+            parts.append(f'🔗 점검표: {APP_URL}')
+
+        return '\n'.join(parts)
 
     # 알림 종류별 헤더 + 인사말
     if notify_type == 'monthly':
