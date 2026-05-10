@@ -5050,6 +5050,7 @@ function doLogin(){
   }
 
   user = {name: userName, dept, deptId};
+  window.user = user;  // 외부 스크립트(스와이프 등)에서 접근 가능하도록
   console.log('[로그인 성공]', user);
 
   // 자동 로그인 옵션 처리
@@ -5137,6 +5138,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     // 자동 로그인 (같은 탭 내 또는 영구 저장된 경우)
     try {
       user = JSON.parse(saved);
+      window.user = user;  // 외부 스크립트(스와이프 등)에서 접근 가능
       // deptId 없는 옛 데이터 보충
       if(!user.deptId && user.dept){
         if(user.dept === MASTER_DEPT){
@@ -9714,7 +9716,7 @@ function openMonthDetail(month, filterType){
       const hasLink = detail.completedLink && detail.completedLink.trim();
 
       // 마스터인 경우, 미제출 보고 요청 버튼 노출 가능 여부
-      const isMasterUser = typeof isMaster === 'function' && isMaster(window.user);
+      const isMasterUser = isMaster(user);
       const tg = cloudTelegram[dept.id];
       const canSendAlert = isMasterUser && tg && tg.chat_id;
       const needPlanAlert = !hasPlan;
