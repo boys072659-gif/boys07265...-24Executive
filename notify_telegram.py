@@ -13,6 +13,7 @@ import json
 import re
 from datetime import datetime, timedelta
 import calendar
+import urllib.request
 from urllib.request import Request, urlopen
 from urllib.parse import quote
 from urllib.error import HTTPError, URLError
@@ -167,6 +168,82 @@ for ov in overrides:
         detail_by_item_id[ov['target_id']] = ov.get('payload') or {}
 
 # ─────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────
+# index.html에서 부서/항목 원본 데이터 가져오기 (v6에서 추가)
+# - HTML에 하드코딩된 DEPTS 배열을 정규식으로 파싱
+# - APP_URL 환경변수에 GitHub Pages 주소가 있어야 함
+# ─────────────────────────────────────────────────────
+def parse_dept_items_from_html():
+    """index.html을 다운받아 DEPTS의 event 항목들 추출
+    반환: { dept_id: { 'name': str, 'items': [(item_id, title), ...] } }
+    """
+    if not APP_URL:
+        print('  ⚠️ APP_URL 미설정 - HTML 항목 파싱 스킵')
+        return {}
+
+    # APP_URL이 https://.../ 형식이면 index.html 추가
+    url = APP_URL.rstrip('/')
+    if not url.endswith('.html'):
+        url = url + '/index.html'
+
+    print(f'  → HTML 다운로드: {url}')
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            html = resp.read().decode('utf-8', errors='ignore')
+    except Exception as e:
+        print(f'  ❌ HTML 다운로드 실패: {e}')
+        return {}
+
+    # const DEPTS = [...]; 영역 추출 (다음 const 까지)
+    m = re.search(r'const\s+DEPTS\s*=\s*(\[.*?\])\s*;[\s\n]*(?:const|let|var|function|//)', html, re.DOTALL)
+    if not m:
+        print('  ❌ HTML에서 DEPTS 배열을 찾을 수 없음')
+        return {}
+
+    depts_text = m.group(1)
+    result = {}
+
+    # 부서 단위로 추출 - 각 부서 객체는 {id:'d??', name:'...', ... sections:[...]} 형식
+    # 부서 시작: {id:'dxx'
+    dept_pattern = re.compile(r"\{id:'(d[0-9a-zA-Z_]+)'\s*,\s*name:'([^']+)'", re.DOTALL)
+
+    # 부서 영역 분리: 각 부서의 시작 위치 찾기
+    starts = [(m.start(), m.group(1), m.group(2)) for m in dept_pattern.finditer(depts_text)]
+    starts.append((len(depts_text), None, None))  # sentinel
+
+    for i in range(len(starts) - 1):
+        s, dept_id, dept_name = starts[i]
+        e = starts[i+1][0]
+        dept_block = depts_text[s:e]
+
+        # event 섹션 안의 items 찾기
+        # type:'event', items:[ {t:'...'}, {t:'...'}, ... ]
+        ev = re.search(r"type:'event'\s*,\s*items:\s*\[(.*?)\]\s*\}\s*\]", dept_block, re.DOTALL)
+        if not ev:
+            ev = re.search(r"type:'event'\s*,\s*items:\s*\[(.*?)\]\s*\}", dept_block, re.DOTALL)
+        if not ev:
+            continue
+
+        items_text = ev.group(1)
+        # { t:'...' } 패턴 (각 항목) - 순서대로 추출 (idx 부여 위해)
+        item_pattern = re.compile(r"\{\s*t\s*:\s*'((?:\\'|[^'])*)'", re.DOTALL)
+        items = []
+        for idx, im in enumerate(item_pattern.finditer(items_text)):
+            title = im.group(1).replace("\\'", "'")
+            # 웹앱과 동일한 ID 생성: dept_id + '_event_' + idx
+            item_id = f'{dept_id}_event_{idx}'
+            items.append({'id': item_id, 't': title})
+        if items:
+            result[dept_id] = {'name': dept_name, 'items': items}
+
+    print(f'  → HTML에서 {len(result)}개 부서, 항목 총 {sum(len(v["items"]) for v in result.values())}개 추출')
+    return result
+
+# HTML 항목 파싱
+html_dept_items = parse_dept_items_from_html()
+
+# ─────────────────────────────────────────────────────
 # 24부서 기본 데이터 (HTML과 동일하게 유지)
 # ※ HTML 변경 시 이 부분도 같이 갱신해야 함
 # ─────────────────────────────────────────────────────
@@ -267,6 +344,23 @@ dept_monthly = {dept_id: {'completed': [], 'pending': []} for dept_id, _ in DEPT
 # 추가된 항목 + 원본 항목 모두 처리
 all_items = {}
 all_items.update(added_items)
+
+# ★ HTML에서 추출한 부서별 원본 항목들 추가 (v6)
+# 웹앱이 부여하는 ID와 동일한 형식: dept_id + '_event_' + idx
+for dept_id, dept_info in html_dept_items.items():
+    for it in dept_info['items']:
+        item_id = it['id']  # 예: 'd03_event_0'
+        if item_id in deleted_items:
+            continue
+        # 이미 added_items에 같은 ID가 있으면 그대로 (사용자가 수정한 경우 update가 우선)
+        if item_id not in all_items:
+            all_items[item_id] = {
+                'id': item_id,
+                'dept_id': dept_id,
+                'section_id': None,  # event 섹션의 정확한 ID는 모름. 매칭 시 dept_id로 충분
+                't': it['t'],
+            }
+
 # detail_meta로부터 dept_id 알 수 있는 항목만
 for item_id, meta in detail_meta.items():
     if item_id in deleted_items:
