@@ -1,0 +1,83 @@
+name: SJAMES Migration
+
+# 수동 실행만 (자동 트리거 없음) — Actions 탭에서 "Run workflow" 버튼으로 실행
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '실행할 단계'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run                # 1) 가장 먼저 — 옮길 데이터/파일 수만 확인 (안전)
+          - migrate-data           # 2) 데이터(5개 테이블) 복사
+          - migrate-storage        # 3) Storage 파일 복사
+          - verify-payload         # 4) payload 안의 파일 경로 검증
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install dependencies
+        run: pip install httpx
+
+      - name: ℹ️  Print selected action
+        run: |
+          echo "::group::Migration parameters"
+          echo "Action: ${{ inputs.action }}"
+          echo "SRC URL: ${{ secrets.SRC_SUPABASE_URL }}"
+          echo "DST URL: ${{ secrets.DST_SUPABASE_URL }}"
+          echo "(키는 보안상 출력 안 함)"
+          echo "::endgroup::"
+
+      - name: 🔍 DRY-RUN — 옮길 데이터 행 수 확인
+        if: inputs.action == 'dry-run'
+        env:
+          SRC_SUPABASE_URL: ${{ secrets.SRC_SUPABASE_URL }}
+          SRC_SUPABASE_KEY: ${{ secrets.SRC_SUPABASE_KEY }}
+          DST_SUPABASE_URL: ${{ secrets.DST_SUPABASE_URL }}
+          DST_SUPABASE_KEY: ${{ secrets.DST_SUPABASE_KEY }}
+        run: |
+          echo "── 데이터 dry-run ──"
+          python migrate_data.py --dry-run
+          echo ""
+          echo "── Storage dry-run ──"
+          python migrate_storage.py --dry-run
+
+      - name: 🚛 데이터 마이그레이션 (5개 테이블)
+        if: inputs.action == 'migrate-data'
+        env:
+          SRC_SUPABASE_URL: ${{ secrets.SRC_SUPABASE_URL }}
+          SRC_SUPABASE_KEY: ${{ secrets.SRC_SUPABASE_KEY }}
+          DST_SUPABASE_URL: ${{ secrets.DST_SUPABASE_URL }}
+          DST_SUPABASE_KEY: ${{ secrets.DST_SUPABASE_KEY }}
+        run: python migrate_data.py
+
+      - name: 📁 Storage 파일 마이그레이션
+        if: inputs.action == 'migrate-storage'
+        env:
+          SRC_SUPABASE_URL: ${{ secrets.SRC_SUPABASE_URL }}
+          SRC_SUPABASE_KEY: ${{ secrets.SRC_SUPABASE_KEY }}
+          DST_SUPABASE_URL: ${{ secrets.DST_SUPABASE_URL }}
+          DST_SUPABASE_KEY: ${{ secrets.DST_SUPABASE_KEY }}
+        run: python migrate_storage.py
+
+      - name: 🔎 payload 파일 경로 검증
+        if: inputs.action == 'verify-payload'
+        env:
+          SRC_SUPABASE_URL: ${{ secrets.SRC_SUPABASE_URL }}
+          SRC_SUPABASE_KEY: ${{ secrets.SRC_SUPABASE_KEY }}
+          DST_SUPABASE_URL: ${{ secrets.DST_SUPABASE_URL }}
+          DST_SUPABASE_KEY: ${{ secrets.DST_SUPABASE_KEY }}
+        run: python migrate_storage.py --verify
