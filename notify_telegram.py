@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 SJAMES 24부서 연간계획 - 텔레그램 자동 알림
 실행: 매일 KST 09:00 (GitHub Actions cron)
@@ -118,15 +118,15 @@ def sb_post(table, body):
 # 데이터 로드
 # ─────────────────────────────────────────────────────
 print('[1/4] 부서 텔레그램 정보 로드...')
-dept_telegram = sb_get('dept_telegram', 'enabled=eq.true')
+dept_telegram = sb_get('exec_dept_telegram', 'enabled=eq.true')
 if not dept_telegram:
     print('❌ 활성화된 부서 텔레그램 설정이 없습니다.')
     sys.exit(0)
 print(f'  → 활성 부서 {len(dept_telegram)}개')
 
 print('[2/4] 부서/항목 데이터 로드...')
-overrides = sb_get('checklist_overrides', 'limit=1000')
-items = sb_get('checklist_items', 'limit=2000')
+overrides = sb_get('exec_checklist_overrides', 'limit=1000')
+items = sb_get('exec_checklist_items', 'limit=2000')
 print(f'  → overrides {len(overrides)}건, items {len(items)}건')
 
 # v33+ 연도 prefix 처리: 현재 연도(KST)의 데이터만 사용
@@ -152,7 +152,7 @@ print(f'  → {ACTIVE_YEAR}년 필터 후: overrides {len(overrides)}건, items 
 # 이미 발송했는지 확인
 print('[3/4] 발송 로그 확인...')
 log_id_template = f'_{NOTIFY_TYPE}_{TODAY.isoformat()}'
-sent_logs = sb_get('notify_log', f'sent_at=gte.{TODAY.isoformat()}T00:00:00')
+sent_logs = sb_get('exec_notify_log', f'sent_at=gte.{TODAY.isoformat()}T00:00:00')
 sent_dept_ids = set(l['dept_id'] for l in sent_logs if l.get('notify_type') == NOTIFY_TYPE)
 print(f'  → 오늘 이미 발송된 부서: {len(sent_dept_ids)}개')
 
@@ -614,7 +614,7 @@ def send_telegram(chat_id, text, topic_id=None):
 
 def log_send(dept_id, status, message_count):
     log_id = f'{dept_id}_{NOTIFY_TYPE}_{TODAY.isoformat()}'
-    sb_post('notify_log', {
+    sb_post('exec_notify_log', {
         'id': log_id,
         'dept_id': dept_id,
         'notify_type': NOTIFY_TYPE,
