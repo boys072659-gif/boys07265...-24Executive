@@ -60,34 +60,34 @@ HTTP_TIMEOUT = 60.0
 # ═══════════════════════════════════════════════════════════════
 TABLES = [
     {
+        # checklist_items: PK 는 item_key (id 컬럼 없음)
         "src": "checklist_items",
         "dst": "exec_checklist_items",
-        "conflict": "item_key",          # ON CONFLICT 키
-        "drop_cols": ["id"],             # 복사 시 제외할 컬럼 (BIGSERIAL 재발급용)
-    },
-    {
-        "src": "checklist_overrides",
-        "dst": "exec_checklist_overrides",
-        "conflict": None,                # PK는 id (BIGSERIAL) — id 새로 받음
-        "drop_cols": ["id"],
-    },
-    {
-        "src": "dept_passwords",
-        "dst": "exec_dept_passwords",
-        "conflict": "dept_id",
+        "conflict": "item_key",
         "drop_cols": [],
     },
     {
+        # checklist_overrides: PK 는 id (TEXT) — 원본 id 그대로 유지해야 함
+        # 그래야 SJAMES 클라이언트 코드가 같은 id 로 데이터 찾을 수 있음
+        "src": "checklist_overrides",
+        "dst": "exec_checklist_overrides",
+        "conflict": "id",
+        "drop_cols": [],
+    },
+    # dept_passwords 는 SJAMES 에 테이블 자체가 없어 제외 (확인 완료)
+    {
+        # dept_telegram: PK 는 dept_id
         "src": "dept_telegram",
         "dst": "exec_dept_telegram",
         "conflict": "dept_id",
         "drop_cols": [],
     },
     {
+        # notify_log: PK 는 id (TEXT)
         "src": "notify_log",
         "dst": "exec_notify_log",
-        "conflict": None,
-        "drop_cols": ["id"],
+        "conflict": "id",
+        "drop_cols": [],
     },
 ]
 
@@ -133,10 +133,27 @@ def headers_for(key, prefer_resolution=False):
     return h
 
 
+def _order_key_for(table):
+    """테이블별 정렬 키 (실제 PK 또는 unique 컬럼).
+    SJAMES 의 실제 스키마:
+      - checklist_items     PK = item_key
+      - checklist_overrides PK = id (TEXT)
+      - dept_telegram       PK = dept_id
+      - notify_log          PK = id (TEXT)
+    """
+    return {
+        "checklist_items":     "item_key",
+        "checklist_overrides": "id",
+        "dept_telegram":       "dept_id",
+        "notify_log":          "id",
+    }.get(table, "id")
+
+
 def fetch_all(url, key, table, page_size=PAGE_SIZE):
     """페이지네이션으로 전체 행 가져오기."""
     all_rows = []
     offset = 0
+    order_col = _order_key_for(table)
     with httpx.Client(timeout=HTTP_TIMEOUT) as client:
         while True:
             r = client.get(
@@ -146,7 +163,7 @@ def fetch_all(url, key, table, page_size=PAGE_SIZE):
                     "select": "*",
                     "offset": offset,
                     "limit": page_size,
-                    "order": "id" if table not in ("dept_passwords", "dept_telegram") else "dept_id",
+                    "order": order_col,
                 },
             )
             if r.status_code != 200:
