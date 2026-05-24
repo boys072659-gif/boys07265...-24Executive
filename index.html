@@ -6414,7 +6414,7 @@ async function handleFileSelectV2(deptId, sectionId, itemId, kind){
       const path = `events/${deptId}/${itemId}/${safeName}`;
 
       const { data, error } = await sb.storage
-        .from('attachments')
+        .from('exec_attachments')
         .upload(path, file, { contentType: file.type || 'application/octet-stream' });
       if(error) throw error;
 
@@ -6540,7 +6540,7 @@ async function uploadNewFile(deptId, sectionId, itemId, file){
     const path = `events/${deptId}/${itemId}/${safeName}`;
 
     const { data, error } = await sb.storage
-      .from('attachments')
+      .from('exec_attachments')
       .upload(path, file, { contentType: file.type || 'application/octet-stream' });
     if(error){
       console.error('[Storage 업로드 실패]', error);
@@ -6607,7 +6607,7 @@ async function replaceFileAtIndex(deptId, sectionId, itemId, fileIdx, newFile){
     const safeName = `${itemId}_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
     const path = `events/${deptId}/${itemId}/${safeName}`;
     const { data, error } = await sb.storage
-      .from('attachments')
+      .from('exec_attachments')
       .upload(path, newFile, { contentType: newFile.type || 'application/octet-stream' });
     if(error) throw error;
 
