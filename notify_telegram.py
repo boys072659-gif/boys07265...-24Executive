@@ -458,22 +458,10 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
         if not no_plan_items:
             return None  # 계획보고 다 올렸으면 발송 X (이게 핵심)
 
-        header = f'📋 *[{dept_name}]* {TARGET_MONTH}월 계획보고 안내'
-        intro = (
-            f'{TARGET_MONTH}월 계획보고가 아직 등록되지 않은 항목이 있습니다.\n'
-            f'아래 항목의 *계획보고*를 부탁드립니다 🙏'
-        )
-
-        parts = [header, '', intro, '']
-        parts.append(f'📋 *계획보고 미제출 ({len(no_plan_items)}건)*')
+        parts = [f'📋 *[{dept_name}]* {TARGET_MONTH}월 계획보고 미보고 안내']
+        parts.append(f'계획보고 미제출 ({len(no_plan_items)}건)')
         for it in no_plan_items:
             parts.append(f'  📝 {it["title"]}')
-        parts.append('')
-        parts.append('_세부 계획서(텍스트)나 파일 중 하나라도 등록되면 안내가 자동으로 멈춥니다._')
-        parts.append('')
-
-        if APP_URL:
-            parts.append(f'🔗 점검표: {APP_URL}')
 
         return '\n'.join(parts)
 
@@ -482,34 +470,10 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
         if not no_result_items:
             return None  # 결과보고 다 올렸으면 발송 X
 
-        last_day = calendar.monthrange(TODAY.year, TODAY.month)[1]
-        days_left = last_day - TODAY.day  # 마감까지 남은 일수
-        remaining_text = '오늘이 마감일입니다!' if days_left == 0 else f'마감까지 *{days_left}일* 남았습니다.'
-
-        header = f'📊 *[{dept_name}]* {TARGET_MONTH}월 결과보고 안내'
-        intro = (
-            f'{TARGET_MONTH}월 진행하신 업무의 *결과보고*가 아직 등록되지 않았습니다.\n'
-            f'{remaining_text}\n'
-            f'완료된 업무는 결과보고를 부탁드립니다 🙏'
-        )
-
-        parts = [header, '', intro, '']
-        parts.append(f'📊 *결과보고 미제출 ({len(no_result_items)}건)*')
+        parts = [f'📊 *[{dept_name}]* {TARGET_MONTH}월 결과보고 미보고 안내']
+        parts.append(f'결과보고 미제출 ({len(no_result_items)}건)')
         for it in no_result_items:
-            # 텔레그램 보고 링크 미제출 여부도 함께 표시
-            missing_marks = []
-            if not it.get('hasResultReport'): missing_marks.append('📊')
-            if not it.get('hasLink'): missing_marks.append('🔗')
-            mark_str = ' '.join(missing_marks)
-            parts.append(f'  📈 {it["title"]} {mark_str}')
-        parts.append('')
-        parts.append('_📊 결과보고 · 🔗 텔레그램 보고 링크_')
-        parts.append('')
-        parts.append('_결과보고(텍스트 또는 파일)가 등록되면 안내가 자동으로 멈춥니다._')
-        parts.append('')
-
-        if APP_URL:
-            parts.append(f'🔗 점검표: {APP_URL}')
+            parts.append(f'  📈 {it["title"]}')
 
         return '\n'.join(parts)
 
