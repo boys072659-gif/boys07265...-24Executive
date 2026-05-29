@@ -6430,7 +6430,7 @@ async function handleFileSelectV2(deptId, sectionId, itemId, kind){
       const path = `events/${deptId}/${itemId}/${safeName}`;
 
       const { data, error } = await sb.storage
-        .from('attachments')
+        .from('exec_attachments')
         .upload(path, file, { contentType: file.type || 'application/octet-stream' });
       if(error) throw error;
 
@@ -6556,7 +6556,7 @@ async function uploadNewFile(deptId, sectionId, itemId, file){
     const path = `events/${deptId}/${itemId}/${safeName}`;
 
     const { data, error } = await sb.storage
-      .from('attachments')
+      .from('exec_attachments')
       .upload(path, file, { contentType: file.type || 'application/octet-stream' });
     if(error){
       console.error('[Storage 업로드 실패]', error);
@@ -6623,7 +6623,7 @@ async function replaceFileAtIndex(deptId, sectionId, itemId, fileIdx, newFile){
     const safeName = `${itemId}_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
     const path = `events/${deptId}/${itemId}/${safeName}`;
     const { data, error } = await sb.storage
-      .from('attachments')
+      .from('exec_attachments')
       .upload(path, newFile, { contentType: newFile.type || 'application/octet-stream' });
     if(error) throw error;
 
@@ -7573,6 +7573,177 @@ const JSON_NAME_TO_DEPT_ID = {
   '관리자': 'master',
 };
 
+// === 지난 달 미완료 부서 알림 (총무부 전용) ===
+// 현재 달보다 이전 달의 연간계획 항목 중 미완료가 있는 부서만 골라 발송
+function openOverdueAlert(){
+  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+
+  const currentMonth = new Date().getMonth() + 1; // 1~12
+  const depts = getEffectiveDepts();
+
+  const overdueByDept = [];  // [{dept, items:[{t, month}], tg}]
+  depts.forEach(dept => {
+    const tg = cloudTelegram[dept.id];
+    if(!tg || !tg.chat_id) return;  // chat_id 없는 부서는 제외
+
+    const overdueItems = [];
+    dept.sections.forEach(sec => {
+      if(sec.type !== 'event') return;
+      sec.items.forEach(item => {
+        const month = getMonthFromText(item.t);
+        if(!month || month >= currentMonth) return;  // 지난 달(현재 달 이전)만
+        if(isItemDone(item)) return;                   // 완료된 건 제외
+        overdueItems.push({ t: item.t, month });
+      });
+    });
+
+    if(overdueItems.length > 0){
+      overdueItems.sort((a,b) => a.month - b.month);
+      overdueByDept.push({ dept, items: overdueItems, tg });
+    }
+  });
+
+  if(overdueByDept.length === 0){
+    showModalAlert('success', `🎉 ${currentMonth}월 이전 미완료 업무가 있는 부서가 없습니다. 모두 잘 마무리되었어요!`);
+    return;
+  }
+
+  let savedToken = '';
+  try { savedToken = localStorage.getItem('sjames_bot_token') || ''; } catch(e){}
+
+  const totalDepts = overdueByDept.length;
+  const totalItems = overdueByDept.reduce((s,d) => s + d.items.length, 0);
+
+  let deptRows = '';
+  overdueByDept.forEach(({dept, items, tg}) => {
+    const itemList = items.map(it =>
+      `<div style="font-size:11.5px;color:var(--text-secondary);padding-left:18px">· ${it.month}월 — ${escapeHtml(it.t)}</div>`
+    ).join('');
+    const topicInfo = tg.topic_id ? ` · 토픽 ${tg.topic_id}` : '';
+    deptRows += `
+      <label style="display:block;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+          <input type="checkbox" class="overdue-dept" data-dept-id="${dept.id}" checked>
+          <span style="width:8px;height:8px;border-radius:50%;background:${dept.color}"></span>
+          <span style="font-weight:600;font-size:13px">${escapeHtml(dept.name)}</span>
+          <span style="color:var(--text-tertiary);font-size:11px">미완료 ${items.length}건${topicInfo}</span>
+        </div>
+        ${itemList}
+      </label>
+    `;
+  });
+
+  const body = `
+    <div style="margin-bottom:14px;padding:12px;background:#fff0e6;border:1px solid #f0b380;border-radius:var(--radius-sm);font-size:12.5px;color:#9a5418;line-height:1.6">
+      ⏰ <b>${currentMonth}월 이전</b> 연간계획 중 <b>완료되지 않은 항목</b>이 있는 부서 <b>${totalDepts}곳</b> (총 ${totalItems}건)<br>
+      선택한 부서에만 각자의 미완료 목록이 발송됩니다.
+    </div>
+
+    <div style="margin-bottom:12px">
+      <button class="btn" onclick="document.querySelectorAll('.overdue-dept').forEach(c=>c.checked=true)" style="padding:3px 10px;font-size:11px">전체 선택</button>
+      <button class="btn" onclick="document.querySelectorAll('.overdue-dept').forEach(c=>c.checked=false)" style="padding:3px 10px;font-size:11px">전체 해제</button>
+    </div>
+
+    <div style="max-height:340px;overflow-y:auto;margin-bottom:14px">
+      ${deptRows}
+    </div>
+
+    <div style="margin-bottom:8px">
+      <label style="font-size:12px;font-weight:600;color:var(--text-secondary)">봇 토큰</label>
+      <input type="password" id="overdue-token" value="${escapeHtml(savedToken)}" placeholder="BotFather 봇 토큰"
+        style="width:100%;padding:9px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;margin-top:4px" autocomplete="off">
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px">
+        ${savedToken ? '✅ 이 기기에 저장된 토큰이 자동 채워졌습니다' : 'BotFather에서 받은 토큰'}
+      </div>
+    </div>
+  `;
+
+  const footer = `
+    <button class="btn" onclick="openTelegramPanel()">← 취소</button>
+    <button class="btn btn-primary" onclick="executeOverdueAlert()" id="overdue-send-btn">⏰ 미완료 부서에 발송</button>
+  `;
+
+  // 발송에 쓸 데이터 전역 보관 (innerHTML 안 script 실행 안 되므로 window 전역 패턴)
+  window._overdueData = overdueByDept.map(({dept, items, tg}) => ({
+    deptId: dept.id,
+    deptName: dept.name,
+    chatId: tg.chat_id,
+    topicId: tg.topic_id || '',
+    items: items
+  }));
+  window._overdueMonth = currentMonth;
+
+  openModal('⏰ 미완료 부서 알림', body, footer);
+}
+
+async function executeOverdueAlert(){
+  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+
+  const data = window._overdueData || [];
+
+  const selectedIds = new Set();
+  document.querySelectorAll('.overdue-dept:checked').forEach(cb => selectedIds.add(cb.dataset.deptId));
+  const targets = data.filter(d => selectedIds.has(d.deptId));
+
+  if(targets.length === 0){
+    showToast('발송할 부서를 선택해주세요', 'error');
+    return;
+  }
+
+  const tokenInput = document.getElementById('overdue-token');
+  let token = (tokenInput && tokenInput.value.trim()) || '';
+  if(!token){
+    try { token = localStorage.getItem('sjames_bot_token') || ''; } catch(e){}
+  }
+  if(!/^\d+:[\w-]+$/.test(token)){
+    showToast('봇 토큰 형식이 올바르지 않습니다', 'error');
+    return;
+  }
+  try { localStorage.setItem('sjames_bot_token', token); } catch(e){}
+
+  const sendBtn = document.getElementById('overdue-send-btn');
+  if(sendBtn){ sendBtn.disabled = true; sendBtn.textContent = '발송 중...'; }
+
+  let success = 0, fail = 0;
+
+  for(const t of targets){
+    const lines = [];
+    lines.push(`⏰ <b>[${escapeHtmlForMsg(t.deptName)}]</b> 미완료 업무 안내`);
+    lines.push(`미완료 항목 (${t.items.length}건)`);
+    t.items.forEach(it => lines.push(`  ▫️ ${it.month}월 — ${escapeHtmlForMsg(it.t)}`));
+
+    const msg = lines.join('\n');
+
+    try {
+      const result = await _telegramSendMessage(token, t.chatId, t.topicId, msg, null);
+      if(result && result.ok){
+        success++;
+        try {
+          await window._sb.from('exec_notify_log').insert({
+            id: 'overdue_' + t.deptId + '_' + Date.now(),
+            dept_id: t.deptId,
+            notify_type: 'overdue_manual',
+            message_count: t.items.length,
+            status: 'success'
+          });
+        } catch(e){}
+      } else {
+        fail++;
+      }
+    } catch(e){
+      console.error('[미완료 알림 발송 실패]', t.deptName, e);
+      fail++;
+    }
+    await new Promise(r => setTimeout(r, 250));  // rate limit 보호
+  }
+
+  if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = '⏰ 미완료 부서에 발송'; }
+  showToast(`✅ 발송 완료: ${success}곳${fail ? ` · 실패 ${fail}곳` : ''}`, fail ? 'info' : 'success');
+  if(success > 0 && fail === 0){
+    setTimeout(() => closeModal(), 1200);
+  }
+}
+
 // === 일괄 메시지 발송 (총무부 전용) ===
 // 보안: 봇 토큰을 매번 입력 받음 (브라우저에 저장 안 함)
 function openTelegramBroadcast(){
@@ -8169,15 +8340,9 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
     }
     targetCount = noPlanItems.length;
     const lines = [];
-    lines.push(`📋 <b>[${dept.name}]</b> ${currentMonth}월 계획보고 안내`);
-    lines.push('');
-    lines.push(`${currentMonth}월 계획보고가 아직 등록되지 않은 항목이 있습니다.`);
-    lines.push(`아래 항목의 <b>계획보고</b>를 부탁드립니다 🙏`);
-    lines.push('');
-    lines.push(`📋 <b>계획보고 미제출 (${noPlanItems.length}건)</b>`);
+    lines.push(`📋 <b>[${dept.name}]</b> ${currentMonth}월 계획보고 미보고 안내`);
+    lines.push(`계획보고 미제출 (${noPlanItems.length}건)`);
     noPlanItems.forEach(t => lines.push(`  📝 ${escapeHtmlForMsg(t)}`));
-    lines.push('');
-    lines.push(`<i>세부 계획서(텍스트)나 파일 중 하나라도 등록되면 안내가 자동으로 멈춥니다.</i>`);
     message = lines.join('\n');
 
   } else if(alertType === 'result'){
@@ -8186,23 +8351,10 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
       return;
     }
     targetCount = noResultItems.length;
-    // 마감까지 남은 일수
-    const today = new Date();
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-    const daysLeft = lastDay - today.getDate();
-    const remainingText = daysLeft === 0 ? '오늘이 마감일입니다!' : `마감까지 <b>${daysLeft}일</b> 남았습니다.`;
-
     const lines = [];
-    lines.push(`📊 <b>[${dept.name}]</b> ${currentMonth}월 결과보고 안내`);
-    lines.push('');
-    lines.push(`${currentMonth}월 진행하신 업무의 <b>결과보고</b>가 아직 등록되지 않았습니다.`);
-    lines.push(remainingText);
-    lines.push(`완료된 업무는 결과보고를 부탁드립니다 🙏`);
-    lines.push('');
-    lines.push(`📊 <b>결과보고 미제출 (${noResultItems.length}건)</b>`);
+    lines.push(`📊 <b>[${dept.name}]</b> ${currentMonth}월 결과보고 미보고 안내`);
+    lines.push(`결과보고 미제출 (${noResultItems.length}건)`);
     noResultItems.forEach(t => lines.push(`  📈 ${escapeHtmlForMsg(t)}`));
-    lines.push('');
-    lines.push(`<i>결과보고(텍스트 또는 파일)가 등록되면 안내가 자동으로 멈춥니다.</i>`);
     message = lines.join('\n');
 
   } else if(alertType === 'link'){
@@ -8212,15 +8364,9 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
     }
     targetCount = noLinkItems.length;
     const lines = [];
-    lines.push(`🔗 <b>[${dept.name}]</b> ${currentMonth}월 보고 링크 안내`);
-    lines.push('');
-    lines.push(`${currentMonth}월 항목의 <b>텔레그램 보고 링크</b>가 아직 등록되지 않았습니다.`);
-    lines.push(`보고 후 링크 첨부 부탁드립니다 🙏`);
-    lines.push('');
-    lines.push(`🔗 <b>보고 링크 미등록 (${noLinkItems.length}건)</b>`);
+    lines.push(`🔗 <b>[${dept.name}]</b> ${currentMonth}월 보고 링크 미등록 안내`);
+    lines.push(`보고 링크 미등록 (${noLinkItems.length}건)`);
     noLinkItems.forEach(t => lines.push(`  🔖 ${escapeHtmlForMsg(t)}`));
-    lines.push('');
-    lines.push(`<i>각 항목에 텔레그램 보고 메시지의 링크를 등록해주세요.</i>`);
     message = lines.join('\n');
 
   } else {
@@ -8228,10 +8374,8 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
     return;
   }
 
-  // 헤더 추가 (총무부 공지)
-  const senderName = '총무부 공지';
-  const headerHtml = `<b>[${senderName}]</b>\n<b>수신: ${escapeHtmlForMsg(dept.name)}</b>\n\n`;
-  const finalMessage = headerHtml + message;
+  // 예시 양식대로 헤더 없이 본문만 발송
+  const finalMessage = message;
 
   // 발송 확인
   const typeLabel = alertType === 'plan' ? '계획보고' : alertType === 'result' ? '결과보고' : '보고 링크';
@@ -8629,6 +8773,10 @@ function openTelegramPanel(){
       <button class="btn btn-primary" onclick="openTelegramBulkImport()" style="flex:1">📥 JSON 일괄 가져오기</button>
       <button class="btn" onclick="openEditDept(null)" style="flex:1">+ 새 부서 추가</button>
       <button class="btn" onclick="openTelegramBroadcast()" style="flex:1">📢 일괄 메시지</button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn" onclick="openOverdueAlert()" style="flex:1;background:#fff0e6;border-color:#f0b380;color:#9a5418;font-weight:600">⏰ 미완료 부서 알림 (지난 달)</button>
     </div>
 
     <div style="display:flex;gap:8px;margin-bottom:16px">
