@@ -4,8 +4,9 @@ SJAMES 24부서 연간계획 - 텔레그램 자동 알림
 실행: 매일 KST 09:00 (GitHub Actions cron)
 조건:
   - 매월 1일 (월간 시작 알림)
-  - 매월 15일 (중간 점검 알림)
   - 매월 마지막날 -1일 (마감 임박 알림)
+  - 5일 ~ 말일-2일 매일 (계획보고 미제출 부서에만)
+  - 20일 ~ 말일 매일 18시 (결과보고 미제출 부서에만)
 """
 import os
 import sys
@@ -25,7 +26,7 @@ SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
 BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 APP_URL = os.environ.get('APP_URL', '')  # 예: https://계정.github.io/sjames-checklist/
-FORCE_TYPE = os.environ.get('FORCE_TYPE', '')  # 수동 테스트용: 'monthly', 'midmonth', 'deadline'
+FORCE_TYPE = os.environ.get('FORCE_TYPE', '')  # 수동 테스트용: 'monthly', 'deadline', 'plan_reminder', 'result_reminder'
 
 if not all([SUPABASE_URL, SUPABASE_KEY, BOT_TOKEN]):
     print('❌ 환경변수 누락: SUPABASE_URL / SUPABASE_KEY / TELEGRAM_BOT_TOKEN')
@@ -40,11 +41,11 @@ print(f'[{TODAY}] 실행 시작 (KST {KST.strftime("%H:%M")})')
 # ─────────────────────────────────────────────────────
 # 오늘이 어떤 알림 날짜인지 판별
 # 발송 시각:
-#   - 09시: 계획보고 관련 (monthly, midmonth, deadline, plan_reminder)
+#   - 09시: 계획보고 관련 (monthly, deadline, plan_reminder)
 #   - 18시: 결과보고 관련 (result_reminder)
 # ─────────────────────────────────────────────────────
 def determine_notify_type():
-    if FORCE_TYPE in ('monthly', 'midmonth', 'deadline', 'plan_reminder', 'result_reminder'):
+    if FORCE_TYPE in ('monthly', 'deadline', 'plan_reminder', 'result_reminder'):
         print(f'[FORCE] 수동 발송 모드: {FORCE_TYPE}')
         return FORCE_TYPE
 
@@ -59,15 +60,13 @@ def determine_notify_type():
         return None  # 18시지만 20일 이전이면 발송 안 함
 
     # ─── 09시 발송 (오전) ───
-    # 우선순위: 1일/15일/D-1은 정해진 알림으로
+    # 우선순위: 1일/D-1은 정해진 알림으로
     if day == 1:
         return 'monthly'      # 매월 1일: 월간 알림
-    if day == 15:
-        return 'midmonth'     # 매월 15일: 중간 점검
     if day == last_day - 1:
         return 'deadline'     # 마감 하루 전
 
-    # 5일 이후 매일: 계획보고 미제출 부서에 알림
+    # 5일 이후 매일: 계획보고 미제출 부서에 알림 (15일도 plan_reminder로 처리됨)
     if day >= 5 and day < last_day:
         return 'plan_reminder'
 
@@ -477,74 +476,35 @@ def build_message(dept_id, dept_name, monthly_data, notify_type):
 
         return '\n'.join(parts)
 
-    # 알림 종류별 헤더 + 인사말
+    # 알림 종류별 헤더 (1줄)
     if notify_type == 'monthly':
         header = f'📅 *[{dept_name}]* {TARGET_MONTH}월 계획 알림'
-        intro = f'이번 달 계획을 안내드립니다.\n진행 부탁드립니다 🙏'
-    elif notify_type == 'midmonth':
-        header = f'⏰ *[{dept_name}]* {TARGET_MONTH}월 중간 점검 ({TODAY.day}일)'
-        intro = f'이번 달도 절반이 지났습니다.\n진행 상황을 확인해주세요!'
+        intro = '이번 달 계획을 안내드립니다.'
     else:  # deadline
         last_day = calendar.monthrange(TODAY.year, TODAY.month)[1]
-        header = f'🚨 *[{dept_name}]* {TARGET_MONTH}월 마감 임박! (D-1)'
-        intro = f'내일({TARGET_MONTH}/{last_day})이 이번 달 마감입니다.\n미완료 항목 보고 부탁드립니다!'
+        header = f'🚨 *[{dept_name}]* {TARGET_MONTH}월 마감 D-1'
+        intro = f'내일({TARGET_MONTH}/{last_day})이 이번 달 마감입니다.'
 
-    # 진행률
-    progress_bar = '█' * (pct // 10) + '░' * (10 - pct // 10)
-    progress_line = f'📊 진행률: {progress_bar} *{pct}%* ({len(completed)}/{total})'
+    # 진행 현황 한 줄 (후보 A 양식)
+    # 예: "진행: 0/1 완료 · 계획보고 1건 미제출 · 결과보고 1건 미제출 · 링크 1건 미등록"
+    status_bits = [f'{len(completed)}/{total} 완료']
+    if no_plan_items:
+        status_bits.append(f'계획보고 {len(no_plan_items)}건 미제출')
+    if no_result_items:
+        status_bits.append(f'결과보고 {len(no_result_items)}건 미제출')
+    if no_link_items:
+        status_bits.append(f'링크 {len(no_link_items)}건 미등록')
+    progress_line = '진행: ' + ' · '.join(status_bits)
 
-    parts = [header, '', intro, '', progress_line, '']
+    parts = [header, intro, '', progress_line, '']
 
-    # ★ 매월 1일: 계획보고 미제출 안내 (강조)
-    if notify_type == 'monthly' and no_plan_items:
-        parts.append(f'📋 *계획보고 미제출 ({len(no_plan_items)}건)*')
-        parts.append('_아래 항목의 계획보고를 부탁드립니다._')
-        for it in no_plan_items:
-            parts.append(f'  📝 {it["title"]}')
-        parts.append('')
-
-    # ★ 마감 D-1: 결과보고 미제출 안내 (강조)
-    if notify_type == 'deadline' and no_result_items:
-        parts.append(f'📊 *결과보고 미제출 ({len(no_result_items)}건)*')
-        parts.append('_내일 마감 전 결과보고 부탁드립니다._')
-        for it in no_result_items:
-            parts.append(f'  📈 {it["title"]}')
-        parts.append('')
-        # 텔레그램 링크 미입력도 함께 안내 (D-1)
-        if no_link_items:
-            parts.append(f'🔗 *텔레그램 보고 링크 미입력 ({len(no_link_items)}건)*')
-            parts.append('_보고 후 링크 첨부 부탁드립니다._')
-            parts.append('')
-
-    # 완료 항목
-    if completed:
-        parts.append(f'✅ *완료된 항목 ({len(completed)})*')
-        for c in completed:
-            link = f' [🔗]({c["completedLink"]})' if c.get('completedLink') else ''
-            by = f' _{c["completedBy"]}_' if c.get('completedBy') else ''
-            parts.append(f'  ✓ {c["title"]}{link}{by}')
-        parts.append('')
-
-    # 미완료 항목
+    # 미완료 항목 목록 (이것이 곧 해야 할 일)
     if pending:
-        parts.append(f'⬜ *미완료 항목 ({len(pending)})*')
+        parts.append(f'⬜ 미완료 ({len(pending)})')
         for p in pending:
-            extra = []
-            if p.get('hasPlanReport'): extra.append('📋')
-            if p.get('hasResultReport'): extra.append('📊')
-            if p.get('hasLink'): extra.append('🔗')
-            extra_str = (' ' + ' '.join(extra)) if extra else ''
-            parts.append(f'  ☐ {p["title"]}{extra_str}')
-        parts.append('')
-
-    # 안내 범례 (어떤 아이콘이 뭔지)
-    if pending and notify_type != 'monthly':
-        parts.append('_📋 계획보고 · 📊 결과보고 · 🔗 보고 링크_')
-        parts.append('')
-
-    # 점검표 링크
-    if APP_URL:
-        parts.append(f'🔗 점검표: {APP_URL}')
+            parts.append(f'  ☐ {p["title"]}')
+    else:
+        parts.append('🎉 이번 달 모든 항목이 완료되었습니다!')
 
     return '\n'.join(parts)
 
