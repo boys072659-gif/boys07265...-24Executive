@@ -16,7 +16,6 @@ on:
         options:
           - ''
           - 'monthly'         # 월간 시작 (1일 09시)
-          - 'midmonth'        # 중간 점검 (15일 09시)
           - 'deadline'        # 마감 D-1 (말일-1 09시)
           - 'plan_reminder'   # 계획보고 미제출 (5일~말일-1 09시)
           - 'result_reminder' # 결과보고 미제출 (20일~말일 18시)
