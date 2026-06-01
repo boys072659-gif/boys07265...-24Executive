@@ -1,0 +1,38 @@
+name: SJAMES 토픽 등록 모드
+
+# 평소엔 안 돌고, 수동으로 "Run workflow" 누를 때만 켜짐.
+# 한 번 실행하면 입력한 분(기본 5분) 동안 폴링하며
+# 각 부서 그룹의 새 토픽에서 "/register_topic"을 받아 topic_id 자동 교체.
+
+on:
+  workflow_dispatch:
+    inputs:
+      poll_minutes:
+        description: '폴링 지속 시간 (분, 최대 30분 권장)'
+        required: false
+        default: '5'
+        type: string
+
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    # 워크플로 자체 타임아웃 (안전장치)
+    timeout-minutes: 35
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 토픽 등록 스크립트 실행
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          POLL_MINUTES: ${{ github.event.inputs.poll_minutes }}
+          TZ: Asia/Seoul
+        run: |
+          python register_topic.py
