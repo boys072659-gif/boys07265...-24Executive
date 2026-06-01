@@ -4946,7 +4946,6 @@ async function changeDeptPassword(deptId, newPassword){
     const { error } = await sb.from('exec_dept_passwords').upsert({
       dept_id: deptId,
       password: newPassword,
-      updated_by: user ? user.name : 'unknown',
       updated_at: new Date().toISOString()
     }, { onConflict: 'dept_id' });
     if(error) throw error;
@@ -5788,6 +5787,14 @@ async function saveItem(deptId, sectionId, itemId){
     const payload = { t: text };
     if(hasTarget){ payload.target = target; payload.unit = unit; }
     else { payload.target = null; payload.unit = null; }
+
+    // 기존 항목과 제목이 바뀌었는지 확인
+    const depts = getEffectiveDepts();
+    const dept = depts.find(d => d.id === deptId);
+    const sec = dept?.sections.find(s => s.id === sectionId);
+    const oldItem = sec?.items.find(i => i.id === itemId);
+    const titleChanged = oldItem && oldItem.t !== text;
+
     ok = await writeOverride({
       id: yearPrefix() + 'item_update_' + itemId,
       kind: 'item',
@@ -5797,6 +5804,28 @@ async function saveItem(deptId, sectionId, itemId){
       section_id: sectionId,
       payload: payload
     });
+
+    // ★ 제목이 바뀌면 detail의 completed를 자동 초기화
+    // 이유: 항목 제목이 바뀌면 사실상 새 항목이므로 이전 완료 상태를 이어받으면 안 됨
+    if(ok && titleChanged && oldItem.detail?.completed === true){
+      const existing = oldItem.detail || {};
+      await writeOverride({
+        id: yearPrefix() + 'detail_' + itemId,
+        kind: 'detail',
+        action: 'update',
+        target_id: itemId,
+        dept_id: deptId,
+        section_id: sectionId,
+        payload: {
+          ...existing,
+          completed: false,
+          completedAt: null,
+          completedBy: null
+        },
+        _skipAutoComplete: true  // 제목 변경에 의한 초기화라 자동완료 로직 우회
+      });
+      showToast('ℹ️ 제목이 변경되어 완료 상태가 초기화되었습니다', 'info');
+    }
   } else {
     // 추가
     const newId = genId('item');
