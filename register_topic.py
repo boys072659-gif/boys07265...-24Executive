@@ -54,17 +54,26 @@ print(f'[설정] 명령어: {COMMAND}, 폴링 시간: {POLL_MINUTES}분')
 # ─────────────────────────────────────────────────────
 # 도우미 함수
 # ─────────────────────────────────────────────────────
+def _make_sb_request(url, method='GET', body=None):
+    """Supabase REST API 요청 헬퍼 — add_header 방식으로 안정적으로 헤더 설정."""
+    data = json.dumps(body).encode('utf-8') if body is not None else None
+    req = Request(url, data=data, method=method)
+    for k, v in SB_HEADERS.items():
+        req.add_header(k, v)
+    try:
+        with urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+    except HTTPError as e:
+        body_text = e.read().decode('utf-8', errors='replace')
+        raise Exception(f'Supabase {method} {url}\n  → HTTP {e.code}: {body_text[:300]}')
+
+
 def http_get(url, timeout=35):
-    req = Request(url, headers=SB_HEADERS)
-    with urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
+    return _make_sb_request(url, 'GET')
 
 
 def http_patch(url, body):
-    req = Request(url, method='PATCH', headers=SB_HEADERS,
-                  data=json.dumps(body).encode('utf-8'))
-    with urlopen(req, timeout=30) as r:
-        return json.loads(r.read())
+    return _make_sb_request(url, 'PATCH', body)
 
 
 def tg_call(method, params=None, timeout=35):
@@ -111,16 +120,18 @@ if wh.get('ok') and wh.get('result', {}).get('url'):
 # 부서 매핑 캐시: chat_id → {dept_id, dept_name, current_topic_id}
 # ─────────────────────────────────────────────────────
 def load_dept_map():
-    url = f'{SUPABASE_URL}/rest/v1/exec_dept_telegram?select=dept_id,target_name,chat_id,topic_id,enabled'
+    url = f'{SUPABASE_URL}/rest/v1/exec_dept_telegram?select=dept_id,chat_id,topic_id,enabled,note'
     rows = http_get(url)
     m = {}
     for r in rows:
         cid = str(r.get('chat_id') or '').strip()
         if not cid:
             continue
+        # note가 있으면 부서명으로, 없으면 dept_id 사용
+        dept_name = (r.get('note') or '').strip() or r['dept_id']
         m[cid] = {
             'dept_id': r['dept_id'],
-            'dept_name': r.get('target_name') or r['dept_id'],
+            'dept_name': dept_name,
             'current_topic_id': r.get('topic_id'),
             'enabled': r.get('enabled', True),
         }
