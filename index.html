@@ -4836,7 +4836,19 @@ function getEffectiveDepts(){
       if(!section) return;
       const item = section.items.find(it => it.id === ov.target_id);
       if(!item) return;
-      item.detail = ov.payload; // {when, where, who, what, how, why}
+
+      const payload = { ...ov.payload };
+
+      // ★ 제목 불일치 감지 → completed 자동 초기화
+      // _itemTitle이 저장돼 있고 현재 항목 제목과 다르면 → 제목이 바뀐 것이므로 완료 해제
+      if(payload._itemTitle && payload._itemTitle !== item.t && payload.completed === true){
+        payload.completed = false;
+        payload.completedAt = null;
+        payload.completedBy = null;
+        console.warn(`[제목 불일치] ${item.id}: "${payload._itemTitle}" → "${item.t}" → completed 초기화`);
+      }
+
+      item.detail = payload;
     }
   });
 
@@ -6315,6 +6327,13 @@ async function saveEventDetail(deptId, sectionId, itemId){
   const planFilesExisting = existing.planFiles || existing.files || [];
   const resultFilesExisting = existing.resultFiles || [];
 
+  // 현재 항목 제목 조회 (제목 불일치 감지용)
+  const _itemTitle = (() => {
+    const d = getEffectiveDepts().find(d => d.id === deptId);
+    const s = d?.sections.find(s => s.id === sectionId);
+    return s?.items.find(i => i.id === itemId)?.t || '';
+  })();
+
   const detail = {
     plan: plan,
     resultMemo: resultMemo,
@@ -6327,7 +6346,8 @@ async function saveEventDetail(deptId, sectionId, itemId){
     completed: existing.completed || false,
     completedAt: existing.completedAt || null,
     completedBy: existing.completedBy || null,
-    completedLink: existing.completedLink || ''
+    completedLink: existing.completedLink || '',
+    _itemTitle: _itemTitle  // 제목 불일치 감지용 (제목 변경 시 completed 자동 초기화)
   };
 
   console.log('[저장 시작] saveEventDetail', {deptId, sectionId, itemId, planLength: plan.length, planFiles: detail.planFiles.length, resultFiles: detail.resultFiles.length});
@@ -8302,8 +8322,9 @@ function escapeAttr(s){
 // === 부서별 즉시 알림 발송 (월 업무 상세 모달에서 사용, v43에서 개선) ===
 // 한 항목에서 버튼을 누르면 → 그 부서의 그 달 미제출 항목 전체를 한 메시지로 발송
 // 서식은 자동 알림(plan_reminder/result_reminder)과 동일하게 통일
-async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
+async function sendDeptAlert(deptId, alertType, itemId, itemTitle, targetMonth){
   // alertType: 'plan' | 'result' | 'link'
+  // targetMonth: 발송할 달 (없으면 현재 달) — 5월 상세에서 눌렀으면 5가 전달됨
   if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
 
   const depts = getEffectiveDepts();
@@ -8316,11 +8337,11 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
     return;
   }
 
-  // 봇 토큰 확인
+  // 봇 토큰 확인 + 자동 저장
   let token = '';
   try { token = localStorage.getItem('sjames_bot_token') || ''; } catch(e){}
   if(!token){
-    token = prompt('텔레그램 봇 토큰을 입력해주세요:\n(한 번 입력하면 일괄 메시지 모달에서 저장 가능)');
+    token = prompt('텔레그램 봇 토큰을 입력해주세요:\n(입력하면 이 기기에 저장됩니다)');
     if(!token) return;
     token = token.trim();
   }
@@ -8328,9 +8349,11 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
     showToast('봇 토큰 형식이 올바르지 않습니다', 'error');
     return;
   }
+  // ★ 토큰 자동 저장 (매번 입력하지 않아도 되도록)
+  try { localStorage.setItem('sjames_bot_token', token); } catch(e){}
 
-  // ★ 현재 달의 그 부서 미제출 항목 모두 수집
-  const currentMonth = new Date().getMonth() + 1;
+  // ★ 발송 대상 달: 파라미터로 받은 달 우선, 없으면 현재 달
+  const currentMonth = targetMonth || (new Date().getMonth() + 1);
   const noPlanItems = [];      // 계획서 미제출
   const noResultItems = [];    // 결과보고 미제출 (계획은 있지만)
   const noLinkItems = [];      // 링크만 미제출 (계획+결과 있음)
@@ -10015,17 +10038,17 @@ function openMonthDetail(month, filterType){
               ${canSendAlert && (needPlanAlert || needResultAlert || needLinkAlert) ? `
                 <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">
                   ${needPlanAlert ? `
-                    <button class="alert-btn alert-btn-plan" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','plan','${item.id}','${escapeAttr(item.t)}')">
+                    <button class="alert-btn alert-btn-plan" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','plan','${item.id}','${escapeAttr(item.t)}',${month})">
                       🔔 계획서 보고 요청
                     </button>
                   ` : ''}
                   ${needResultAlert ? `
-                    <button class="alert-btn alert-btn-result" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','result','${item.id}','${escapeAttr(item.t)}')">
+                    <button class="alert-btn alert-btn-result" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','result','${item.id}','${escapeAttr(item.t)}',${month})">
                       🔔 결과보고 요청
                     </button>
                   ` : ''}
                   ${needLinkAlert ? `
-                    <button class="alert-btn alert-btn-link" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','link','${item.id}','${escapeAttr(item.t)}')">
+                    <button class="alert-btn alert-btn-link" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','link','${item.id}','${escapeAttr(item.t)}',${month})">
                       🔔 보고 링크 요청
                     </button>
                   ` : ''}
