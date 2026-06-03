@@ -5566,7 +5566,10 @@ function getCurrent(item){
 
 function isItemDone(item){
   // 수치형 항목 (중점추진과제 등): 목표 달성 여부
-  if(item.target !== undefined) return getCurrent(item) >= item.target;
+  // target이 숫자일 때만 수치형으로 판단 (null/undefined는 텍스트형)
+  if(typeof item.target === 'number' && item.target > 0){
+    return getCurrent(item) >= item.target;
+  }
   // 연간 월별 계획: detail.completed만 신뢰 (옛 cloudState 무시)
   // 이유: 수치 항목이었던 게 텍스트로 바뀌면 옛 cloudState 값이 잘못 인식됨
   return !!(item.detail && item.detail.completed === true);
@@ -5797,8 +5800,12 @@ async function saveItem(deptId, sectionId, itemId){
   if(itemId){
     // 수정
     const payload = { t: text };
-    if(hasTarget){ payload.target = target; payload.unit = unit; }
-    else { payload.target = null; payload.unit = null; }
+    if(hasTarget){
+      payload.target = target;
+      payload.unit = unit;
+    }
+    // hasTarget이 false면 target/unit 키 자체를 넣지 않음
+    // (null로 저장하면 isItemDone에서 잘못 수치형으로 인식되는 버그 방지)
 
     // 기존 항목과 제목이 바뀌었는지 확인
     const depts = getEffectiveDepts();
