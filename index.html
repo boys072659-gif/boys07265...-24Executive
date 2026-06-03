@@ -2193,15 +2193,15 @@
     flex-wrap: wrap;
   }
   .dept-name {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 800;
     letter-spacing: -0.3px;
     color: var(--text);
   }
   .dept-leader {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    font-weight: 500;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    font-weight: 600;
   }
   .dept-progress-row {
     display: flex;
@@ -2265,12 +2265,11 @@
   .sec-icon.task { background: var(--success-soft); color: var(--success); }
   .sec-icon.event { background: var(--warning-soft); color: var(--warning); }
   .sec-label {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--text-secondary);
-    letter-spacing: 0.3px;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.2px;
     flex: 1;
-    text-transform: uppercase;
   }
   .sec-count {
     font-family: var(--font-num);
@@ -2883,13 +2882,13 @@
     .chip { padding: 7px 14px; font-size: 13px; }
 
     .dept-head { padding: 14px 16px; gap: 12px; min-height: 70px; }
-    .dept-name { font-size: 15px; }
-    .dept-leader { font-size: 12.5px; }
+    .dept-name { font-size: 16px; }
+    .dept-leader { font-size: 13px; }
     .dept-prog-text { font-size: 12.5px; min-width: 64px; }
 
     .sec-header { padding: 12px 16px 8px; }
     .sec-icon { width: 20px; height: 20px; }
-    .sec-label { font-size: 11.5px; }
+    .sec-label { font-size: 13px; }
 
     .check-row { padding: 14px 16px; gap: 12px; min-height: 56px; }
     .check-text { font-size: 14px; line-height: 1.5; }
@@ -2941,7 +2940,8 @@
   @media (max-width: 380px) {
     .summary-num { font-size: 20px; }
     .check-text { font-size: 13.5px; }
-    .dept-name { font-size: 14.5px; }
+    .dept-name { font-size: 15.5px; }
+    .sec-label { font-size: 12.5px; }
 
     /* 진행률 영역 작은 모바일 */
     .quant-block {
@@ -7631,13 +7631,39 @@ const JSON_NAME_TO_DEPT_ID = {
 
 // === 지난 달 미완료 부서 알림 (총무부 전용) ===
 // 현재 달보다 이전 달의 연간계획 항목 중 미완료가 있는 부서만 골라 발송
-function openOverdueAlert(){
+// "오늘 받은 부서 숨기기" 체크박스 토글 핸들러
+function _toggleOverdueSent(hide){
+  document.querySelectorAll('.overdue-row[data-sent-today="1"]').forEach(row => {
+    row.style.display = hide ? 'none' : 'block';
+    // 숨겨질 때는 체크도 자동 해제(중복 발송 방지), 다시 보일 땐 체크 활성화
+    const cb = row.querySelector('.overdue-dept');
+    if(cb) cb.checked = !hide;
+  });
+}
+
+async function openOverdueAlert(){
   if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
 
   const currentMonth = new Date().getMonth() + 1; // 1~12
   const depts = getEffectiveDepts();
 
-  const overdueByDept = [];  // [{dept, items:[{t, month}], tg}]
+  // ★ 오늘 자정 이후 overdue_manual 발송된 부서 ID 조회 (중복 발송 방지용)
+  const alreadySentToday = new Set();
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { data: sentRows, error: sentErr } = await window._sb
+      .from('exec_notify_log')
+      .select('dept_id, sent_at, notify_type, status')
+      .eq('notify_type', 'overdue_manual')
+      .eq('status', 'success')
+      .gte('sent_at', todayStart.toISOString());
+    if(!sentErr && sentRows){
+      sentRows.forEach(r => alreadySentToday.add(r.dept_id));
+    }
+  } catch(e){ console.warn('[overdue] 발송 로그 조회 실패 (무시):', e); }
+
+  const overdueByDept = [];  // [{dept, items:[{t, month}], tg, sentToday}]
   depts.forEach(dept => {
     const tg = cloudTelegram[dept.id];
     if(!tg || !tg.chat_id) return;  // chat_id 없는 부서는 제외
@@ -7655,7 +7681,10 @@ function openOverdueAlert(){
 
     if(overdueItems.length > 0){
       overdueItems.sort((a,b) => a.month - b.month);
-      overdueByDept.push({ dept, items: overdueItems, tg });
+      overdueByDept.push({
+        dept, items: overdueItems, tg,
+        sentToday: alreadySentToday.has(dept.id)
+      });
     }
   });
 
@@ -7669,20 +7698,28 @@ function openOverdueAlert(){
 
   const totalDepts = overdueByDept.length;
   const totalItems = overdueByDept.reduce((s,d) => s + d.items.length, 0);
+  const sentTodayCount = overdueByDept.filter(d => d.sentToday).length;
+  const remainingCount = totalDepts - sentTodayCount;
 
   let deptRows = '';
-  overdueByDept.forEach(({dept, items, tg}) => {
+  overdueByDept.forEach(({dept, items, tg, sentToday}) => {
     const itemList = items.map(it =>
       `<div style="font-size:11.5px;color:var(--text-secondary);padding-left:18px">· ${it.month}월 — ${escapeHtml(it.t)}</div>`
     ).join('');
     const topicInfo = tg.topic_id ? ` · 토픽 ${tg.topic_id}` : '';
+    const sentBadge = sentToday
+      ? `<span style="margin-left:auto;font-size:10.5px;padding:2px 6px;background:#e8f0fe;color:#1a4480;border-radius:4px;font-weight:600">✓ 오늘 발송됨</span>`
+      : '';
+    // 오늘 이미 발송된 부서는 기본 체크 해제 (중복 방지)
+    const checkedAttr = sentToday ? '' : 'checked';
     deptRows += `
-      <label style="display:block;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;margin-bottom:8px">
+      <label class="overdue-row" data-sent-today="${sentToday ? '1' : '0'}" style="display:block;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;margin-bottom:8px${sentToday ? ';opacity:0.65' : ''}">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
-          <input type="checkbox" class="overdue-dept" data-dept-id="${dept.id}" checked>
+          <input type="checkbox" class="overdue-dept" data-dept-id="${dept.id}" ${checkedAttr}>
           <span style="width:8px;height:8px;border-radius:50%;background:${dept.color}"></span>
           <span style="font-weight:600;font-size:13px">${escapeHtml(dept.name)}</span>
           <span style="color:var(--text-tertiary);font-size:11px">미완료 ${items.length}건${topicInfo}</span>
+          ${sentBadge}
         </div>
         ${itemList}
       </label>
@@ -7691,12 +7728,19 @@ function openOverdueAlert(){
 
   const body = `
     <div style="margin-bottom:14px;padding:12px;background:#fff0e6;border:1px solid #f0b380;border-radius:var(--radius-sm);font-size:12.5px;color:#9a5418;line-height:1.6">
-      ⏰ <b>${currentMonth}월 이전</b> 연간계획 중 <b>완료되지 않은 항목</b>이 있는 부서 <b>${totalDepts}곳</b> (총 ${totalItems}건)<br>
-      선택한 부서에만 각자의 미완료 목록이 발송됩니다.
+      ⏰ <b>${currentMonth}월 이전</b> 연간계획 중 <b>완료되지 않은 항목</b>이 있는 부서 <b>${totalDepts}곳</b> (총 ${totalItems}건)
+      ${sentTodayCount > 0 ? `<br>오늘 이미 발송된 부서 <b>${sentTodayCount}곳</b>은 기본으로 제외됩니다.` : ''}
     </div>
 
+    ${sentTodayCount > 0 ? `
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:#eef3fa;border:1px solid #c7d8ec;border-radius:var(--radius-sm);font-size:12.5px;cursor:pointer">
+        <input type="checkbox" id="overdue-hide-sent" checked onchange="_toggleOverdueSent(this.checked)">
+        <span>오늘 이미 받은 부서 ${sentTodayCount}곳 숨기기 (재발송 시 끄세요)</span>
+      </label>
+    ` : ''}
+
     <div style="margin-bottom:12px">
-      <button class="btn" onclick="document.querySelectorAll('.overdue-dept').forEach(c=>c.checked=true)" style="padding:3px 10px;font-size:11px">전체 선택</button>
+      <button class="btn" onclick="document.querySelectorAll('.overdue-row:not([style*=\\'display:none\\']) .overdue-dept').forEach(c=>c.checked=true)" style="padding:3px 10px;font-size:11px">보이는 항목 전체 선택</button>
       <button class="btn" onclick="document.querySelectorAll('.overdue-dept').forEach(c=>c.checked=false)" style="padding:3px 10px;font-size:11px">전체 해제</button>
     </div>
 
@@ -7730,6 +7774,11 @@ function openOverdueAlert(){
   window._overdueMonth = currentMonth;
 
   openModal('⏰ 미완료 부서 알림', body, footer);
+
+  // 모달 렌더 후 "오늘 받음" 행을 기본 숨김 처리 (체크박스가 기본 켜져있으므로)
+  if(sentTodayCount > 0){
+    setTimeout(() => _toggleOverdueSent(true), 0);
+  }
 }
 
 async function executeOverdueAlert(){
@@ -7761,6 +7810,7 @@ async function executeOverdueAlert(){
   if(sendBtn){ sendBtn.disabled = true; sendBtn.textContent = '발송 중...'; }
 
   let success = 0, fail = 0;
+  const failures = [];  // 실패 상세: [{name, reason}]
 
   for(const t of targets){
     const lines = [];
@@ -7785,18 +7835,51 @@ async function executeOverdueAlert(){
         } catch(e){}
       } else {
         fail++;
+        // 텔레그램 API 응답의 description이 가장 정확한 실패 사유
+        const reason = (result && (result.description || result.error_code))
+          || '알 수 없는 오류';
+        failures.push({ name: t.deptName, reason: String(reason).slice(0, 120) });
       }
     } catch(e){
       console.error('[미완료 알림 발송 실패]', t.deptName, e);
       fail++;
+      failures.push({ name: t.deptName, reason: (e && e.message) ? e.message.slice(0, 120) : '네트워크/예외' });
     }
     await new Promise(r => setTimeout(r, 250));  // rate limit 보호
   }
 
   if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = '⏰ 미완료 부서에 발송'; }
-  showToast(`✅ 발송 완료: ${success}곳${fail ? ` · 실패 ${fail}곳` : ''}`, fail ? 'info' : 'success');
-  if(success > 0 && fail === 0){
-    setTimeout(() => closeModal(), 1200);
+
+  if(fail === 0){
+    showToast(`✅ 발송 완료: ${success}곳`, 'success');
+    if(success > 0) setTimeout(() => closeModal(), 1200);
+  } else {
+    // 실패가 있으면 토스트 + 상세 모달로 어느 부서가 왜 실패했는지 안내
+    showToast(`발송 ${success}곳 · 실패 ${fail}곳`, 'info');
+
+    const rows = failures.map(f =>
+      `<div style="padding:10px;background:#fff4f4;border:1px solid #f3c2c2;border-radius:var(--radius-sm);margin-bottom:6px">
+        <div style="font-weight:600;font-size:13px;color:#b04141">❌ ${escapeHtml(f.name)}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary);margin-top:3px;font-family:var(--font-num);word-break:break-all">${escapeHtml(f.reason)}</div>
+      </div>`
+    ).join('');
+
+    const body = `
+      <div style="margin-bottom:12px;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:12.5px;line-height:1.6">
+        ✅ 성공 <b>${success}곳</b> · ❌ 실패 <b>${fail}곳</b><br>
+        아래 부서는 발송이 안 됐습니다. 사유를 확인해주세요.
+      </div>
+      <div style="max-height:360px;overflow-y:auto">${rows}</div>
+      <div style="margin-top:10px;padding:9px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:11.5px;color:var(--text-secondary);line-height:1.55">
+        💡 자주 나오는 사유:<br>
+        • <code>chat not found</code> → 봇이 그 그룹에 없음. 봇을 그룹에 추가하세요.<br>
+        • <code>message thread not found</code> → topic_id가 잘못됨. 봇 관리에서 수정하세요.<br>
+        • <code>403 Forbidden</code> → 봇이 메시지 보낼 권한 없음. 그룹에서 봇 권한 확인.<br>
+        • <code>bot was blocked</code> → 봇이 차단됨. 차단 해제 필요.
+      </div>
+    `;
+    const footer = `<button class="btn btn-primary" onclick="closeModal()">확인</button>`;
+    openModal('⚠️ 일부 부서 발송 실패', body, footer);
   }
 }
 
