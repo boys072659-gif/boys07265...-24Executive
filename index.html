@@ -7835,15 +7835,24 @@ async function executeOverdueAlert(){
         } catch(e){}
       } else {
         fail++;
-        // 텔레그램 API 응답의 description이 가장 정확한 실패 사유
-        const reason = (result && (result.description || result.error_code))
+        const reason = (result && (result.error || result.description || result.error_code))
           || '알 수 없는 오류';
-        failures.push({ name: t.deptName, reason: String(reason).slice(0, 120) });
+        failures.push({
+          name: t.deptName,
+          chatId: t.chatId,
+          topicId: t.topicId,
+          reason: String(reason).slice(0, 200)
+        });
       }
     } catch(e){
       console.error('[미완료 알림 발송 실패]', t.deptName, e);
       fail++;
-      failures.push({ name: t.deptName, reason: (e && e.message) ? e.message.slice(0, 120) : '네트워크/예외' });
+      failures.push({
+        name: t.deptName,
+        chatId: t.chatId,
+        topicId: t.topicId,
+        reason: (e && e.message) ? e.message.slice(0, 200) : '네트워크/예외'
+      });
     }
     await new Promise(r => setTimeout(r, 250));  // rate limit 보호
   }
@@ -7859,8 +7868,9 @@ async function executeOverdueAlert(){
 
     const rows = failures.map(f =>
       `<div style="padding:10px;background:#fff4f4;border:1px solid #f3c2c2;border-radius:var(--radius-sm);margin-bottom:6px">
-        <div style="font-weight:600;font-size:13px;color:#b04141">❌ ${escapeHtml(f.name)}</div>
-        <div style="font-size:11.5px;color:var(--text-secondary);margin-top:3px;font-family:var(--font-num);word-break:break-all">${escapeHtml(f.reason)}</div>
+        <div style="font-weight:700;font-size:14px;color:#b04141">❌ ${escapeHtml(f.name)}</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;font-family:var(--font-num)">chat_id: ${escapeHtml(String(f.chatId || '?'))}${f.topicId ? ' · topic_id: ' + escapeHtml(String(f.topicId)) : ''}</div>
+        <div style="font-size:12px;color:#7a2424;margin-top:6px;padding:6px 8px;background:#fff;border-radius:4px;word-break:break-all;font-family:var(--font-num)">${escapeHtml(f.reason)}</div>
       </div>`
     ).join('');
 
