@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SJAMES 자금 관리</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* Design tokens — 자금이라는 주제에 맞춘 차분한 톤
+     기존 SJAMES와 통일하되 좀 더 절제된 색채로 */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  :root {
+    /* 배경 — 따뜻한 베이지 베이스 */
+    --bg:            #faf7f2;
+    --bg-card:       #ffffff;
+    --bg-subtle:     #f4f0e8;
+    --bg-hover:      #ede7da;
+
+    /* 본문 — 진한 톤으로 가독성 우선 */
+    --text:          #2d2a26;
+    --text-secondary:#5a544c;
+    --text-tertiary: #8f8779;
+
+    /* 경계선 */
+    --border:        #e6dfd0;
+    --border-strong: #d4ccb8;
+
+    /* 의미 색상 — 자금/금융 톤 (절제) */
+    --pending:       #d09c4c;     /* 승인 대기 — 황토색 */
+    --pending-soft:  #fbf2e0;
+    --approved:      #4f7f4a;     /* 승인 — 깊은 녹색 */
+    --approved-soft: #e8f0e6;
+    --cancelled:     #b0473d;     /* 취소 — 진한 적색 */
+    --cancelled-soft:#f5e3e0;
+    --error:         #c14545;
+    --error-soft:    #fbecea;
+
+    /* 부서 그룹 색 (기존 SJAMES 톤) */
+    --grp-inner:     #4A90E2;     /* 내무 — 파랑 */
+    --grp-admin:     #E8A04F;     /* 행정 — 주황 */
+    --grp-culture:   #D8628E;     /* 문화 — 분홍 */
+
+    /* 시그니처 — 깊은 코발트 (재무 신뢰감) */
+    --accent:        #234a73;
+    --accent-soft:   #e7eef5;
+
+    /* 그림자 */
+    --shadow-sm:     0 1px 2px rgba(45,42,38,0.05);
+    --shadow-md:     0 4px 12px rgba(45,42,38,0.08);
+    --shadow-lg:     0 8px 24px rgba(45,42,38,0.12);
+
+    /* 모서리 */
+    --radius-sm:     6px;
+    --radius:        10px;
+    --radius-lg:     16px;
+
+    /* 타이포그래피 */
+    --font-body:     -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                     "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+    --font-num:      "SF Mono", "JetBrains Mono", Consolas, Monaco, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  /* ─── 로그인 화면 ─── */
+  .login-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #faf7f2 0%, #ede7da 100%);
+    padding: 20px;
+    z-index: 1000;
+  }
+  .login-box {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 40px 32px;
+    width: 100%; max-width: 380px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+  }
+  .login-title {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .login-title h1 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .login-title p {
+    margin: 0;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+  .login-title .brand {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--accent);
+    color: white;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .form-row select,
+  .form-row input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+    transition: border-color 0.15s;
+  }
+  .form-row select:focus,
+  .form-row input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .login-err {
+    display: none;
+    background: var(--error-soft);
+    color: var(--error);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    margin-bottom: 12px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg-hover); }
+  .btn-primary {
+    background: var(--accent); color: white;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #1a3a5c; }
+  .btn-block { width: 100%; padding: 12px; }
+  .btn-sm { padding: 6px 10px; font-size: 12.5px; }
+  .btn-ghost { background: transparent; border-color: transparent; }
+  .btn-ghost:hover { background: var(--bg-hover); }
+
+  /* ─── 메인 레이아웃 ─── */
+  .app { display: none; }
+  .app.active { display: block; }
+
+  .topbar {
+    position: sticky; top: 0;
+    background: rgba(250,247,242,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px;
+    z-index: 100;
+  }
+  .topbar .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+  .topbar .brand-mark {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .topbar .spacer { flex: 1; }
+  .topbar .user-info {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+  .topbar .user-info .name {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .topbar .back-link {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .topbar .back-link:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+  }
+
+  .container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  /* ─── 페이지 헤더 ─── */
+  .page-header {
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0 0 6px;
+  }
+  .page-subtitle {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    margin: 0;
+  }
+
+  /* ─── 시그니처: 요약 카드 영역 ─── */
+  /* 자금 관리의 핵심 4 지표를 한 줄에 — 신뢰감 있는 회계 장부 느낌 */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+  .summary-card.pending::before { background: var(--pending); }
+  .summary-card.approved::before { background: var(--approved); }
+  .summary-card.cancelled::before { background: var(--cancelled); }
+
+  .summary-card .label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .summary-card .value {
+    font-family: var(--font-num);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .summary-card .value .currency {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-left: 3px;
+  }
+  .summary-card .meta {
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+  }
+
+  /* ─── 필터 바 ─── */
+  .filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+  .filter-bar .field { display: flex; flex-direction: column; gap: 4px; }
+  .filter-bar label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .filter-bar input,
+  .filter-bar select {
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+  .filter-bar input:focus,
+  .filter-bar select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* ─── 청구 목록 — 회계 장부의 정확함을 차용한 표 ─── */
+  .table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .table-meta {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+  }
+  .table-meta .count {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .table-meta .right { margin-left: auto; }
+
+  .req-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .req-table th {
+    text-align: left;
+    padding: 11px 16px;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    position: sticky;
+    top: 0;
+  }
+  .req-table th.num,
+  .req-table td.num {
+    text-align: right;
+    font-family: var(--font-num);
+  }
+  .req-table tr {
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .req-table tr:last-child { border-bottom: none; }
+  .req-table tr:hover { background: var(--bg-subtle); }
+  .req-table td {
+    padding: 13px 16px;
+    vertical-align: middle;
+  }
+  .req-table td .request-no {
+    font-family: var(--font-num);
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+  .req-table td .dept-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+  }
+  .req-table td.detail-cell {
+    max-width: 360px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+  }
+  .req-table td.amount {
+    font-family: var(--font-num);
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ─── 상태 뱃지 ─── */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .status.pending { background: var(--pending-soft); color: var(--pending); }
+  .status.pending::before { background: var(--pending); }
+  .status.approved { background: var(--approved-soft); color: var(--approved); }
+  .status.approved::before { background: var(--approved); }
+  .status.cancelled { background: var(--cancelled-soft); color: var(--cancelled); }
+  .status.cancelled::before { background: var(--cancelled); }
+  .status.parse_failed { background: var(--error-soft); color: var(--error); }
+  .status.parse_failed::before { background: var(--error); }
+
+  /* ─── 빈 상태 ─── */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+  }
+  .empty .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+  .empty .msg {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .empty .hint {
+    font-size: 12.5px;
+    margin-top: 6px;
+  }
+
+  /* ─── 청구 상세 모달 ─── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(45,42,38,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    z-index: 500;
+  }
+  .modal-backdrop.show {
+    display: flex;
+    animation: fadeIn 0.15s;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .modal {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    max-width: 580px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+  .modal-header .request-no {
+    font-family: var(--font-num);
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+  .modal-close {
+    margin-left: auto;
+    background: none; border: none;
+    font-size: 22px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--bg-hover); color: var(--text); }
+  .modal-body {
+    padding: 22px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* 상세 — "회계 장부" 느낌의 정렬 */
+  .detail-meta {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-sm);
+  }
+  .detail-meta .row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 5px 0;
+    font-size: 13.5px;
+  }
+  .detail-meta .row + .row {
+    border-top: 1px dashed var(--border);
+  }
+  .detail-meta .row .k {
+    width: 80px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .detail-meta .row .v {
+    flex: 1;
+    color: var(--text);
+  }
+  .detail-meta .row .v.num {
+    font-family: var(--font-num);
+    font-weight: 700;
+  }
+  .detail-meta .row .v.amount {
+    font-family: var(--font-num);
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .detail-section {
+    margin-bottom: 18px;
+  }
+  .detail-section-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .detail-raw {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+  }
+  .detail-approval {
+    background: var(--approved-soft);
+    border: 1px solid #c4dabf;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--approved);
+  }
+  .detail-approval.cancelled {
+    background: var(--cancelled-soft);
+    border-color: #e8c2bd;
+    color: var(--cancelled);
+  }
+  .detail-approval.pending {
+    background: var(--pending-soft);
+    border-color: #e8d2a0;
+    color: var(--pending);
+  }
+  .detail-approval .who {
+    font-weight: 700;
+    font-size: 13.5px;
+  }
+  .detail-approval .when {
+    font-family: var(--font-num);
+    font-size: 12px;
+    margin-top: 2px;
+    opacity: 0.85;
+  }
+
+  /* 로딩 */
+  .loading {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -3px;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 토스트 */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: white;
+    padding: 11px 20px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  /* ─── 모바일 ─── */
+  @media (max-width: 900px) {
+    .summary { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .filter-bar {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .container { padding: 18px 14px 40px; }
+    .page-title { font-size: 19px; }
+
+    /* 표를 카드 리스트로 */
+    .req-table thead { display: none; }
+    .req-table, .req-table tbody, .req-table tr, .req-table td { display: block; width: 100%; }
+    .req-table tr {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      padding: 12px 14px;
+    }
+    .req-table tr:hover { background: var(--bg-card); }
+    .req-table td {
+      padding: 3px 0;
+      border: none !important;
+    }
+    .req-table td.detail-cell { max-width: 100%; white-space: normal; }
+    .req-table td.num { text-align: left; }
+
+    /* 모바일에서 라벨 표시 */
+    .req-table td::before {
+      content: attr(data-label) ' · ';
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-weight: 600;
+      margin-right: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .req-table td.req-no-cell::before,
+    .req-table td.detail-cell::before { content: ''; }
+    .req-table td.req-no-cell {
+      font-family: var(--font-num);
+      color: var(--text-tertiary);
+      font-size: 11.5px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .req-table td.detail-cell {
+      font-weight: 600;
+      color: var(--text);
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    .modal { max-height: 95vh; }
+    .modal-header { padding: 14px 16px; }
+    .modal-body { padding: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .summary { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 14px; }
+    .topbar .brand { font-size: 13.5px; }
+    .topbar .user-info { font-size: 11.5px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- 로그인 화면 -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <div class="login-title">
+      <span class="brand">SJAMES</span>
+      <h1>자금 관리</h1>
+      <p>서울야고보지파 24행정부서</p>
+    </div>
+    <div id="login-err" class="login-err"></div>
+    <div class="form-row">
+      <label for="login-dept">부서</label>
+      <select id="login-dept"></select>
+    </div>
+    <div class="form-row">
+      <label for="login-name">이름</label>
+      <input type="text" id="login-name" placeholder="예: 김재정">
+    </div>
+    <div class="form-row">
+      <label for="login-pw">부서 비밀번호</label>
+      <input type="password" id="login-pw" placeholder="부서 비밀번호">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()">접속</button>
+    <div style="margin-top:14px;text-align:center">
+      <a href="index.html" class="btn-ghost btn btn-sm" style="text-decoration:none">← 업무 대시보드로</a>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- 메인 앱 -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div id="app" class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">₩</div>
+      <span>SJAMES 자금 관리</span>
+    </div>
+    <div class="spacer"></div>
+    <a href="index.html" class="back-link">← 업무 대시보드</a>
+    <div class="user-info">
+      <span class="name" id="ui-name">—</span>
+      <span>·</span>
+      <span id="ui-dept">—</span>
+      <button class="btn btn-sm btn-ghost" onclick="doLogout()" title="로그아웃">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title" id="page-title">자금청구 현황</h1>
+      <p class="page-subtitle" id="page-subtitle">—</p>
+    </div>
+
+    <!-- 요약 카드 -->
+    <div class="summary" id="summary"></div>
+
+    <!-- 필터 -->
+    <div class="filter-bar">
+      <div class="field">
+        <label for="f-search">검색 (내역·구분·청구번호)</label>
+        <input type="text" id="f-search" placeholder="예: 전도활동, 2026-06" oninput="renderList()">
+      </div>
+      <div class="field" id="f-dept-wrap">
+        <label for="f-dept">부서</label>
+        <select id="f-dept" onchange="renderList()"><option value="">전체</option></select>
+      </div>
+      <div class="field">
+        <label for="f-status">상태</label>
+        <select id="f-status" onchange="renderList()">
+          <option value="">전체</option>
+          <option value="pending">승인 대기</option>
+          <option value="approved">승인됨</option>
+          <option value="cancelled">취소됨</option>
+          <option value="parse_failed">양식 오류</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-from">기간 시작</label>
+        <input type="date" id="f-from" onchange="renderList()">
+      </div>
+      <div class="field">
+        <label for="f-to">기간 끝</label>
+        <input type="date" id="f-to" onchange="renderList()">
+      </div>
+      <div class="field">
+        <button class="btn btn-sm" onclick="resetFilters()">초기화</button>
+      </div>
+    </div>
+
+    <!-- 목록 -->
+    <div class="table-wrap">
+      <div class="table-meta">
+        <span class="count" id="meta-count">—</span>
+        <span class="right" id="meta-total">—</span>
+      </div>
+      <div id="list-container">
+        <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- 청구 상세 모달 -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div id="modal-backdrop" class="modal-backdrop" onclick="closeModalIfBackdrop(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">청구 상세</h3>
+      <span class="request-no" id="modal-no"></span>
+      <button class="modal-close" onclick="closeModal()" aria-label="닫기">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 상수 / Supabase
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SUPABASE_URL = 'https://faxaqxyafsitdfykxgem.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZheGFxeHlhZnNpdGRmeWt4Z2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1OTI2MjYsImV4cCI6MjA5MjE2ODYyNn0.sE7eWx7HrCZpZ4jVlBScoFvREkER6wUsg7IzdVMzHLk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const MASTER_DEPT = '총무부';
+const MASTER_NAME = '서울야고보';
+const MASTER_PW   = 'wkdwn5512';
+
+const DEPTS = [
+  {id:'d03', name:'03 내무부',     group:'inner'},
+  {id:'d31', name:'3-1 자문회',    group:'inner'},
+  {id:'d32', name:'3-2 장년회',    group:'inner'},
+  {id:'d33', name:'3-3 부녀회',    group:'inner'},
+  {id:'d34', name:'3-4 청년회',    group:'inner'},
+  {id:'d35', name:'3-5 학생회',    group:'inner'},
+  {id:'d36', name:'3-6 유년회',    group:'inner'},
+  {id:'d37', name:'3-7 국제부',    group:'inner'},
+  {id:'d04', name:'04 기획부',     group:'admin'},
+  {id:'d05', name:'05 재정부',     group:'admin'},
+  {id:'d06', name:'06 교육부',     group:'admin'},
+  {id:'d07', name:'07 신학부',     group:'admin'},
+  {id:'d08', name:'08 해외선교부', group:'admin'},
+  {id:'d09', name:'09 전도부',     group:'admin'},
+  {id:'d14', name:'14 섭외부',     group:'admin'},
+  {id:'d15', name:'15 국내선교부', group:'admin'},
+  {id:'d10', name:'10 문화부',     group:'culture'},
+  {id:'d11', name:'11 출판부',     group:'culture'},
+  {id:'d12', name:'12 정보통신부', group:'culture'},
+  {id:'d13', name:'13 찬양부',     group:'culture'},
+  {id:'d19', name:'19 건설부',     group:'culture'},
+  {id:'d20', name:'20 체육부',     group:'culture'},
+  {id:'d21', name:'21 홍보부',     group:'culture'},
+  {id:'d22', name:'22 보건후생복지부', group:'culture'},
+  {id:'d23', name:'23 봉사교통부', group:'culture'},
+];
+
+const STATUS_LABEL = {
+  pending:       '승인 대기',
+  approved:      '승인됨',
+  cancelled:     '취소됨',
+  parse_failed:  '양식 오류',
+  deleted:       '삭제됨',
+};
+
+// 그룹 색 (헤더용)
+const GROUP_COLOR = {
+  inner:   '#4A90E2',
+  admin:   '#E8A04F',
+  culture: '#D8628E',
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 상태 (메모리)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let currentUser = null;   // {name, dept, deptId, isMaster}
+let allRequests = [];     // 서버에서 불러온 청구 전체
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 유틸
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtMoney(n){
+  if(n == null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('ko-KR');
+}
+function fmtDate(s){
+  if(!s) return '—';
+  // YYYY-MM-DD 또는 ISO
+  const d = String(s).slice(0,10);
+  return d;
+}
+function fmtDateTime(s){
+  if(!s) return '—';
+  const d = new Date(s);
+  if(isNaN(d.getTime())) return s;
+  return d.toLocaleString('ko-KR', {
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', hour12:false
+  });
+}
+function findDept(deptId){
+  return DEPTS.find(d => d.id === deptId);
+}
+function deptDisplayName(deptId){
+  const d = findDept(deptId);
+  return d ? d.name : deptId;
+}
+
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 로그인
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function initLoginScreen(){
+  const sel = document.getElementById('login-dept');
+  sel.innerHTML = '';
+  // 마스터
+  const optMaster = document.createElement('option');
+  optMaster.value = MASTER_DEPT;
+  optMaster.textContent = `🔑 ${MASTER_DEPT} (관리자 — 전체 조회)`;
+  sel.appendChild(optMaster);
+  // 부서들
+  DEPTS.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.name;
+    o.textContent = d.name;
+    sel.appendChild(o);
+  });
+
+  // 저장된 로그인 자동 복원
+  try {
+    const saved = JSON.parse(localStorage.getItem('sjames_fund_user') || 'null');
+    if(saved && saved.name && saved.dept){
+      // 자동으로 다시 인증은 안 함. 단지 자동 진입만.
+      currentUser = saved;
+      enterApp();
+    }
+  } catch(e){}
+
+  // Enter로 로그인
+  ['login-dept','login-name','login-pw'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('keydown', e => {
+      if(e.key === 'Enter') doLogin();
+    });
+  });
+}
+
+async function doLogin(){
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+
+  const dept = document.getElementById('login-dept').value;
+  const name = document.getElementById('login-name').value.trim();
+  const pw   = document.getElementById('login-pw').value;
+
+  if(!dept) return loginErr('부서를 선택해주세요');
+  if(!name) return loginErr('이름을 입력해주세요');
+  if(!pw)   return loginErr('비밀번호를 입력해주세요');
+
+  // 마스터
+  if(dept === MASTER_DEPT){
+    if(pw !== MASTER_PW) return loginErr('비밀번호가 일치하지 않습니다');
+    currentUser = {
+      name, dept: MASTER_DEPT, deptId: 'master', isMaster: true
+    };
+  } else {
+    // 부서 비밀번호: exec_dept_passwords에서 확인
+    const deptObj = DEPTS.find(d => d.name === dept);
+    if(!deptObj) return loginErr('알 수 없는 부서입니다');
+    const ok = await verifyDeptPassword(deptObj.id, pw);
+    if(ok !== true) return loginErr('비밀번호가 일치하지 않습니다');
+    currentUser = {
+      name, dept: deptObj.name, deptId: deptObj.id, isMaster: false
+    };
+  }
+
+  localStorage.setItem('sjames_fund_user', JSON.stringify(currentUser));
+  enterApp();
+}
+
+async function verifyDeptPassword(deptId, pw){
+  try {
+    const { data, error } = await sb
+      .from('exec_dept_passwords')
+      .select('password')
+      .eq('dept_id', deptId)
+      .maybeSingle();
+    if(error){
+      console.warn('[pw] 조회 오류:', error.message);
+      return false;
+    }
+    if(!data){
+      // 비밀번호 미설정 → 기본 비밀번호 (현재 정책에 맞춤)
+      return pw === '1234';
+    }
+    return data.password === pw;
+  } catch(e){
+    console.error('[pw] 예외:', e);
+    return false;
+  }
+}
+
+function loginErr(msg){
+  const el = document.getElementById('login-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function doLogout(){
+  if(!confirm('로그아웃 하시겠습니까?')) return;
+  localStorage.removeItem('sjames_fund_user');
+  currentUser = null;
+  allRequests = [];
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pw').value = '';
+}
+
+function enterApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  // 헤더 정보
+  document.getElementById('ui-name').textContent = currentUser.name;
+  document.getElementById('ui-dept').textContent = currentUser.dept;
+  // 페이지 부제
+  if(currentUser.isMaster){
+    document.getElementById('page-subtitle').textContent =
+      '전체 부서 청구 내역을 조회하고 관리합니다';
+    document.getElementById('f-dept-wrap').style.display = '';
+  } else {
+    document.getElementById('page-subtitle').textContent =
+      `${currentUser.dept}에서 보낸 청구 내역을 조회합니다`;
+    document.getElementById('f-dept-wrap').style.display = 'none';
+  }
+  // 부서 드롭다운 (마스터만 보임)
+  if(currentUser.isMaster){
+    const sel = document.getElementById('f-dept');
+    sel.innerHTML = '<option value="">전체</option>';
+    DEPTS.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.name;
+      sel.appendChild(o);
+    });
+  }
+  loadRequests();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 데이터 로드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function loadRequests(){
+  const container = document.getElementById('list-container');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>청구 내역을 불러오는 중…</div>';
+
+  let q = sb.from('fund_requests')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(2000);
+
+  if(!currentUser.isMaster){
+    q = q.eq('dept_id', currentUser.deptId);
+  }
+
+  const { data, error } = await q;
+  if(error){
+    container.innerHTML = `<div class="empty">
+      <div class="msg">불러오기에 실패했어요</div>
+      <div class="hint">${escapeHtml(error.message)}</div>
+    </div>`;
+    return;
+  }
+  allRequests = data || [];
+  renderSummary();
+  renderList();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 요약 카드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderSummary(){
+  // 이번 달 기준
+  const now = new Date();
+  const thisYM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  const inMonth = allRequests.filter(r => (r.request_date || r.created_at || '').slice(0,7) === thisYM);
+  const approvedThisMonth = inMonth.filter(r => r.status === 'approved');
+  const pendingAll = allRequests.filter(r => r.status === 'pending');
+  const approvedAll = allRequests.filter(r => r.status === 'approved');
+
+  const sumApprovedMonth = approvedThisMonth.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+  const sumPendingAll    = pendingAll.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+  const sumApprovedTotal = approvedAll.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+  const monthLabel = `${now.getMonth()+1}월`;
+
+  const html = `
+    <div class="summary-card approved">
+      <div class="label">이번 달 승인 (${monthLabel})</div>
+      <div class="value">${fmtMoney(sumApprovedMonth)}<span class="currency">원</span></div>
+      <div class="meta">${approvedThisMonth.length}건 · ${inMonth.length}건 중</div>
+    </div>
+    <div class="summary-card pending">
+      <div class="label">전체 승인 대기</div>
+      <div class="value">${fmtMoney(sumPendingAll)}<span class="currency">원</span></div>
+      <div class="meta">${pendingAll.length}건</div>
+    </div>
+    <div class="summary-card approved">
+      <div class="label">전체 누적 승인</div>
+      <div class="value">${fmtMoney(sumApprovedTotal)}<span class="currency">원</span></div>
+      <div class="meta">${approvedAll.length}건</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">${currentUser.isMaster ? '전체' : currentUser.dept} 청구</div>
+      <div class="value" style="font-size:22px">${allRequests.length}<span class="currency">건</span></div>
+      <div class="meta">최근 ${monthLabel} 기준 ${inMonth.length}건</div>
+    </div>
+  `;
+  document.getElementById('summary').innerHTML = html;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 필터링 + 목록 렌더
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getFiltered(){
+  const search = document.getElementById('f-search').value.trim().toLowerCase();
+  const deptId = currentUser.isMaster ? document.getElementById('f-dept').value : currentUser.deptId;
+  const status = document.getElementById('f-status').value;
+  const fromS  = document.getElementById('f-from').value;
+  const toS    = document.getElementById('f-to').value;
+
+  return allRequests.filter(r => {
+    if(deptId && r.dept_id !== deptId) return false;
+    if(status && r.status !== status) return false;
+    const dStr = r.request_date || (r.created_at || '').slice(0,10);
+    if(fromS && dStr < fromS) return false;
+    if(toS   && dStr > toS)   return false;
+    if(search){
+      const hay = (
+        (r.request_no || '') + ' ' +
+        (r.detail || '') + ' ' +
+        (r.category || '') + ' ' +
+        (r.description || '')
+      ).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderList(){
+  const items = getFiltered();
+  const total = items.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+
+  document.getElementById('meta-count').textContent =
+    `${items.length}건` + (items.length !== allRequests.length ? ` / ${allRequests.length}건 중` : '');
+  document.getElementById('meta-total').textContent =
+    `합계 ${fmtMoney(total)}원`;
+
+  const container = document.getElementById('list-container');
+  if(items.length === 0){
+    container.innerHTML = `<div class="empty">
+      <div class="icon">📋</div>
+      <div class="msg">조건에 맞는 청구 내역이 없습니다</div>
+      <div class="hint">필터를 조정하거나, 텔레그램에서 자금청구를 보내보세요</div>
+    </div>`;
+    return;
+  }
+
+  const rows = items.map(r => {
+    const deptName = deptDisplayName(r.dept_id);
+    const statusLabel = STATUS_LABEL[r.status] || r.status;
+    const dateStr = r.request_date || (r.created_at || '').slice(0,10);
+    return `
+      <tr onclick="openDetail(${r.id})">
+        <td class="req-no-cell" data-label="청구번호"><span class="request-no">#${escapeHtml(r.request_no || '—')}</span></td>
+        <td data-label="부서"><span class="dept-chip">${escapeHtml(deptName)}</span></td>
+        <td data-label="일시" class="num">${escapeHtml(dateStr)}</td>
+        <td data-label="구분">${escapeHtml(r.category || '—')}</td>
+        <td data-label="내역" class="detail-cell">${escapeHtml(r.detail || '—')}</td>
+        <td data-label="금액" class="num amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</td>
+        <td data-label="상태"><span class="status ${r.status}">${statusLabel}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <table class="req-table">
+      <thead>
+        <tr>
+          <th>청구번호</th>
+          <th>부서</th>
+          <th>일시</th>
+          <th>구분</th>
+          <th>내역</th>
+          <th class="num">금액</th>
+          <th>상태</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function resetFilters(){
+  document.getElementById('f-search').value = '';
+  if(currentUser && currentUser.isMaster){
+    document.getElementById('f-dept').value = '';
+  }
+  document.getElementById('f-status').value = '';
+  document.getElementById('f-from').value = '';
+  document.getElementById('f-to').value = '';
+  renderList();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 상세 모달
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openDetail(id){
+  const r = allRequests.find(x => x.id === id);
+  if(!r){ showToast('해당 청구를 찾을 수 없습니다'); return; }
+
+  document.getElementById('modal-no').textContent = `#${r.request_no || '—'}`;
+  document.getElementById('modal-title').textContent =
+    STATUS_LABEL[r.status] || '청구 상세';
+
+  const deptName = deptDisplayName(r.dept_id);
+  const dateStr  = r.request_date || (r.created_at || '').slice(0,10);
+
+  // 메타 박스 (회계 장부 톤)
+  const meta = `
+    <div class="detail-meta">
+      <div class="row"><div class="k">부서</div><div class="v">${escapeHtml(deptName)}</div></div>
+      <div class="row"><div class="k">일시</div><div class="v num">${escapeHtml(dateStr)}</div></div>
+      <div class="row"><div class="k">구분</div><div class="v">${escapeHtml(r.category || '—')}</div></div>
+      <div class="row"><div class="k">내역</div><div class="v">${escapeHtml(r.detail || '—')}</div></div>
+      <div class="row"><div class="k">금액</div><div class="v amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</div></div>
+      ${r.description ? `<div class="row"><div class="k">추가설명</div><div class="v">${escapeHtml(r.description)}</div></div>` : ''}
+    </div>
+  `;
+
+  // 승인/취소 상태
+  let approvalBox = '';
+  if(r.status === 'approved'){
+    approvalBox = `
+      <div class="detail-section">
+        <div class="detail-section-title">승인 정보</div>
+        <div class="detail-approval">
+          <div class="who">✅ 승인: ${escapeHtml(r.approved_by_name || '—')}</div>
+          <div class="when">${fmtDateTime(r.approved_at)}${r.approval_reaction ? ' · ' + escapeHtml(r.approval_reaction) : ''}</div>
+        </div>
+      </div>
+    `;
+  } else if(r.status === 'cancelled'){
+    approvalBox = `
+      <div class="detail-section">
+        <div class="detail-section-title">취소 정보</div>
+        <div class="detail-approval cancelled">
+          <div class="who">⚠️ 취소: ${escapeHtml(r.approved_by_name || '—')}</div>
+          <div class="when">${fmtDateTime(r.approved_at)}</div>
+        </div>
+      </div>
+    `;
+  } else if(r.status === 'pending'){
+    approvalBox = `
+      <div class="detail-section">
+        <div class="detail-section-title">상태</div>
+        <div class="detail-approval pending">
+          <div class="who">⏳ 승인 대기 중</div>
+          <div class="when">텔레그램 청구 메시지에 이모지 리액션을 달면 승인됩니다</div>
+        </div>
+      </div>
+    `;
+  } else if(r.status === 'parse_failed'){
+    const errs = (r.parse_errors || []).join(', ');
+    approvalBox = `
+      <div class="detail-section">
+        <div class="detail-section-title">양식 오류</div>
+        <div class="detail-approval cancelled">
+          <div class="who">⚠️ 양식 오류</div>
+          <div class="when">누락/오류: ${escapeHtml(errs)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 원본 텔레그램 메시지
+  const rawBox = `
+    <div class="detail-section">
+      <div class="detail-section-title">텔레그램 원본</div>
+      <div class="detail-raw">${escapeHtml(r.raw_text || '—')}</div>
+    </div>
+  `;
+
+  // 작성·수정 메타
+  const submitMeta = `
+    <div class="detail-section">
+      <div class="detail-section-title">청구자 정보</div>
+      <div class="detail-meta" style="margin-bottom:0">
+        <div class="row"><div class="k">작성</div><div class="v">${escapeHtml(r.tg_user_name || '—')}</div></div>
+        <div class="row"><div class="k">접수 시각</div><div class="v num">${fmtDateTime(r.created_at)}</div></div>
+        ${r.tg_edited_at ? `<div class="row"><div class="k">수정 시각</div><div class="v num">${fmtDateTime(r.tg_edited_at)}</div></div>` : ''}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-body').innerHTML = meta + approvalBox + rawBox + submitMeta;
+  document.getElementById('modal-backdrop').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modal-backdrop').classList.remove('show');
+}
+function closeModalIfBackdrop(e){
+  if(e.target.id === 'modal-backdrop') closeModal();
+}
+
+// Escape로 모달 닫기
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeModal();
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 부팅
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+initLoginScreen();
+</script>
+
+</body>
+</html>
