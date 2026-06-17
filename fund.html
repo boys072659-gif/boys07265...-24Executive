@@ -992,8 +992,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MASTER_DEPT = '총무부';
-const MASTER_NAME = '서울야고보';
-const MASTER_PW   = 'wkdwn5512';
+// 마스터 비밀번호는 exec_dept_passwords.master 행에서 조회 (기존 시스템과 동일)
 
 const DEPTS = [
   {id:'d03', name:'03 내무부',     group:'inner'},
@@ -1031,6 +1030,23 @@ const STATUS_LABEL = {
   parse_failed:  '양식 오류',
   deleted:       '삭제됨',
 };
+
+// 기존 업무 대시보드와 동일한 기본 비밀번호 매핑
+// (exec_dept_passwords 테이블에 해당 부서 비번이 없을 때 fallback)
+const DEFAULT_DEPT_PASSWORDS = {
+  // 내무부서
+  'd03':'naemu24','d31':'jamun24','d32':'jangnyeon24','d33':'bunyeo24',
+  'd34':'cheongnyeon24','d35':'haksaeng24','d36':'yunyeon24','d37':'gukje24',
+  // 행정부서
+  'd04':'gihoek24','d05':'jaejeong24','d06':'gyoyuk24','d07':'sinhak24',
+  'd08':'haeseon24','d09':'jeondo24','d14':'seopoe24','d15':'guknae24',
+  'd17':'beopmu24',
+  // 문화·홍보·기능
+  'd10':'munhwa24','d11':'chulpan24','d12':'jeongbo24','d13':'chanyang24',
+  'd20':'cheyuk24','d21':'hongbo24','d22':'bogeon24','d23':'bongsa24',
+  'd19':'gunseol24',
+};
+const DEFAULT_MASTER_PASSWORD = 'sjames2024';
 
 // 그룹 색 (헤더용)
 const GROUP_COLOR = {
@@ -1147,14 +1163,15 @@ async function doLogin(){
   if(!dept) return loginErr('부서를 선택해주세요');
   if(!pw)   return loginErr('비밀번호를 입력해주세요');
 
-  // 마스터
+  // 마스터 (총무부) — exec_dept_passwords의 'master' 행에서 검증 (기존 시스템과 동일)
   if(dept === MASTER_DEPT){
-    if(pw !== MASTER_PW) return loginErr('비밀번호가 일치하지 않습니다');
+    const ok = await verifyDeptPassword('master', pw);
+    if(ok !== true) return loginErr('비밀번호가 일치하지 않습니다');
     currentUser = {
       dept: MASTER_DEPT, deptId: 'master', isMaster: true, remember
     };
   } else {
-    // 부서 비밀번호: exec_dept_passwords에서 확인
+    // 일반 부서 — exec_dept_passwords에서 dept_id로 검증
     const deptObj = DEPTS.find(d => d.name === dept);
     if(!deptObj) return loginErr('알 수 없는 부서입니다');
     const ok = await verifyDeptPassword(deptObj.id, pw);
@@ -1164,7 +1181,7 @@ async function doLogin(){
     };
   }
 
-  // 자동 로그인 켰을 때만 저장. 안 켰으면 세션 기록만 (저장 X)
+  // 자동 로그인 켰을 때만 저장
   if(remember){
     localStorage.setItem('sjames_fund_user', JSON.stringify(currentUser));
   } else {
@@ -1174,6 +1191,7 @@ async function doLogin(){
 }
 
 async function verifyDeptPassword(deptId, pw){
+  console.log('[verifyDeptPassword] dept_id:', deptId);
   try {
     const { data, error } = await sb
       .from('exec_dept_passwords')
@@ -1181,16 +1199,27 @@ async function verifyDeptPassword(deptId, pw){
       .eq('dept_id', deptId)
       .maybeSingle();
     if(error){
-      console.warn('[pw] 조회 오류:', error.message);
+      console.error('[pw] 조회 오류:', error.message, error);
+      loginErr('비밀번호 조회 실패: ' + error.message);
       return false;
     }
-    if(!data){
-      // 비밀번호 미설정 → 기본 비밀번호 (현재 정책에 맞춤)
-      return pw === '1234';
+    if(data && data.password){
+      console.log('[pw] DB 조회 성공');
+      return data.password === pw;
     }
-    return data.password === pw;
+    // DB에 없으면 기본 비밀번호로 fallback (기존 업무 대시보드와 동일)
+    const fallback = deptId === 'master'
+      ? DEFAULT_MASTER_PASSWORD
+      : DEFAULT_DEPT_PASSWORDS[deptId];
+    if(fallback){
+      console.log('[pw] DB에 없음 → 기본 비밀번호로 검증');
+      return pw === fallback;
+    }
+    console.warn('[pw] 기본 비밀번호도 없음:', deptId);
+    return false;
   } catch(e){
     console.error('[pw] 예외:', e);
+    loginErr('비밀번호 검증 중 예외 발생');
     return false;
   }
 }
