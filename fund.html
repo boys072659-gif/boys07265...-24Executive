@@ -1134,18 +1134,6 @@
   </div>
 </div>
 
-<!-- 승인/취소 확인 모달 (마스터 비밀번호 입력) -->
-<div id="confirm-backdrop" class="modal-backdrop" onclick="closeConfirmIfBackdrop(event)">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-header">
-      <h3 id="confirm-title">확인</h3>
-      <button class="modal-close" onclick="closeConfirm()" aria-label="닫기">×</button>
-    </div>
-    <div class="modal-body" id="confirm-body"></div>
-    <div class="modal-footer" id="confirm-footer"></div>
-  </div>
-</div>
-
 <div id="toast" class="toast"></div>
 
 <script>
@@ -1752,112 +1740,36 @@ function openDetail(id){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 승인/취소 확인 — 마스터 비밀번호 입력 모달
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function askApproveOrCancel(requestId, action){
-  const req = allRequests.find(x => x.id === requestId);
-  if(!req){ showToast('해당 청구를 찾을 수 없습니다'); return; }
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 관리자 액션 — 모달 없이 즉시 실행 (마스터만 권한, 사용자 요청)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  const isApprove = action === 'approve';
-  const title = isApprove ? '청구 승인 확인' : '승인 취소 확인';
-  const verb  = isApprove ? '승인' : '취소';
-  const btnClass = isApprove ? 'btn-approve' : 'btn-cancel-action';
+// 현재 처리 중인 버튼들 (중복 클릭 방지)
+const _busyButtons = new Set();
 
-  const amountStr = req.amount != null ? fmtMoney(req.amount) + '원' : '—';
-  const deptName  = (findDept(req.dept_id) || {}).name || req.dept_id;
-
-  const html = `
-    <div class="confirm-summary">
-      <div class="confirm-row"><span class="k">청구번호</span><span class="v">#${escapeHtml(req.request_no || '—')}</span></div>
-      <div class="confirm-row"><span class="k">부서</span><span class="v">${escapeHtml(deptName)}</span></div>
-      <div class="confirm-row"><span class="k">금액</span><span class="v amount">${amountStr}</span></div>
-      <div class="confirm-row"><span class="k">구분</span><span class="v">${escapeHtml(req.category || '—')}</span></div>
-    </div>
-    <div class="confirm-note ${isApprove ? '' : 'cancel'}">
-      ${isApprove
-        ? '이 청구를 <b>승인</b>합니다. 봇이 텔레그램 청구 메시지에 ❤️ 리액션을 달고, 재정부 그룹에 알림이 전송됩니다.'
-        : '이 청구의 <b>승인을 취소</b>합니다. 봇 리액션이 제거되고, 재정부 그룹의 알림이 취소 양식으로 변경됩니다.'}
-    </div>
-    <div class="confirm-pw">
-      <label>마스터 비밀번호 확인</label>
-      <input type="password" id="confirm-pw" autocomplete="off" placeholder="비밀번호 입력">
-      <div id="confirm-err" class="confirm-err"></div>
-    </div>
-  `;
-  const footer = `
-    <button class="btn" onclick="closeConfirm()">취소</button>
-    <button class="btn ${btnClass}" id="confirm-btn" onclick="doApproveOrCancel(${requestId}, '${action}')">
-      ${verb} 진행
-    </button>
-  `;
-  openConfirm(title, html, footer);
-  // 자동 포커스
-  setTimeout(() => {
-    const pw = document.getElementById('confirm-pw');
-    if(pw){
-      pw.focus();
-      pw.addEventListener('keydown', e => {
-        if(e.key === 'Enter') doApproveOrCancel(requestId, action);
-      });
-    }
-  }, 50);
+async function askApproveOrCancel(requestId, action){
+  await runFundAction(requestId, action);
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 청구 삭제 — 마스터 비밀번호 입력 모달 (deleted 상태로 변경)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function askDelete(requestId){
-  const req = allRequests.find(x => x.id === requestId);
-  if(!req){ showToast('해당 청구를 찾을 수 없습니다'); return; }
-
-  const amountStr = req.amount != null ? fmtMoney(req.amount) + '원' : '—';
-  const deptName  = (findDept(req.dept_id) || {}).name || deptDisplayName(req.dept_id);
-
-  const html = `
-    <div class="confirm-summary">
-      <div class="confirm-row"><span class="k">청구번호</span><span class="v">#${escapeHtml(req.request_no || '—')}</span></div>
-      <div class="confirm-row"><span class="k">부서</span><span class="v">${escapeHtml(deptName)}</span></div>
-      <div class="confirm-row"><span class="k">금액</span><span class="v amount">${amountStr}</span></div>
-      <div class="confirm-row"><span class="k">현재 상태</span><span class="v">${STATUS_LABEL[req.status] || req.status}</span></div>
-    </div>
-    <div class="confirm-note cancel">
-      이 청구를 <b>삭제</b>합니다. 목록에서 숨겨지지만 DB에는 남아 회계 감사 추적이 가능해요.
-      필요 시 상태 필터에서 "삭제됨"으로 다시 볼 수 있어요.
-    </div>
-    <div class="confirm-pw">
-      <label>마스터 비밀번호 확인</label>
-      <input type="password" id="confirm-pw" autocomplete="off" placeholder="비밀번호 입력">
-      <div id="confirm-err" class="confirm-err"></div>
-    </div>
-  `;
-  const footer = `
-    <button class="btn" onclick="closeConfirm()">취소</button>
-    <button class="btn btn-delete-action" id="confirm-btn" onclick="doDelete(${requestId})">
-      삭제 진행
-    </button>
-  `;
-  openConfirm('청구 삭제 확인', html, footer);
-  setTimeout(() => {
-    const pw = document.getElementById('confirm-pw');
-    if(pw){
-      pw.focus();
-      pw.addEventListener('keydown', e => {
-        if(e.key === 'Enter') doDelete(requestId);
-      });
-    }
-  }, 50);
+async function askDelete(requestId){
+  await runFundAction(requestId, 'delete');
 }
 
-async function doDelete(requestId){
-  const pwInput = document.getElementById('confirm-pw');
-  const errEl   = document.getElementById('confirm-err');
-  const btn     = document.getElementById('confirm-btn');
-  const pw = (pwInput?.value || '').trim();
-  if(!pw){
-    errEl.textContent = '비밀번호를 입력해주세요';
-    return;
-  }
-  errEl.textContent = '';
-  if(btn){ btn.disabled = true; btn.textContent = '처리 중…'; }
-
+async function runFundAction(requestId, action){
+  if(_busyButtons.has(requestId)){ return; }     // 같은 청구 중복 클릭 방지
+  _busyButtons.add(requestId);
+  
+  // 화면의 모든 액션 버튼 임시 비활성화 (시각적 피드백)
+  document.querySelectorAll('.action-box .btn').forEach(b => b.disabled = true);
+  
+  const verbMap = {
+    approve: { v: '승인',  emoji: '✅' },
+    cancel:  { v: '취소',  emoji: '⚠️' },
+    delete:  { v: '삭제',  emoji: '🗑️' },
+  };
+  const meta = verbMap[action] || { v: action, emoji: '' };
+  showToast(`${meta.emoji} ${meta.v} 처리 중…`);
+  
   try {
     const resp = await fetch(APPROVE_FUNC_URL, {
       method: 'POST',
@@ -1867,87 +1779,28 @@ async function doDelete(requestId){
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify({
-        request_id:      requestId,
-        action:          'delete',
-        master_password: pw,
+        request_id: requestId,
+        action:     action,
       }),
     });
     const result = await resp.json().catch(() => ({}));
     if(!resp.ok || !result.ok){
       const msg = (result && result.error) || `${resp.status} ${resp.statusText}`;
-      errEl.textContent = msg;
-      if(btn){ btn.disabled = false; btn.textContent = '삭제 진행'; }
-      return;
-    }
-    closeConfirm();
-    closeModal();
-    showToast(`🗑️ 삭제 완료 (#${result.request_no || ''})`);
-    setTimeout(() => loadRequests(), 400);
-  } catch(e){
-    console.error('[delete]', e);
-    errEl.textContent = '네트워크 오류: ' + (e.message || e);
-    if(btn){ btn.disabled = false; btn.textContent = '삭제 진행'; }
-  }
-}
-
-async function doApproveOrCancel(requestId, action){
-  const pwInput = document.getElementById('confirm-pw');
-  const errEl   = document.getElementById('confirm-err');
-  const btn     = document.getElementById('confirm-btn');
-  const pw = (pwInput?.value || '').trim();
-  if(!pw){
-    errEl.textContent = '비밀번호를 입력해주세요';
-    return;
-  }
-  errEl.textContent = '';
-  if(btn){ btn.disabled = true; btn.textContent = '처리 중…'; }
-
-  try {
-    const resp = await fetch(APPROVE_FUNC_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey':        SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({
-        request_id:      requestId,
-        action:          action,
-        master_password: pw,
-      }),
-    });
-    const result = await resp.json().catch(() => ({}));
-    if(!resp.ok || !result.ok){
-      const msg = (result && result.error) || `${resp.status} ${resp.statusText}`;
-      errEl.textContent = msg;
-      if(btn){ btn.disabled = false; btn.textContent = action === 'approve' ? '승인 진행' : '취소 진행'; }
+      showToast(`❌ ${meta.v} 실패: ${msg}`);
+      document.querySelectorAll('.action-box .btn').forEach(b => b.disabled = false);
       return;
     }
     // 성공
-    closeConfirm();
     closeModal();
-    showToast(`✅ ${result.message || '처리 완료'} (#${result.request_no || ''})`);
-    // 약간 지연 후 목록 새로고침 (텔레그램 호출 등이 마무리되도록)
+    showToast(`${meta.emoji} ${meta.v} 완료 (#${result.request_no || ''})`);
     setTimeout(() => loadRequests(), 400);
   } catch(e){
-    console.error('[approve/cancel]', e);
-    errEl.textContent = '네트워크 오류: ' + (e.message || e);
-    if(btn){ btn.disabled = false; btn.textContent = action === 'approve' ? '승인 진행' : '취소 진행'; }
+    console.error('[fund-action]', e);
+    showToast(`❌ 네트워크 오류: ${e.message || e}`);
+    document.querySelectorAll('.action-box .btn').forEach(b => b.disabled = false);
+  } finally {
+    _busyButtons.delete(requestId);
   }
-}
-
-// ─── 확인 모달 (마스터 비번 입력용) ───
-function openConfirm(title, bodyHtml, footerHtml){
-  document.getElementById('confirm-title').textContent = title;
-  document.getElementById('confirm-body').innerHTML = bodyHtml;
-  document.getElementById('confirm-footer').innerHTML = footerHtml;
-  document.getElementById('confirm-backdrop').classList.add('show');
-}
-function closeConfirm(){
-  document.getElementById('confirm-backdrop').classList.remove('show');
-}
-function closeConfirmIfBackdrop(e){
-  if(e.target.id === 'confirm-backdrop') closeConfirm();
 }
 
 function closeModal(){
