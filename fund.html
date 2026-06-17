@@ -768,6 +768,125 @@
     color: var(--text-tertiary);
     font-size: 13px;
   }
+
+  /* ─── 관리자 액션 박스 (마스터 전용) ─── */
+  .action-box {
+    background: var(--accent-soft);
+    border: 1px solid #c8d6e6;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 18px;
+  }
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .action-hint {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .btn-approve {
+    background: var(--approved);
+    color: white;
+    border-color: var(--approved);
+    font-weight: 700;
+    padding: 11px 16px;
+  }
+  .btn-approve:hover:not(:disabled) { background: #3e6a3a; }
+  .btn-approve:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-cancel-action {
+    background: var(--cancelled);
+    color: white;
+    border-color: var(--cancelled);
+    font-weight: 700;
+    padding: 11px 16px;
+  }
+  .btn-cancel-action:hover:not(:disabled) { background: #963c33; }
+  .btn-cancel-action:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* ─── 확인 모달 (비밀번호 입력) ─── */
+  .modal-footer {
+    padding: 14px 22px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    background: var(--bg-card);
+  }
+  .confirm-summary {
+    background: var(--bg-subtle);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .confirm-row {
+    display: flex;
+    align-items: baseline;
+    padding: 4px 0;
+    font-size: 13.5px;
+  }
+  .confirm-row + .confirm-row { border-top: 1px dashed var(--border); }
+  .confirm-row .k {
+    width: 80px;
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+  .confirm-row .v {
+    flex: 1;
+    color: var(--text);
+    font-family: var(--font-num);
+    font-weight: 600;
+  }
+  .confirm-row .v.amount {
+    font-weight: 800;
+    color: var(--text);
+  }
+  .confirm-note {
+    background: #f0f7f0;
+    border: 1px solid #cde0c9;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12.5px;
+    color: #2f5a2b;
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .confirm-note.cancel {
+    background: #faeae7;
+    border-color: #e8c2bd;
+    color: #7d2c24;
+  }
+  .confirm-pw label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .confirm-pw input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+  .confirm-pw input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .confirm-err {
+    color: var(--error);
+    font-size: 12px;
+    margin-top: 8px;
+    min-height: 16px;
+  }
   .spinner {
     display: inline-block;
     width: 18px; height: 18px;
@@ -1004,6 +1123,18 @@
   </div>
 </div>
 
+<!-- 승인/취소 확인 모달 (마스터 비밀번호 입력) -->
+<div id="confirm-backdrop" class="modal-backdrop" onclick="closeConfirmIfBackdrop(event)">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 id="confirm-title">확인</h3>
+      <button class="modal-close" onclick="closeConfirm()" aria-label="닫기">×</button>
+    </div>
+    <div class="modal-body" id="confirm-body"></div>
+    <div class="modal-footer" id="confirm-footer"></div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -1014,6 +1145,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SUPABASE_URL = 'https://faxaqxyafsitdfykxgem.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZheGFxeHlhZnNpdGRmeWt4Z2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1OTI2MjYsImV4cCI6MjA5MjE2ODYyNn0.sE7eWx7HrCZpZ4jVlBScoFvREkER6wUsg7IzdVMzHLk';
+const APPROVE_FUNC_URL = `${SUPABASE_URL}/functions/v1/telegram-fund-approve`;
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MASTER_DEPT = '총무부';
@@ -1562,8 +1694,150 @@ function openDetail(id){
     </div>
   `;
 
-  document.getElementById('modal-body').innerHTML = meta + approvalBox + rawBox + submitMeta;
+  // 마스터 전용 액션 박스 (승인/취소 버튼)
+  let actionBox = '';
+  if(currentUser && currentUser.isMaster){
+    if(r.status === 'pending'){
+      actionBox = `
+        <div class="detail-section action-box">
+          <div class="detail-section-title">관리자 작업</div>
+          <div class="action-row">
+            <button class="btn btn-approve" onclick="askApproveOrCancel(${r.id}, 'approve')">
+              ✅ 이 청구 승인
+            </button>
+          </div>
+          <div class="action-hint">승인 시 텔레그램 메시지에 봇이 ❤️ 리액션을 달고, 재정부 그룹에 알림이 전송됩니다.</div>
+        </div>
+      `;
+    } else if(r.status === 'approved'){
+      actionBox = `
+        <div class="detail-section action-box">
+          <div class="detail-section-title">관리자 작업</div>
+          <div class="action-row">
+            <button class="btn btn-cancel-action" onclick="askApproveOrCancel(${r.id}, 'cancel')">
+              ⚠️ 승인 취소
+            </button>
+          </div>
+          <div class="action-hint">취소 시 봇 리액션이 제거되고, 재정부 그룹의 알림이 취소 양식으로 자동 변경됩니다.</div>
+        </div>
+      `;
+    }
+  }
+
+  document.getElementById('modal-body').innerHTML = meta + approvalBox + actionBox + rawBox + submitMeta;
   document.getElementById('modal-backdrop').classList.add('show');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 승인/취소 확인 — 마스터 비밀번호 입력 모달
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function askApproveOrCancel(requestId, action){
+  const req = allRequests.find(x => x.id === requestId);
+  if(!req){ showToast('해당 청구를 찾을 수 없습니다'); return; }
+
+  const isApprove = action === 'approve';
+  const title = isApprove ? '청구 승인 확인' : '승인 취소 확인';
+  const verb  = isApprove ? '승인' : '취소';
+  const btnClass = isApprove ? 'btn-approve' : 'btn-cancel-action';
+
+  const amountStr = req.amount != null ? fmtMoney(req.amount) + '원' : '—';
+  const deptName  = (findDept(req.dept_id) || {}).name || req.dept_id;
+
+  const html = `
+    <div class="confirm-summary">
+      <div class="confirm-row"><span class="k">청구번호</span><span class="v">#${escapeHtml(req.request_no || '—')}</span></div>
+      <div class="confirm-row"><span class="k">부서</span><span class="v">${escapeHtml(deptName)}</span></div>
+      <div class="confirm-row"><span class="k">금액</span><span class="v amount">${amountStr}</span></div>
+      <div class="confirm-row"><span class="k">구분</span><span class="v">${escapeHtml(req.category || '—')}</span></div>
+    </div>
+    <div class="confirm-note ${isApprove ? '' : 'cancel'}">
+      ${isApprove
+        ? '이 청구를 <b>승인</b>합니다. 봇이 텔레그램 청구 메시지에 ❤️ 리액션을 달고, 재정부 그룹에 알림이 전송됩니다.'
+        : '이 청구의 <b>승인을 취소</b>합니다. 봇 리액션이 제거되고, 재정부 그룹의 알림이 취소 양식으로 변경됩니다.'}
+    </div>
+    <div class="confirm-pw">
+      <label>마스터 비밀번호 확인</label>
+      <input type="password" id="confirm-pw" autocomplete="off" placeholder="비밀번호 입력">
+      <div id="confirm-err" class="confirm-err"></div>
+    </div>
+  `;
+  const footer = `
+    <button class="btn" onclick="closeConfirm()">취소</button>
+    <button class="btn ${btnClass}" id="confirm-btn" onclick="doApproveOrCancel(${requestId}, '${action}')">
+      ${verb} 진행
+    </button>
+  `;
+  openConfirm(title, html, footer);
+  // 자동 포커스
+  setTimeout(() => {
+    const pw = document.getElementById('confirm-pw');
+    if(pw){
+      pw.focus();
+      pw.addEventListener('keydown', e => {
+        if(e.key === 'Enter') doApproveOrCancel(requestId, action);
+      });
+    }
+  }, 50);
+}
+
+async function doApproveOrCancel(requestId, action){
+  const pwInput = document.getElementById('confirm-pw');
+  const errEl   = document.getElementById('confirm-err');
+  const btn     = document.getElementById('confirm-btn');
+  const pw = (pwInput?.value || '').trim();
+  if(!pw){
+    errEl.textContent = '비밀번호를 입력해주세요';
+    return;
+  }
+  errEl.textContent = '';
+  if(btn){ btn.disabled = true; btn.textContent = '처리 중…'; }
+
+  try {
+    const resp = await fetch(APPROVE_FUNC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey':        SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        request_id:      requestId,
+        action:          action,
+        master_password: pw,
+      }),
+    });
+    const result = await resp.json().catch(() => ({}));
+    if(!resp.ok || !result.ok){
+      const msg = (result && result.error) || `${resp.status} ${resp.statusText}`;
+      errEl.textContent = msg;
+      if(btn){ btn.disabled = false; btn.textContent = action === 'approve' ? '승인 진행' : '취소 진행'; }
+      return;
+    }
+    // 성공
+    closeConfirm();
+    closeModal();
+    showToast(`✅ ${result.message || '처리 완료'} (#${result.request_no || ''})`);
+    // 약간 지연 후 목록 새로고침 (텔레그램 호출 등이 마무리되도록)
+    setTimeout(() => loadRequests(), 400);
+  } catch(e){
+    console.error('[approve/cancel]', e);
+    errEl.textContent = '네트워크 오류: ' + (e.message || e);
+    if(btn){ btn.disabled = false; btn.textContent = action === 'approve' ? '승인 진행' : '취소 진행'; }
+  }
+}
+
+// ─── 확인 모달 (마스터 비번 입력용) ───
+function openConfirm(title, bodyHtml, footerHtml){
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').innerHTML = bodyHtml;
+  document.getElementById('confirm-footer').innerHTML = footerHtml;
+  document.getElementById('confirm-backdrop').classList.add('show');
+}
+function closeConfirm(){
+  document.getElementById('confirm-backdrop').classList.remove('show');
+}
+function closeConfirmIfBackdrop(e){
+  if(e.target.id === 'confirm-backdrop') closeConfirm();
 }
 
 function closeModal(){
