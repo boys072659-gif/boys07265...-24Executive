@@ -391,19 +391,20 @@
   .summary-card.cancelled::before { background: var(--cancelled); }
 
   .summary-card .label {
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .summary-card .value {
     font-family: var(--font-num);
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    font-size: 26px;            /* 22 → 26 : 강조 */
+    font-weight: 800;
+    letter-spacing: -0.8px;
     color: var(--text);
+    line-height: 1.15;
   }
   .summary-card .value .currency {
     font-size: 13px;
@@ -412,8 +413,8 @@
     margin-left: 3px;
   }
   .summary-card .meta {
-    margin-top: 4px;
-    font-size: 11.5px;
+    margin-top: 6px;
+    font-size: 12px;
     color: var(--text-tertiary);
   }
 
@@ -461,10 +462,10 @@
     overflow: hidden;
   }
   .table-meta {
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px;
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--text-secondary);
     background: var(--bg-subtle);
   }
@@ -472,16 +473,16 @@
     font-weight: 700;
     color: var(--text);
   }
-  .table-meta .right { margin-left: auto; }
+  .table-meta .right { margin-left: auto; font-weight: 700; color: var(--text); }
 
   .req-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13.5px;
+    font-size: 14px;
   }
   .req-table th {
     text-align: left;
-    padding: 11px 16px;
+    padding: 13px 18px;
     background: var(--bg-subtle);
     border-bottom: 1px solid var(--border);
     font-weight: 700;
@@ -505,62 +506,86 @@
   .req-table tr:last-child { border-bottom: none; }
   .req-table tr:hover { background: var(--bg-subtle); }
   .req-table td {
-    padding: 13px 16px;
+    padding: 17px 18px;       /* 13px → 17px : 행 호흡 확보 */
     vertical-align: middle;
   }
   .req-table td .request-no {
     font-family: var(--font-num);
-    font-size: 12.5px;
-    color: var(--text-tertiary);
-    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);        /* tertiary → text : 진하게 */
+    font-weight: 700;
   }
-  .req-table td .dept-chip {
+  /* 부서 칩 — 그룹별 색 (내무/행정/문화) */
+  .dept-chip {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 3px 9px;
     border-radius: 4px;
-    font-size: 11.5px;
-    font-weight: 600;
-    background: var(--bg-subtle);
-    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.1px;
+    white-space: nowrap;
   }
+  .dept-chip.g-inner   { background: #e8f0fb; color: #2c5d9e; }
+  .dept-chip.g-admin   { background: #fbeed8; color: #8a5a1e; }
+  .dept-chip.g-culture { background: #f9dde9; color: #9a3866; }
+  .dept-chip.g-unknown { background: var(--bg-subtle); color: var(--text-secondary); }
+
   .req-table td.detail-cell {
-    max-width: 360px;
+    max-width: 380px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .req-table td .date {
     color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .req-table td .category {
+    color: var(--text-secondary);
+    font-size: 13.5px;
   }
   .req-table td.amount {
     font-family: var(--font-num);
-    font-weight: 700;
+    font-weight: 800;          /* 700 → 800 */
     color: var(--text);
+    font-size: 15px;           /* 14 → 15 : 금액 강조 */
+    letter-spacing: -0.2px;
+  }
+  .req-table td.amount .won {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-left: 2px;
   }
 
-  /* ─── 상태 뱃지 ─── */
+  /* ─── 상태 뱃지 — 색감 진하게, 도트 키움 ─── */
   .status {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11.5px;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;        /* 4px → 알약형 */
+    font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
+    letter-spacing: -0.1px;
   }
   .status::before {
     content: '';
-    width: 6px; height: 6px;
+    width: 7px; height: 7px;     /* 6 → 7 */
     border-radius: 50%;
     display: inline-block;
   }
-  .status.pending { background: var(--pending-soft); color: var(--pending); }
-  .status.pending::before { background: var(--pending); }
-  .status.approved { background: var(--approved-soft); color: var(--approved); }
-  .status.approved::before { background: var(--approved); }
-  .status.cancelled { background: var(--cancelled-soft); color: var(--cancelled); }
-  .status.cancelled::before { background: var(--cancelled); }
-  .status.parse_failed { background: var(--error-soft); color: var(--error); }
-  .status.parse_failed::before { background: var(--error); }
+  .status.pending      { background: #fbeed4; color: #8e5e15; }
+  .status.pending::before  { background: #d09c4c; }
+  .status.approved     { background: #d8ead4; color: #2f5a2b; }
+  .status.approved::before { background: #4f7f4a; }
+  .status.cancelled    { background: #f0d4d0; color: #7d2c24; }
+  .status.cancelled::before{ background: #b0473d; }
+  .status.parse_failed { background: #f5d9d4; color: #872e26; }
+  .status.parse_failed::before { background: #c14545; }
 
   /* ─── 빈 상태 ─── */
   .empty {
@@ -995,6 +1020,7 @@ const MASTER_DEPT = '총무부';
 // 마스터 비밀번호는 exec_dept_passwords.master 행에서 조회 (기존 시스템과 동일)
 
 const DEPTS = [
+  {id:'d01', name:'01 총무부',     group:'admin'},
   {id:'d03', name:'03 내무부',     group:'inner'},
   {id:'d31', name:'3-1 자문회',    group:'inner'},
   {id:'d32', name:'3-2 장년회',    group:'inner'},
@@ -1094,7 +1120,12 @@ function findDept(deptId){
 }
 function deptDisplayName(deptId){
   const d = findDept(deptId);
-  return d ? d.name : deptId;
+  if(d) return d.name;
+  // 미등록 부서 ID (예: dept_xxxxxxx) — 짧게 표시
+  if(deptId && deptId.length > 12){
+    return `미등록 (${deptId.slice(0, 8)}…)`;
+  }
+  return deptId || '—';
 }
 
 function showToast(msg){
@@ -1390,17 +1421,22 @@ function renderList(){
   }
 
   const rows = items.map(r => {
-    const deptName = deptDisplayName(r.dept_id);
+    const dept = findDept(r.dept_id);
+    const deptName = dept ? dept.name : deptDisplayName(r.dept_id);
+    const grpClass = dept ? `g-${dept.group}` : 'g-unknown';
     const statusLabel = STATUS_LABEL[r.status] || r.status;
     const dateStr = r.request_date || (r.created_at || '').slice(0,10);
+    const amountCell = r.amount != null
+      ? `${fmtMoney(r.amount)}<span class="won">원</span>`
+      : '—';
     return `
       <tr onclick="openDetail(${r.id})">
         <td class="req-no-cell" data-label="청구번호"><span class="request-no">#${escapeHtml(r.request_no || '—')}</span></td>
-        <td data-label="부서"><span class="dept-chip">${escapeHtml(deptName)}</span></td>
-        <td data-label="일시" class="num">${escapeHtml(dateStr)}</td>
-        <td data-label="구분">${escapeHtml(r.category || '—')}</td>
+        <td data-label="부서"><span class="dept-chip ${grpClass}">${escapeHtml(deptName)}</span></td>
+        <td data-label="일시" class="num"><span class="date">${escapeHtml(dateStr)}</span></td>
+        <td data-label="구분"><span class="category">${escapeHtml(r.category || '—')}</span></td>
         <td data-label="내역" class="detail-cell">${escapeHtml(r.detail || '—')}</td>
-        <td data-label="금액" class="num amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</td>
+        <td data-label="금액" class="num amount">${amountCell}</td>
         <td data-label="상태"><span class="status ${r.status}">${statusLabel}</span></td>
       </tr>
     `;
