@@ -81,79 +81,189 @@
   .login-screen {
     position: fixed; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #faf7f2 0%, #ede7da 100%);
+    background: #f5f6f8;
     padding: 20px;
     z-index: 1000;
+    overflow-y: auto;
   }
   .login-box {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    padding: 40px 32px;
+    border-radius: 14px;
+    padding: 36px 28px 28px;
     width: 100%; max-width: 380px;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(45,42,38,0.06);
+    border: 1px solid #ebedf0;
   }
-  .login-title {
-    text-align: center;
-    margin-bottom: 28px;
+  .login-mark {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 18px;
   }
-  .login-title h1 {
-    margin: 0 0 8px;
+  .login-title-text {
+    margin: 0 0 6px;
     font-size: 22px;
     font-weight: 800;
     letter-spacing: -0.5px;
+    color: var(--text);
   }
-  .login-title p {
-    margin: 0;
+  .login-sub {
+    margin: 0 0 22px;
     color: var(--text-tertiary);
     font-size: 13px;
   }
-  .login-title .brand {
-    display: inline-block;
-    padding: 2px 8px;
-    background: var(--accent);
-    color: white;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-  }
-  .form-row { margin-bottom: 14px; }
-  .form-row label {
-    display: block;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-  }
+  .form-row { margin-bottom: 12px; position: relative; }
   .form-row select,
   .form-row input {
     width: 100%;
-    padding: 11px 12px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    border: 1px solid #e0e3e8;
+    border-radius: 10px;
     font-size: 14px;
-    background: var(--bg-card);
+    background: #f5f6f8;
     color: var(--text);
     font-family: var(--font-body);
-    transition: border-color 0.15s;
+    transition: all 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .form-row select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238f8779' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
   }
   .form-row select:focus,
   .form-row input:focus {
     outline: none;
     border-color: var(--accent);
+    background: var(--bg-card);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
+  .form-row.pw-row { position: relative; }
+  .pw-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+  }
+  .pw-eye:hover { color: var(--text-secondary); }
+
+  .toggle-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    background: #f5f6f8;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 14px;
+    user-select: none;
+  }
+  .toggle-row input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .toggle-switch {
+    flex-shrink: 0;
+    width: 36px; height: 20px;
+    background: #cdd1d8;
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.2s;
+    margin-top: 2px;
+  }
+  .toggle-knob {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-row input:checked ~ .toggle-switch {
+    background: var(--accent);
+  }
+  .toggle-row input:checked ~ .toggle-switch .toggle-knob {
+    transform: translateX(16px);
+  }
+  .toggle-text { line-height: 1.4; }
+  .toggle-text-main {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .toggle-text-sub {
+    display: block;
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .login-hint {
+    background: #f0f4f9;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .login-hint strong {
+    display: block;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
   .login-err {
     display: none;
     background: var(--error-soft);
     color: var(--error);
-    padding: 9px 12px;
-    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    border-radius: 8px;
     font-size: 12.5px;
     margin-bottom: 12px;
   }
+
+  .btn-start {
+    padding: 14px;
+    font-size: 14.5px;
+    font-weight: 700;
+    border-radius: 10px;
+  }
+
+  .login-back {
+    margin-top: 14px;
+    text-align: center;
+  }
+  .login-back a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .login-back a:hover {
+    background: #f0f1f3;
+    color: var(--text-secondary);
+  }
+
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
     gap: 6px;
@@ -741,27 +851,44 @@
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <div id="login-screen" class="login-screen">
   <div class="login-box">
-    <div class="login-title">
-      <span class="brand">SJAMES</span>
-      <h1>자금 관리</h1>
-      <p>서울야고보지파 24행정부서</p>
-    </div>
+    <div class="login-mark">SJ</div>
+    <h1 class="login-title-text">SJAMES 자금 관리</h1>
+    <p class="login-sub">부서를 선택하고 비밀번호를 입력해주세요</p>
+
     <div id="login-err" class="login-err"></div>
+
     <div class="form-row">
-      <label for="login-dept">부서</label>
-      <select id="login-dept"></select>
+      <select id="login-dept">
+        <option value="">부서를 선택해주세요</option>
+      </select>
     </div>
-    <div class="form-row">
-      <label for="login-name">이름</label>
-      <input type="text" id="login-name" placeholder="예: 김재정">
+
+    <div class="form-row pw-row">
+      <input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password">
+      <button type="button" class="pw-eye" onclick="togglePw()" aria-label="비밀번호 표시">
+        <svg id="pw-eye-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
     </div>
-    <div class="form-row">
-      <label for="login-pw">부서 비밀번호</label>
-      <input type="password" id="login-pw" placeholder="부서 비밀번호">
+
+    <label class="toggle-row" for="login-remember">
+      <input type="checkbox" id="login-remember">
+      <span class="toggle-switch"><span class="toggle-knob"></span></span>
+      <span class="toggle-text">
+        <span class="toggle-text-main">이 기기에서 자동 로그인</span>
+        <span class="toggle-text-sub">다음 방문부터 비밀번호 없이 자동 접속</span>
+      </span>
+    </label>
+
+    <div class="login-hint">
+      <strong>📘 부서 선택 후 비밀번호를 입력해주세요.</strong>
+      비밀번호를 모르시면 총무부에 문의해주세요.<br>
+      모든 부서 관리는 총무부 + 마스터 비밀번호로 접속.
     </div>
-    <button class="btn btn-primary btn-block" onclick="doLogin()">접속</button>
-    <div style="margin-top:14px;text-align:center">
-      <a href="index.html" class="btn-ghost btn btn-sm" style="text-decoration:none">← 업무 대시보드로</a>
+
+    <button class="btn btn-primary btn-block btn-start" onclick="doLogin()">시작하기</button>
+
+    <div class="login-back">
+      <a href="index.html">← 업무 대시보드로</a>
     </div>
   </div>
 </div>
@@ -778,9 +905,7 @@
     <div class="spacer"></div>
     <a href="index.html" class="back-link">← 업무 대시보드</a>
     <div class="user-info">
-      <span class="name" id="ui-name">—</span>
-      <span>·</span>
-      <span id="ui-dept">—</span>
+      <span class="name" id="ui-dept">—</span>
       <button class="btn btn-sm btn-ghost" onclick="doLogout()" title="로그아웃">로그아웃</button>
     </div>
   </div>
@@ -887,6 +1012,7 @@ const DEPTS = [
   {id:'d09', name:'09 전도부',     group:'admin'},
   {id:'d14', name:'14 섭외부',     group:'admin'},
   {id:'d15', name:'15 국내선교부', group:'admin'},
+  {id:'d17', name:'17 법무부',     group:'admin'},
   {id:'d10', name:'10 문화부',     group:'culture'},
   {id:'d11', name:'11 출판부',     group:'culture'},
   {id:'d12', name:'12 정보통신부', group:'culture'},
@@ -968,7 +1094,7 @@ function showToast(msg){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function initLoginScreen(){
   const sel = document.getElementById('login-dept');
-  sel.innerHTML = '';
+  // 첫 옵션 ("부서를 선택해주세요")은 HTML에 이미 있음
   // 마스터
   const optMaster = document.createElement('option');
   optMaster.value = MASTER_DEPT;
@@ -982,18 +1108,22 @@ function initLoginScreen(){
     sel.appendChild(o);
   });
 
-  // 저장된 로그인 자동 복원
+  // 저장된 로그인 자동 복원 (자동 로그인 켜둔 경우만)
   try {
     const saved = JSON.parse(localStorage.getItem('sjames_fund_user') || 'null');
-    if(saved && saved.name && saved.dept){
-      // 자동으로 다시 인증은 안 함. 단지 자동 진입만.
+    if(saved && saved.dept && saved.remember){
       currentUser = saved;
       enterApp();
+      return;
+    }
+    // 토글 기본 상태 — 이전에 자동 로그인 사용했으면 켜둠
+    if(saved && saved.remember){
+      document.getElementById('login-remember').checked = true;
     }
   } catch(e){}
 
   // Enter로 로그인
-  ['login-dept','login-name','login-pw'].forEach(id => {
+  ['login-dept','login-pw'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('keydown', e => {
       if(e.key === 'Enter') doLogin();
@@ -1001,23 +1131,27 @@ function initLoginScreen(){
   });
 }
 
+function togglePw(){
+  const inp = document.getElementById('login-pw');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
 async function doLogin(){
   const errEl = document.getElementById('login-err');
   errEl.style.display = 'none';
 
   const dept = document.getElementById('login-dept').value;
-  const name = document.getElementById('login-name').value.trim();
   const pw   = document.getElementById('login-pw').value;
+  const remember = document.getElementById('login-remember').checked;
 
   if(!dept) return loginErr('부서를 선택해주세요');
-  if(!name) return loginErr('이름을 입력해주세요');
   if(!pw)   return loginErr('비밀번호를 입력해주세요');
 
   // 마스터
   if(dept === MASTER_DEPT){
     if(pw !== MASTER_PW) return loginErr('비밀번호가 일치하지 않습니다');
     currentUser = {
-      name, dept: MASTER_DEPT, deptId: 'master', isMaster: true
+      dept: MASTER_DEPT, deptId: 'master', isMaster: true, remember
     };
   } else {
     // 부서 비밀번호: exec_dept_passwords에서 확인
@@ -1026,11 +1160,16 @@ async function doLogin(){
     const ok = await verifyDeptPassword(deptObj.id, pw);
     if(ok !== true) return loginErr('비밀번호가 일치하지 않습니다');
     currentUser = {
-      name, dept: deptObj.name, deptId: deptObj.id, isMaster: false
+      dept: deptObj.name, deptId: deptObj.id, isMaster: false, remember
     };
   }
 
-  localStorage.setItem('sjames_fund_user', JSON.stringify(currentUser));
+  // 자동 로그인 켰을 때만 저장. 안 켰으면 세션 기록만 (저장 X)
+  if(remember){
+    localStorage.setItem('sjames_fund_user', JSON.stringify(currentUser));
+  } else {
+    localStorage.removeItem('sjames_fund_user');
+  }
   enterApp();
 }
 
@@ -1075,8 +1214,7 @@ function doLogout(){
 function enterApp(){
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').classList.add('active');
-  // 헤더 정보
-  document.getElementById('ui-name').textContent = currentUser.name;
+  // 헤더 정보 (부서만)
   document.getElementById('ui-dept').textContent = currentUser.dept;
   // 페이지 부제
   if(currentUser.isMaster){
