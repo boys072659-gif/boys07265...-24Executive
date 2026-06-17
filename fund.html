@@ -805,6 +805,16 @@
   }
   .btn-cancel-action:hover:not(:disabled) { background: #963c33; }
   .btn-cancel-action:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-delete-action {
+    background: #6b6258;
+    color: white;
+    border-color: #6b6258;
+    font-weight: 700;
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+  .btn-delete-action:hover:not(:disabled) { background: #524a40; }
+  .btn-delete-action:disabled { opacity: 0.6; cursor: not-allowed; }
 
   /* ─── 확인 모달 (비밀번호 입력) ─── */
   .modal-footer {
@@ -1076,11 +1086,12 @@
       <div class="field">
         <label for="f-status">상태</label>
         <select id="f-status" onchange="renderList()">
-          <option value="">전체</option>
+          <option value="">전체 (삭제됨 제외)</option>
           <option value="pending">승인 대기</option>
           <option value="approved">승인됨</option>
           <option value="cancelled">취소됨</option>
           <option value="parse_failed">양식 오류</option>
+          <option value="deleted">삭제됨</option>
         </select>
       </div>
       <div class="field">
@@ -1516,7 +1527,12 @@ function getFiltered(){
 
   return allRequests.filter(r => {
     if(deptId && r.dept_id !== deptId) return false;
-    if(status && r.status !== status) return false;
+    if(status){
+      if(r.status !== status) return false;
+    } else {
+      // "전체" 선택 시 deleted 자동 제외 (특정 상태 선택해야 보임)
+      if(r.status === 'deleted') return false;
+    }
     const dStr = r.request_date || (r.created_at || '').slice(0,10);
     if(fromS && dStr < fromS) return false;
     if(toS   && dStr > toS)   return false;
@@ -1565,7 +1581,7 @@ function renderList(){
       <tr onclick="openDetail(${r.id})">
         <td class="req-no-cell" data-label="청구번호"><span class="request-no">#${escapeHtml(r.request_no || '—')}</span></td>
         <td data-label="부서"><span class="dept-chip ${grpClass}">${escapeHtml(deptName)}</span></td>
-        <td data-label="일시" class="num"><span class="date">${escapeHtml(dateStr)}</span></td>
+        <td data-label="날짜" class="num"><span class="date">${escapeHtml(dateStr)}</span></td>
         <td data-label="구분"><span class="category">${escapeHtml(r.category || '—')}</span></td>
         <td data-label="내역" class="detail-cell">${escapeHtml(r.detail || '—')}</td>
         <td data-label="금액" class="num amount">${amountCell}</td>
@@ -1580,7 +1596,7 @@ function renderList(){
         <tr>
           <th>청구번호</th>
           <th>부서</th>
-          <th>일시</th>
+          <th>날짜</th>
           <th>구분</th>
           <th>내역</th>
           <th class="num">금액</th>
@@ -1621,7 +1637,7 @@ function openDetail(id){
   const meta = `
     <div class="detail-meta">
       <div class="row"><div class="k">부서</div><div class="v">${escapeHtml(deptName)}</div></div>
-      <div class="row"><div class="k">일시</div><div class="v num">${escapeHtml(dateStr)}</div></div>
+      <div class="row"><div class="k">날짜</div><div class="v num">${escapeHtml(dateStr)}</div></div>
       <div class="row"><div class="k">구분</div><div class="v">${escapeHtml(r.category || '—')}</div></div>
       <div class="row"><div class="k">내역</div><div class="v">${escapeHtml(r.detail || '—')}</div></div>
       <div class="row"><div class="k">금액</div><div class="v amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</div></div>
@@ -1694,34 +1710,39 @@ function openDetail(id){
     </div>
   `;
 
-  // 마스터 전용 액션 박스 (승인/취소 버튼)
+  // 마스터 전용 액션 박스 (승인 / 취소 / 삭제)
   let actionBox = '';
-  if(currentUser && currentUser.isMaster){
+  if(currentUser && currentUser.isMaster && r.status !== 'deleted'){
+    let primaryBtn = '';
+    let primaryHint = '';
     if(r.status === 'pending'){
-      actionBox = `
-        <div class="detail-section action-box">
-          <div class="detail-section-title">관리자 작업</div>
-          <div class="action-row">
-            <button class="btn btn-approve" onclick="askApproveOrCancel(${r.id}, 'approve')">
-              ✅ 이 청구 승인
-            </button>
-          </div>
-          <div class="action-hint">승인 시 텔레그램 메시지에 봇이 ❤️ 리액션을 달고, 재정부 그룹에 알림이 전송됩니다.</div>
-        </div>
+      primaryBtn = `
+        <button class="btn btn-approve" onclick="askApproveOrCancel(${r.id}, 'approve')">
+          ✅ 이 청구 승인
+        </button>
       `;
+      primaryHint = '승인 시 텔레그램 메시지에 봇이 ❤️ 리액션을 달고, 재정부 그룹에 알림이 전송됩니다.';
     } else if(r.status === 'approved'){
-      actionBox = `
-        <div class="detail-section action-box">
-          <div class="detail-section-title">관리자 작업</div>
-          <div class="action-row">
-            <button class="btn btn-cancel-action" onclick="askApproveOrCancel(${r.id}, 'cancel')">
-              ⚠️ 승인 취소
-            </button>
-          </div>
-          <div class="action-hint">취소 시 봇 리액션이 제거되고, 재정부 그룹의 알림이 취소 양식으로 자동 변경됩니다.</div>
-        </div>
+      primaryBtn = `
+        <button class="btn btn-cancel-action" onclick="askApproveOrCancel(${r.id}, 'cancel')">
+          ⚠️ 승인 취소
+        </button>
       `;
+      primaryHint = '취소 시 봇 리액션이 제거되고, 재정부 그룹의 알림이 취소 양식으로 자동 변경됩니다.';
     }
+    // 모든 상태(pending/approved/cancelled/parse_failed)에서 삭제 가능 (deleted 제외)
+    actionBox = `
+      <div class="detail-section action-box">
+        <div class="detail-section-title">관리자 작업</div>
+        ${primaryBtn ? `<div class="action-row">${primaryBtn}</div>${primaryHint ? `<div class="action-hint">${primaryHint}</div>` : ''}` : ''}
+        <div class="action-row" style="${primaryBtn ? 'margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)' : ''}">
+          <button class="btn btn-delete-action" onclick="askDelete(${r.id})">
+            🗑️ 청구 삭제
+          </button>
+        </div>
+        <div class="action-hint">삭제된 청구는 목록에서 숨겨지며, 필요 시 상태 필터에서 "삭제됨"으로 다시 볼 수 있어요. (DB에는 남아 회계 추적 가능)</div>
+      </div>
+    `;
   }
 
   document.getElementById('modal-body').innerHTML = meta + approvalBox + actionBox + rawBox + submitMeta;
@@ -1778,6 +1799,95 @@ function askApproveOrCancel(requestId, action){
       });
     }
   }, 50);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 청구 삭제 — 마스터 비밀번호 입력 모달 (deleted 상태로 변경)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function askDelete(requestId){
+  const req = allRequests.find(x => x.id === requestId);
+  if(!req){ showToast('해당 청구를 찾을 수 없습니다'); return; }
+
+  const amountStr = req.amount != null ? fmtMoney(req.amount) + '원' : '—';
+  const deptName  = (findDept(req.dept_id) || {}).name || deptDisplayName(req.dept_id);
+
+  const html = `
+    <div class="confirm-summary">
+      <div class="confirm-row"><span class="k">청구번호</span><span class="v">#${escapeHtml(req.request_no || '—')}</span></div>
+      <div class="confirm-row"><span class="k">부서</span><span class="v">${escapeHtml(deptName)}</span></div>
+      <div class="confirm-row"><span class="k">금액</span><span class="v amount">${amountStr}</span></div>
+      <div class="confirm-row"><span class="k">현재 상태</span><span class="v">${STATUS_LABEL[req.status] || req.status}</span></div>
+    </div>
+    <div class="confirm-note cancel">
+      이 청구를 <b>삭제</b>합니다. 목록에서 숨겨지지만 DB에는 남아 회계 감사 추적이 가능해요.
+      필요 시 상태 필터에서 "삭제됨"으로 다시 볼 수 있어요.
+    </div>
+    <div class="confirm-pw">
+      <label>마스터 비밀번호 확인</label>
+      <input type="password" id="confirm-pw" autocomplete="off" placeholder="비밀번호 입력">
+      <div id="confirm-err" class="confirm-err"></div>
+    </div>
+  `;
+  const footer = `
+    <button class="btn" onclick="closeConfirm()">취소</button>
+    <button class="btn btn-delete-action" id="confirm-btn" onclick="doDelete(${requestId})">
+      삭제 진행
+    </button>
+  `;
+  openConfirm('청구 삭제 확인', html, footer);
+  setTimeout(() => {
+    const pw = document.getElementById('confirm-pw');
+    if(pw){
+      pw.focus();
+      pw.addEventListener('keydown', e => {
+        if(e.key === 'Enter') doDelete(requestId);
+      });
+    }
+  }, 50);
+}
+
+async function doDelete(requestId){
+  const pwInput = document.getElementById('confirm-pw');
+  const errEl   = document.getElementById('confirm-err');
+  const btn     = document.getElementById('confirm-btn');
+  const pw = (pwInput?.value || '').trim();
+  if(!pw){
+    errEl.textContent = '비밀번호를 입력해주세요';
+    return;
+  }
+  errEl.textContent = '';
+  if(btn){ btn.disabled = true; btn.textContent = '처리 중…'; }
+
+  try {
+    const resp = await fetch(APPROVE_FUNC_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey':        SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        request_id:      requestId,
+        action:          'delete',
+        master_password: pw,
+      }),
+    });
+    const result = await resp.json().catch(() => ({}));
+    if(!resp.ok || !result.ok){
+      const msg = (result && result.error) || `${resp.status} ${resp.statusText}`;
+      errEl.textContent = msg;
+      if(btn){ btn.disabled = false; btn.textContent = '삭제 진행'; }
+      return;
+    }
+    closeConfirm();
+    closeModal();
+    showToast(`🗑️ 삭제 완료 (#${result.request_no || ''})`);
+    setTimeout(() => loadRequests(), 400);
+  } catch(e){
+    console.error('[delete]', e);
+    errEl.textContent = '네트워크 오류: ' + (e.message || e);
+    if(btn){ btn.disabled = false; btn.textContent = '삭제 진행'; }
+  }
 }
 
 async function doApproveOrCancel(requestId, action){
