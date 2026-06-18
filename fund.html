@@ -5,62 +5,74 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SJAMES 자금 관리</title>
 
+<!-- Typography — 회계 장부 톤 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  /* Design tokens — 자금이라는 주제에 맞춘 차분한 톤
-     기존 SJAMES와 통일하되 좀 더 절제된 색채로 */
+  /* Design tokens — 자금 원장(Ledger)의 회계 장부 톤
+     컨셉: 베이지 종이 위의 정확한 회계 기록
+     시그니처: 세리프로 표시되는 금액 + 등폭 폰트의 인덱스 */
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   :root {
-    /* 배경 — 따뜻한 베이지 베이스 */
-    --bg:            #faf7f2;
-    --bg-card:       #ffffff;
-    --bg-subtle:     #f4f0e8;
-    --bg-hover:      #ede7da;
+    /* 배경 — 따뜻한 종이 베이지 베이스 */
+    --bg:            #f7f3eb;
+    --bg-card:       #fefcf8;
+    --bg-subtle:     #f0eadb;
+    --bg-hover:      #e8e0cb;
+    --bg-ink:        #fcfaf4;     /* 카드 안 깊은 영역 (원장의 내부) */
 
-    /* 본문 — 진한 톤으로 가독성 우선 */
-    --text:          #2d2a26;
-    --text-secondary:#5a544c;
-    --text-tertiary: #8f8779;
+    /* 본문 — 잉크 톤 (회계 장부 잉크 느낌) */
+    --text:          #1f1c17;     /* 진한 잉크 */
+    --text-secondary:#48413a;
+    --text-tertiary: #877d6e;
+    --text-faint:    #b8ad97;     /* 매우 옅은 라벨용 */
 
-    /* 경계선 */
-    --border:        #e6dfd0;
-    --border-strong: #d4ccb8;
+    /* 경계선 — 종이 결처럼 부드럽게 */
+    --border:        #e0d8c4;
+    --border-strong: #c8bda4;
+    --border-rule:   #d4cab3;     /* 표 구분선 (회계 장부 괘선) */
 
-    /* 의미 색상 — 자금/금융 톤 (절제) */
-    --pending:       #d09c4c;     /* 승인 대기 — 황토색 */
-    --pending-soft:  #fbf2e0;
-    --approved:      #4f7f4a;     /* 승인 — 깊은 녹색 */
-    --approved-soft: #e8f0e6;
-    --cancelled:     #b0473d;     /* 취소 — 진한 적색 */
-    --cancelled-soft:#f5e3e0;
-    --error:         #c14545;
-    --error-soft:    #fbecea;
+    /* 의미 색상 — 회계 장부의 잉크 색채 */
+    --pending:       #b8801e;     /* 승인 대기 — 황토 잉크 */
+    --pending-soft:  #faedce;
+    --approved:      #2f5d33;     /* 승인 — 검녹색 잉크 */
+    --approved-soft: #dde8db;
+    --cancelled:     #973027;     /* 취소 — 적색 잉크 */
+    --cancelled-soft:#f0d4d0;
+    --error:         #a8362e;
+    --error-soft:    #f5dad6;
 
-    /* 부서 그룹 색 (기존 SJAMES 톤) */
-    --grp-inner:     #4A90E2;     /* 내무 — 파랑 */
-    --grp-admin:     #E8A04F;     /* 행정 — 주황 */
-    --grp-culture:   #D8628E;     /* 문화 — 분홍 */
+    /* 부서 그룹 색 (잉크 톤으로 다듬음) */
+    --grp-inner:     #2c5d9e;     /* 내무 — 파랑 잉크 */
+    --grp-admin:     #8a5a1e;     /* 행정 — 갈색 잉크 */
+    --grp-culture:   #9a3866;     /* 문화 — 적자색 잉크 */
 
-    /* 시그니처 — 깊은 코발트 (재무 신뢰감) */
-    --accent:        #234a73;
-    --accent-soft:   #e7eef5;
+    /* 시그니처 — 짙은 코발트 (도장·인장 색) */
+    --accent:        #1c3e63;
+    --accent-soft:   #e0e8f0;
+    --accent-deep:   #142d49;
 
-    /* 그림자 */
-    --shadow-sm:     0 1px 2px rgba(45,42,38,0.05);
-    --shadow-md:     0 4px 12px rgba(45,42,38,0.08);
-    --shadow-lg:     0 8px 24px rgba(45,42,38,0.12);
+    /* 그림자 — 종이 위의 부드러운 그림자 */
+    --shadow-sm:     0 1px 2px rgba(63,52,32,0.04);
+    --shadow-md:     0 2px 8px rgba(63,52,32,0.06), 0 1px 2px rgba(63,52,32,0.04);
+    --shadow-lg:     0 10px 28px rgba(63,52,32,0.10), 0 2px 4px rgba(63,52,32,0.04);
+    --shadow-press:  inset 0 1px 2px rgba(63,52,32,0.06);  /* 도장 찍힌 듯한 음각 */
 
     /* 모서리 */
-    --radius-sm:     6px;
-    --radius:        10px;
-    --radius-lg:     16px;
+    --radius-sm:     5px;
+    --radius:        9px;
+    --radius-lg:     14px;
 
-    /* 타이포그래피 */
-    --font-body:     -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
-                     "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
-    --font-num:      "SF Mono", "JetBrains Mono", Consolas, Monaco, monospace;
+    /* 타이포그래피 — 3종 위계 (디스플레이/본문/숫자) */
+    --font-display:  "Noto Serif KR", "Spectral", Georgia, serif;
+    --font-body:     "Noto Sans KR", -apple-system, BlinkMacSystemFont,
+                     "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
+    --font-num:      "JetBrains Mono", "SF Mono", Consolas, Monaco, monospace;
   }
 
   * { box-sizing: border-box; }
@@ -81,7 +93,10 @@
   .login-screen {
     position: fixed; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: #f5f6f8;
+    background: #f0eadc;
+    background-image: 
+      radial-gradient(at 20% 30%, rgba(28,62,99,0.04) 0px, transparent 50%),
+      radial-gradient(at 80% 70%, rgba(184,128,30,0.05) 0px, transparent 50%);
     padding: 20px;
     z-index: 1000;
     overflow-y: auto;
@@ -89,33 +104,47 @@
   .login-box {
     background: var(--bg-card);
     border-radius: 14px;
-    padding: 36px 28px 28px;
+    padding: 36px 30px 30px;
     width: 100%; max-width: 380px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(45,42,38,0.06);
-    border: 1px solid #ebedf0;
+    box-shadow: 0 1px 3px rgba(31,28,23,0.04), 0 14px 36px rgba(31,28,23,0.10);
+    border: 1px solid var(--border);
   }
   .login-mark {
-    width: 48px; height: 48px;
+    width: 52px; height: 52px;
     border-radius: 12px;
     background: var(--accent);
     color: white;
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    margin-bottom: 18px;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-press);
+    position: relative;
+  }
+  .login-mark::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 9px;
+    border: 1px solid rgba(255,255,255,0.18);
+    pointer-events: none;
   }
   .login-title-text {
     margin: 0 0 6px;
-    font-size: 22px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
     letter-spacing: -0.5px;
     color: var(--text);
   }
   .login-sub {
-    margin: 0 0 22px;
+    margin: 0 0 24px;
     color: var(--text-tertiary);
     font-size: 13px;
+    font-family: var(--font-num);
+    letter-spacing: 0.3px;
   }
   .form-row { margin-bottom: 12px; position: relative; }
   .form-row select,
@@ -295,28 +324,55 @@
 
   .topbar {
     position: sticky; top: 0;
-    background: rgba(250,247,242,0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
+    background: rgba(247,243,235,0.92);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid var(--border-rule);
+    padding: 13px 24px;
     display: flex; align-items: center; gap: 16px;
     z-index: 100;
   }
   .topbar .brand {
-    display: flex; align-items: center; gap: 10px;
-    font-weight: 800;
-    font-size: 15px;
+    display: flex; align-items: center; gap: 11px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
     letter-spacing: -0.3px;
+    color: var(--text);
   }
   .topbar .brand-mark {
-    width: 28px; height: 28px;
-    border-radius: 6px;
+    width: 32px; height: 32px;
+    border-radius: 7px;
     background: var(--accent);
     color: white;
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    box-shadow: var(--shadow-press);
+    /* 도장 찍힌 듯한 텍스처 */
+    position: relative;
+  }
+  .topbar .brand-mark::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.18);
+    pointer-events: none;
+  }
+  .topbar .brand-name {
+    line-height: 1.1;
+  }
+  .topbar .brand-name .sub {
+    display: block;
+    font-family: var(--font-num);
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 1px;
   }
   .topbar .spacer { flex: 1; }
   .topbar .user-info {
@@ -349,35 +405,65 @@
 
   /* ─── 페이지 헤더 ─── */
   .page-header {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border-rule);
+    position: relative;
+  }
+  .page-header::after {
+    /* 회계 장부의 두 번째 괘선 */
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -4px;
+    height: 1px;
+    background: var(--border-rule);
+    opacity: 0.5;
+  }
+  .page-eyebrow {
+    font-family: var(--font-num);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 0 0 8px;
   }
   .page-title {
-    font-size: 24px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 600;
     letter-spacing: -0.5px;
+    line-height: 1.15;
     margin: 0 0 6px;
+    color: var(--text);
   }
   .page-subtitle {
-    color: var(--text-tertiary);
-    font-size: 13px;
+    color: var(--text-secondary);
+    font-size: 13.5px;
     margin: 0;
+    line-height: 1.55;
   }
 
-  /* ─── 시그니처: 요약 카드 영역 ─── */
-  /* 자금 관리의 핵심 4 지표를 한 줄에 — 신뢰감 있는 회계 장부 느낌 */
+  /* ─── 시그니처: 요약 카드 ─── */
+  /* 회계 장부의 "장부 합계" 페이지처럼. 금액이 디스플레이 세리프로 강조됨 */
   .summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 14px;
-    margin-bottom: 28px;
+    margin-bottom: 32px;
   }
   .summary-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px 20px;
+    padding: 20px 22px 18px;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
+  }
+  .summary-card:hover {
+    box-shadow: var(--shadow-md);
   }
   .summary-card::before {
     content: '';
@@ -386,36 +472,48 @@
     width: 3px;
     background: var(--accent);
   }
-  .summary-card.pending::before { background: var(--pending); }
-  .summary-card.approved::before { background: var(--approved); }
+  .summary-card.pending::before   { background: var(--pending); }
+  .summary-card.approved::before  { background: var(--approved); }
   .summary-card.cancelled::before { background: var(--cancelled); }
 
   .summary-card .label {
-    font-size: 11px;
-    font-weight: 700;
+    font-family: var(--font-num);
+    font-size: 10.5px;
+    font-weight: 600;
     color: var(--text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    letter-spacing: 1.2px;
+    margin-bottom: 10px;
+    line-height: 1.2;
   }
   .summary-card .value {
-    font-family: var(--font-num);
-    font-size: 26px;            /* 22 → 26 : 강조 */
-    font-weight: 800;
+    /* 핵심 — 금액은 세리프 디스플레이 폰트 */
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 600;
     letter-spacing: -0.8px;
     color: var(--text);
-    line-height: 1.15;
+    line-height: 1.05;
+    /* 등폭 숫자 변형 (서체가 지원하면) */
+    font-variant-numeric: tabular-nums;
   }
   .summary-card .value .currency {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    font-weight: 500;
-    margin-left: 3px;
-  }
-  .summary-card .meta {
-    margin-top: 6px;
+    font-family: var(--font-body);
     font-size: 12px;
     color: var(--text-tertiary);
+    font-weight: 500;
+    margin-left: 4px;
+    vertical-align: 4px;
+    letter-spacing: 0;
+  }
+  .summary-card .meta {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    font-family: var(--font-num);
+    letter-spacing: 0.2px;
   }
 
   /* ─── 필터 바 ─── */
@@ -423,57 +521,81 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 16px;
+    padding: 14px 18px;
     margin-bottom: 16px;
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-    gap: 10px;
+    gap: 12px;
     align-items: end;
+    box-shadow: var(--shadow-sm);
   }
-  .filter-bar .field { display: flex; flex-direction: column; gap: 4px; }
+  .filter-bar .field { display: flex; flex-direction: column; gap: 6px; }
   .filter-bar label {
-    font-size: 11px;
+    font-family: var(--font-num);
+    font-size: 10px;
     font-weight: 700;
     color: var(--text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 1px;
   }
   .filter-bar input,
   .filter-bar select {
-    padding: 8px 10px;
+    padding: 9px 11px;
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
     font-size: 13px;
     background: var(--bg-card);
     color: var(--text);
     font-family: var(--font-body);
+    transition: all 0.12s;
   }
   .filter-bar input:focus,
   .filter-bar select:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .filter-bar input[type="date"] {
+    font-family: var(--font-num);
+    font-size: 12.5px;
   }
 
-  /* ─── 청구 목록 — 회계 장부의 정확함을 차용한 표 ─── */
+  /* ─── 청구 원장(Ledger) — 회계 장부의 정확함 ─── */
   .table-wrap {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
   }
   .table-meta {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px;
-    font-size: 13px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-rule);
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--font-num);
+    font-size: 12.5px;
     color: var(--text-secondary);
     background: var(--bg-subtle);
+    letter-spacing: 0.2px;
   }
   .table-meta .count {
     font-weight: 700;
     color: var(--text);
   }
-  .table-meta .right { margin-left: auto; font-weight: 700; color: var(--text); }
+  .table-meta .right { 
+    margin-left: auto; 
+    font-weight: 700; 
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .table-meta .right .total-label {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-right: 6px;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 1px;
+  }
 
   .req-table {
     width: 100%;
@@ -482,14 +604,15 @@
   }
   .req-table th {
     text-align: left;
-    padding: 13px 18px;
-    background: var(--bg-subtle);
-    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    background: var(--bg-card);
+    border-bottom: 2px solid var(--border-rule);  /* 회계 장부의 굵은 헤더 괘선 */
+    font-family: var(--font-num);
     font-weight: 700;
-    font-size: 11.5px;
-    color: var(--text-secondary);
+    font-size: 10.5px;
+    color: var(--text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 1.2px;
     position: sticky;
     top: 0;
   }
@@ -497,25 +620,27 @@
   .req-table td.num {
     text-align: right;
     font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
   }
   .req-table tr {
     cursor: pointer;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
+    border-bottom: 1px solid var(--border);    /* 행간 괘선 */
+    transition: background 0.12s;
   }
   .req-table tr:last-child { border-bottom: none; }
   .req-table tr:hover { background: var(--bg-subtle); }
   .req-table td {
-    padding: 17px 18px;       /* 13px → 17px : 행 호흡 확보 */
+    padding: 16px 20px;
     vertical-align: middle;
   }
   .req-table td .request-no {
     font-family: var(--font-num);
-    font-size: 13px;
-    color: var(--text);        /* tertiary → text : 진하게 */
+    font-size: 12.5px;
+    color: var(--text);
     font-weight: 700;
+    letter-spacing: 0.3px;
   }
-  /* 부서 칩 — 그룹별 색 (내무/행정/문화) */
+  /* 부서 칩 — 잉크 톤 */
   .dept-chip {
     display: inline-block;
     padding: 3px 9px;
@@ -524,11 +649,12 @@
     font-weight: 700;
     letter-spacing: -0.1px;
     white-space: nowrap;
+    border: 1px solid transparent;
   }
-  .dept-chip.g-inner   { background: #e8f0fb; color: #2c5d9e; }
-  .dept-chip.g-admin   { background: #fbeed8; color: #8a5a1e; }
-  .dept-chip.g-culture { background: #f9dde9; color: #9a3866; }
-  .dept-chip.g-unknown { background: var(--bg-subtle); color: var(--text-secondary); }
+  .dept-chip.g-inner   { background: #e6efff; color: var(--grp-inner);   border-color: #c8dbf5; }
+  .dept-chip.g-admin   { background: #f5e8d0; color: var(--grp-admin);   border-color: #e0cea1; }
+  .dept-chip.g-culture { background: #f7d9e5; color: var(--grp-culture); border-color: #e8b8cc; }
+  .dept-chip.g-unknown { background: var(--bg-subtle); color: var(--text-secondary); border-color: var(--border); }
 
   .req-table td.detail-cell {
     max-width: 380px;
@@ -541,51 +667,98 @@
   .req-table td .date {
     color: var(--text-secondary);
     font-size: 13px;
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
   }
   .req-table td .category {
     color: var(--text-secondary);
     font-size: 13.5px;
   }
   .req-table td.amount {
-    font-family: var(--font-num);
-    font-weight: 800;          /* 700 → 800 */
+    /* 금액 — 세리프로 강조 (회계 장부의 시그니처) */
+    font-family: var(--font-display);
+    font-weight: 600;
     color: var(--text);
-    font-size: 15px;           /* 14 → 15 : 금액 강조 */
-    letter-spacing: -0.2px;
+    font-size: 16px;
+    letter-spacing: -0.3px;
+    font-variant-numeric: tabular-nums;
   }
   .req-table td.amount .won {
-    font-size: 12px;
+    font-family: var(--font-body);
+    font-size: 11px;
     color: var(--text-tertiary);
     font-weight: 500;
+    margin-left: 3px;
+    letter-spacing: 0;
+  }
+
+  /* 표 푸터 — 회계 장부의 마감 라인 */
+  .table-footer {
+    border-top: 2px solid var(--border-rule);
+    padding: 16px 20px 18px;
+    background: var(--bg-subtle);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    font-family: var(--font-num);
+  }
+  .table-footer .ftr-label {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 600;
+  }
+  .table-footer .ftr-total {
+    margin-left: auto;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .table-footer .ftr-total .ftr-amount {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .table-footer .ftr-total .ftr-currency {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--text-tertiary);
     margin-left: 2px;
   }
 
-  /* ─── 상태 뱃지 — 색감 진하게, 도트 키움 ─── */
+  /* ─── 상태 뱃지 ─── */
   .status {
     display: inline-flex;
     align-items: center;
     gap: 5px;
     padding: 4px 10px;
-    border-radius: 999px;        /* 4px → 알약형 */
-    font-size: 12px;
+    border-radius: 999px;
+    font-size: 11.5px;
     font-weight: 700;
     white-space: nowrap;
     letter-spacing: -0.1px;
+    border: 1px solid transparent;
   }
   .status::before {
     content: '';
-    width: 7px; height: 7px;     /* 6 → 7 */
+    width: 6px; height: 6px;
     border-radius: 50%;
     display: inline-block;
   }
-  .status.pending      { background: #fbeed4; color: #8e5e15; }
-  .status.pending::before  { background: #d09c4c; }
-  .status.approved     { background: #d8ead4; color: #2f5a2b; }
-  .status.approved::before { background: #4f7f4a; }
-  .status.cancelled    { background: #f0d4d0; color: #7d2c24; }
-  .status.cancelled::before{ background: #b0473d; }
-  .status.parse_failed { background: #f5d9d4; color: #872e26; }
-  .status.parse_failed::before { background: #c14545; }
+  .status.pending      { background: var(--pending-soft); color: var(--pending); border-color: #e8d2a0; }
+  .status.pending::before  { background: var(--pending); }
+  .status.approved     { background: var(--approved-soft); color: var(--approved); border-color: #b8cfb4; }
+  .status.approved::before { background: var(--approved); }
+  .status.cancelled    { background: var(--cancelled-soft); color: var(--cancelled); border-color: #e8b5af; }
+  .status.cancelled::before{ background: var(--cancelled); }
+  .status.parse_failed { background: var(--error-soft); color: var(--error); border-color: #e8a8a3; }
+  .status.parse_failed::before { background: var(--error); }
+  .status.deleted      { background: var(--bg-subtle); color: var(--text-tertiary); border-color: var(--border); }
+  .status.deleted::before { background: var(--text-tertiary); }
 
   /* ─── 빈 상태 ─── */
   .empty {
@@ -611,8 +784,8 @@
   /* ─── 청구 상세 모달 ─── */
   .modal-backdrop {
     position: fixed; inset: 0;
-    background: rgba(45,42,38,0.5);
-    backdrop-filter: blur(4px);
+    background: rgba(31,28,23,0.55);
+    backdrop-filter: blur(6px);
     display: none;
     align-items: center; justify-content: center;
     padding: 20px;
@@ -620,7 +793,7 @@
   }
   .modal-backdrop.show {
     display: flex;
-    animation: fadeIn 0.15s;
+    animation: fadeIn 0.18s;
   }
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -635,23 +808,28 @@
     overflow: hidden;
     display: flex; flex-direction: column;
     box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
   }
   .modal-header {
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-rule);
     display: flex; align-items: center; gap: 12px;
+    background: var(--bg-subtle);
   }
   .modal-header h3 {
     margin: 0;
-    font-size: 16px;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
     letter-spacing: -0.3px;
+    color: var(--text);
   }
   .modal-header .request-no {
     font-family: var(--font-num);
     font-size: 13px;
     color: var(--text-tertiary);
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.3px;
   }
   .modal-close {
     margin-left: auto;
@@ -666,34 +844,38 @@
   }
   .modal-close:hover { background: var(--bg-hover); color: var(--text); }
   .modal-body {
-    padding: 22px;
+    padding: 24px;
     overflow-y: auto;
     flex: 1;
   }
 
-  /* 상세 — "회계 장부" 느낌의 정렬 */
+  /* 상세 — 회계 장부의 정렬된 항목 표시 */
   .detail-meta {
-    margin-bottom: 18px;
-    padding: 14px 16px;
-    background: var(--bg-subtle);
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    background: var(--bg-ink);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
   }
   .detail-meta .row {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: baseline;
-    padding: 5px 0;
+    padding: 7px 0;
     font-size: 13.5px;
   }
   .detail-meta .row + .row {
     border-top: 1px dashed var(--border);
   }
   .detail-meta .row .k {
-    width: 80px;
-    font-size: 12px;
+    width: 90px;
+    font-family: var(--font-num);
+    font-size: 10.5px;
     color: var(--text-tertiary);
-    font-weight: 600;
+    font-weight: 700;
     flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
   }
   .detail-meta .row .v {
     flex: 1;
@@ -702,63 +884,68 @@
   .detail-meta .row .v.num {
     font-family: var(--font-num);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
   .detail-meta .row .v.amount {
-    font-family: var(--font-num);
-    font-weight: 800;
-    font-size: 15px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 17px;
     color: var(--text);
+    letter-spacing: -0.3px;
+    font-variant-numeric: tabular-nums;
   }
 
   .detail-section {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
   .detail-section-title {
-    font-size: 11.5px;
+    font-family: var(--font-num);
+    font-size: 10.5px;
     font-weight: 700;
     color: var(--text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    letter-spacing: 1.2px;
+    margin-bottom: 10px;
   }
   .detail-raw {
     background: var(--bg-subtle);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 12px 14px;
+    padding: 14px 16px;
     font-size: 13px;
-    line-height: 1.65;
+    line-height: 1.7;
     white-space: pre-wrap;
     word-break: break-word;
     color: var(--text);
   }
   .detail-approval {
     background: var(--approved-soft);
-    border: 1px solid #c4dabf;
+    border: 1px solid #b5cdb1;
     border-radius: var(--radius-sm);
-    padding: 12px 14px;
+    padding: 14px 16px;
     font-size: 13px;
     color: var(--approved);
   }
   .detail-approval.cancelled {
     background: var(--cancelled-soft);
-    border-color: #e8c2bd;
+    border-color: #e3b8b2;
     color: var(--cancelled);
   }
   .detail-approval.pending {
     background: var(--pending-soft);
-    border-color: #e8d2a0;
+    border-color: #e8cd96;
     color: var(--pending);
   }
   .detail-approval .who {
     font-weight: 700;
-    font-size: 13.5px;
+    font-size: 14px;
   }
   .detail-approval .when {
     font-family: var(--font-num);
-    font-size: 12px;
-    margin-top: 2px;
+    font-size: 11.5px;
+    margin-top: 4px;
     opacity: 0.85;
+    font-variant-numeric: tabular-nums;
   }
 
   /* 로딩 */
@@ -1054,7 +1241,10 @@
   <div class="topbar">
     <div class="brand">
       <div class="brand-mark">₩</div>
-      <span>SJAMES 자금 관리</span>
+      <div class="brand-name">
+        SJAMES 자금 관리
+        <span class="sub">FUND LEDGER</span>
+      </div>
     </div>
     <div class="spacer"></div>
     <a href="index.html" class="back-link">← 업무 대시보드</a>
@@ -1066,6 +1256,7 @@
 
   <div class="container">
     <div class="page-header">
+      <p class="page-eyebrow">FUND LEDGER · 자금 원장</p>
       <h1 class="page-title" id="page-title">자금청구 현황</h1>
       <p class="page-subtitle" id="page-subtitle">—</p>
     </div>
@@ -1107,14 +1298,23 @@
       </div>
     </div>
 
-    <!-- 목록 -->
+    <!-- 청구 원장 -->
     <div class="table-wrap">
       <div class="table-meta">
         <span class="count" id="meta-count">—</span>
-        <span class="right" id="meta-total">—</span>
+        <span class="right">
+          <span class="total-label">합계</span>
+          <span id="meta-total">—</span>
+        </span>
       </div>
       <div id="list-container">
         <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+      </div>
+      <div class="table-footer" id="table-footer" style="display:none">
+        <span class="ftr-label">기재된 항목 합계 · Subtotal of listed entries</span>
+        <span class="ftr-total">
+          <span class="ftr-amount" id="ftr-amount">0</span><span class="ftr-currency">원</span>
+        </span>
       </div>
     </div>
   </div>
@@ -1544,9 +1744,19 @@ function renderList(){
   const total = items.reduce((s,r) => s + (Number(r.amount) || 0), 0);
 
   document.getElementById('meta-count').textContent =
-    `${items.length}건` + (items.length !== allRequests.length ? ` / ${allRequests.length}건 중` : '');
+    `${items.length}건` + (items.length !== allRequests.length ? ` / 전체 ${allRequests.length}건` : '');
   document.getElementById('meta-total').textContent =
-    `합계 ${fmtMoney(total)}원`;
+    `${fmtMoney(total)}원`;
+
+  // 회계 장부 푸터 — 항목 있을 때만 표시
+  const footer = document.getElementById('table-footer');
+  const footerAmount = document.getElementById('ftr-amount');
+  if(items.length > 0){
+    footer.style.display = 'flex';
+    footerAmount.textContent = fmtMoney(total);
+  } else {
+    footer.style.display = 'none';
+  }
 
   const container = document.getElementById('list-container');
   if(items.length === 0){
