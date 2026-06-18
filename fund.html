@@ -1800,22 +1800,11 @@ const STATUS_LABEL = {
   deleted:       '삭제됨',
 };
 
-// 기존 업무 대시보드와 동일한 기본 비밀번호 매핑
-// (exec_dept_passwords 테이블에 해당 부서 비번이 없을 때 fallback)
-const DEFAULT_DEPT_PASSWORDS = {
-  // 내무부서
-  'd03':'naemu24','d31':'jamun24','d32':'jangnyeon24','d33':'bunyeo24',
-  'd34':'cheongnyeon24','d35':'haksaeng24','d36':'yunyeon24','d37':'gukje24',
-  // 행정부서
-  'd04':'gihoek24','d05':'jaejeong24','d06':'gyoyuk24','d07':'sinhak24',
-  'd08':'haeseon24','d09':'jeondo24','d14':'seopoe24','d15':'guknae24',
-  'd17':'beopmu24',
-  // 문화·홍보·기능
-  'd10':'munhwa24','d11':'chulpan24','d12':'jeongbo24','d13':'chanyang24',
-  'd20':'cheyuk24','d21':'hongbo24','d22':'bogeon24','d23':'bongsa24',
-  'd19':'gunseol24',
-};
-const DEFAULT_MASTER_PASSWORD = 'sjames2024';
+// 기존 업무 대시보드와 동일한 비밀번호 정책
+// (보안: 비밀번호는 exec_dept_passwords 테이블에서만 조회 — 소스에 두지 않음)
+//
+// 대시보드 → Edge Function 인증용 토큰 (URL 알아도 토큰 모르면 호출 불가)
+const FUND_DASH_TOKEN = 'aM-DoBHWc8EK_o8Zl9noeRnXtwh53bjxSGByCJwP4HM';
 
 // 그룹 색 (헤더용)
 const GROUP_COLOR = {
@@ -1978,18 +1967,11 @@ async function verifyDeptPassword(deptId, pw){
       return false;
     }
     if(data && data.password){
-      console.log('[pw] DB 조회 성공');
       return data.password === pw;
     }
-    // DB에 없으면 기본 비밀번호로 fallback (기존 업무 대시보드와 동일)
-    const fallback = deptId === 'master'
-      ? DEFAULT_MASTER_PASSWORD
-      : DEFAULT_DEPT_PASSWORDS[deptId];
-    if(fallback){
-      console.log('[pw] DB에 없음 → 기본 비밀번호로 검증');
-      return pw === fallback;
-    }
-    console.warn('[pw] 기본 비밀번호도 없음:', deptId);
+    // DB에 비밀번호 미설정 — 관리자 패널 또는 시드 SQL로 등록 필요
+    console.warn('[pw] 비밀번호 미설정:', deptId);
+    loginErr('이 부서 비밀번호가 등록되지 않았습니다. 관리자에게 문의하세요.');
     return false;
   } catch(e){
     console.error('[pw] 예외:', e);
@@ -3014,6 +2996,7 @@ async function runFundAction(requestId, action){
         'Content-Type': 'application/json',
         'apikey':        SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'X-Fund-Token':  FUND_DASH_TOKEN,
       },
       body: JSON.stringify({
         request_id: requestId,
