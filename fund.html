@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -444,6 +445,274 @@
     line-height: 1.55;
   }
 
+  /* ─── 탭 네비게이션 ─── */
+  /* 회계 장부의 "분책" 같은 톤. 원장과 통계 사이를 명확히 구분 */
+  .tab-nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border-rule);
+    padding: 0 2px;
+  }
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--font-body);
+    color: var(--text-tertiary);
+    transition: all 0.15s;
+    margin-bottom: -2px;
+    position: relative;
+  }
+  .tab-btn:hover {
+    color: var(--text-secondary);
+    background: rgba(0,0,0,0.02);
+  }
+  .tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+  .tab-btn .tab-icon {
+    font-size: 16px;
+    opacity: 0.85;
+  }
+  .tab-btn .tab-label {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+  .tab-btn .tab-sub {
+    font-family: var(--font-num);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+  }
+  .tab-btn.active .tab-sub {
+    color: var(--accent);
+  }
+
+  /* 탭 패널 */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: tabFade 0.2s; }
+  @keyframes tabFade {
+    from { opacity: 0; transform: translateY(2px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ─── 기간 토글 (통계 탭) ─── */
+  .period-toggle {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  .period-label {
+    font-family: var(--font-num);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+  .period-pills {
+    display: inline-flex;
+    background: var(--bg-subtle);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .period-pill {
+    background: transparent;
+    border: none;
+    padding: 7px 14px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .period-pill:hover { color: var(--text); }
+  .period-pill.active {
+    background: var(--bg-card);
+    color: var(--accent);
+    box-shadow: 0 1px 2px rgba(31,28,23,0.08);
+  }
+  .period-meta {
+    margin-left: auto;
+    font-family: var(--font-num);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─── KPI 카드 (통계 탭) ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 22px 20px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .kpi-card:hover { box-shadow: var(--shadow-md); }
+  .kpi-card .kpi-label {
+    font-family: var(--font-num);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kpi-card .kpi-label .kpi-mark {
+    width: 22px; height: 22px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+  .kpi-card .kpi-value {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.8px;
+    color: var(--text);
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-card .kpi-value .unit {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-left: 4px;
+    vertical-align: 4px;
+  }
+  .kpi-card .kpi-meta {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    font-family: var(--font-num);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+  }
+
+  /* ─── 통계 차트 영역 ─── */
+  .charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px 22px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-card-wide {
+    grid-column: 1 / -1;
+  }
+  .chart-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .chart-eyebrow {
+    font-family: var(--font-num);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    margin: 0 0 4px;
+  }
+  .chart-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
+  }
+  .chart-title .chart-title-sub {
+    font-family: var(--font-num);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+    margin-left: 6px;
+    text-transform: uppercase;
+  }
+  .chart-sub {
+    margin: 0 0 0 auto;
+    font-family: var(--font-num);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    text-align: right;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+  .chart-canvas-wrap {
+    position: relative;
+    height: 240px;
+  }
+  .chart-canvas-tall {
+    height: 380px;
+  }
+  .chart-empty {
+    position: absolute;
+    inset: 56px 22px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    font-family: var(--font-num);
+  }
+
   /* ─── 시그니처: 요약 카드 ─── */
   /* 회계 장부의 "장부 합계" 페이지처럼. 금액이 디스플레이 세리프로 강조됨 */
   .summary {
@@ -596,6 +865,35 @@
     font-size: 10.5px;
     letter-spacing: 1px;
   }
+  
+  /* CSV 다운로드 버튼 */
+  .btn-csv {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 14px;
+    padding: 6px 11px 6px 9px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-num);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .btn-csv:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-csv:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-csv .csv-icon { font-size: 13px; }
 
   .req-table {
     width: 100%;
@@ -1122,12 +1420,35 @@
   /* ─── 모바일 ─── */
   @media (max-width: 900px) {
     .summary { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .filter-bar {
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
     .container { padding: 18px 14px 40px; }
-    .page-title { font-size: 19px; }
+    .page-title { font-size: 24px; }
+
+    /* 탭 모바일 */
+    .tab-btn { padding: 10px 14px 12px; }
+    .tab-btn .tab-label { font-size: 14px; }
+    .tab-btn .tab-sub { display: none; }
+
+    /* 기간 토글 모바일 */
+    .period-toggle { flex-wrap: wrap; gap: 10px; padding: 10px 12px; }
+    .period-meta { width: 100%; margin-left: 0; }
+    .period-pill { padding: 6px 12px; font-size: 12px; }
+
+    /* KPI 모바일 */
+    .kpi-card { padding: 16px 16px 14px; }
+    .kpi-card .kpi-value { font-size: 24px; }
+
+    /* 차트 모바일 — 1열 */
+    .charts { grid-template-columns: 1fr; gap: 12px; }
+    .chart-card { padding: 16px 16px 18px; }
+    .chart-canvas-wrap { height: 220px; }
+    .chart-canvas-tall { height: 320px; }
+    .chart-card-head { flex-wrap: wrap; gap: 6px; }
+    .chart-sub { width: 100%; text-align: left; margin: 0; }
 
     /* 표를 카드 리스트로 */
     .req-table thead { display: none; }
@@ -1179,6 +1500,7 @@
 
   @media (max-width: 480px) {
     .summary { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr; }
     .topbar { padding: 12px 14px; }
     .topbar .brand { font-size: 13.5px; }
     .topbar .user-info { font-size: 11.5px; }
@@ -1261,6 +1583,21 @@
       <p class="page-subtitle" id="page-subtitle">—</p>
     </div>
 
+    <!-- 탭 네비게이션 -->
+    <div class="tab-nav" role="tablist">
+      <button class="tab-btn active" data-tab="ledger" role="tab" aria-selected="true" onclick="switchTab('ledger')">
+        <span class="tab-icon">📒</span>
+        <span class="tab-label">원장 <span class="tab-sub">Ledger</span></span>
+      </button>
+      <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false" onclick="switchTab('stats')">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">통계 <span class="tab-sub">Statistics</span></span>
+      </button>
+    </div>
+
+    <!-- ━━━ 탭 1: 원장 (기본) ━━━ -->
+    <div id="tab-ledger" class="tab-panel active">
+
     <!-- 요약 카드 -->
     <div class="summary" id="summary"></div>
 
@@ -1305,6 +1642,10 @@
         <span class="right">
           <span class="total-label">합계</span>
           <span id="meta-total">—</span>
+          <button class="btn-csv" id="btn-csv" onclick="downloadCSV()" title="현재 필터 결과를 CSV로 다운로드">
+            <span class="csv-icon">📥</span>
+            <span class="csv-label">CSV</span>
+          </button>
         </span>
       </div>
       <div id="list-container">
@@ -1317,6 +1658,77 @@
         </span>
       </div>
     </div>
+
+    </div><!-- /tab-ledger -->
+
+    <!-- ━━━ 탭 2: 통계 ━━━ -->
+    <div id="tab-stats" class="tab-panel">
+      <!-- 기간 토글 -->
+      <div class="period-toggle">
+        <span class="period-label">기간</span>
+        <div class="period-pills" role="tablist">
+          <button class="period-pill active" data-period="month" onclick="setStatsPeriod('month')">이번 달</button>
+          <button class="period-pill" data-period="year" onclick="setStatsPeriod('year')">올해</button>
+          <button class="period-pill" data-period="all" onclick="setStatsPeriod('all')">전체</button>
+        </div>
+        <span class="period-meta" id="period-meta">—</span>
+      </div>
+
+      <!-- KPI 카드 4개 -->
+      <div class="kpi-grid" id="kpi-grid"></div>
+
+      <!-- 차트 영역 -->
+      <div class="charts">
+        <!-- 부서별 (마스터만) -->
+        <div class="chart-card chart-card-wide" id="chart-card-dept">
+          <div class="chart-card-head">
+            <div>
+              <p class="chart-eyebrow">DEPARTMENT</p>
+              <h3 class="chart-title">부서별 청구 합계</h3>
+            </div>
+            <p class="chart-sub" id="chart-dept-sub">—</p>
+          </div>
+          <div class="chart-canvas-wrap chart-canvas-tall">
+            <canvas id="chart-dept"></canvas>
+          </div>
+          <div class="chart-empty" id="chart-dept-empty" style="display:none">
+            <span>이 기간에는 부서별 청구가 없어요</span>
+          </div>
+        </div>
+
+        <!-- 구분별 -->
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <div>
+              <p class="chart-eyebrow">CATEGORY</p>
+              <h3 class="chart-title">사용구분별 분포</h3>
+            </div>
+            <p class="chart-sub" id="chart-cat-sub">—</p>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-category"></canvas>
+          </div>
+          <div class="chart-empty" id="chart-cat-empty" style="display:none">
+            <span>이 기간에는 청구가 없어요</span>
+          </div>
+        </div>
+
+        <!-- 월별 -->
+        <div class="chart-card">
+          <div class="chart-card-head">
+            <div>
+              <p class="chart-eyebrow">TIMELINE</p>
+              <h3 class="chart-title">월별 추이 <span class="chart-title-sub">최근 6개월</span></h3>
+            </div>
+            <p class="chart-sub" id="chart-month-sub">—</p>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-month"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1704,6 +2116,482 @@ function renderSummary(){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 탭 전환
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let currentTab = 'ledger';
+function switchTab(tab){
+  currentTab = tab;
+  // 버튼 상태
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const isActive = b.dataset.tab === tab;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  // 패널 표시
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `tab-${tab}`);
+  });
+  // 통계 탭이면 KPI 렌더
+  if(tab === 'stats'){
+    renderStats();
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 통계 — 기간 + KPI
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let statsPeriod = 'month';  // 'month' | 'year' | 'all'
+
+function setStatsPeriod(period){
+  statsPeriod = period;
+  document.querySelectorAll('.period-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.period === period);
+  });
+  renderStats();
+}
+
+// 현재 기간에 포함되는 청구만 (deleted/parse_failed 제외)
+function getStatsItems(){
+  const now = new Date();
+  const yr  = now.getFullYear();
+  const mo  = now.getMonth() + 1;
+  const thisYM   = `${yr}-${String(mo).padStart(2,'0')}`;
+  const thisYear = String(yr);
+  
+  return allRequests.filter(r => {
+    // 정상 청구만 (deleted, parse_failed 제외)
+    if(r.status === 'deleted' || r.status === 'parse_failed') return false;
+    const d = (r.request_date || r.created_at || '').slice(0,10);
+    if(statsPeriod === 'month') return d.slice(0,7) === thisYM;
+    if(statsPeriod === 'year')  return d.slice(0,4) === thisYear;
+    return true;  // 'all'
+  });
+}
+
+function periodLabel(){
+  const now = new Date();
+  if(statsPeriod === 'month') return `${now.getFullYear()}년 ${now.getMonth()+1}월`;
+  if(statsPeriod === 'year')  return `${now.getFullYear()}년`;
+  return '전체 기간';
+}
+
+function renderStats(){
+  const items = getStatsItems();
+  
+  // 기간 메타
+  document.getElementById('period-meta').textContent =
+    `${periodLabel()} · ${items.length}건`;
+  
+  renderKPI(items);
+  
+  // 차트
+  // 부서장은 부서별 차트 숨김 (자기 부서만 보이니 의미 없음)
+  const deptCard = document.getElementById('chart-card-dept');
+  if(currentUser && currentUser.isMaster){
+    deptCard.style.display = '';
+    renderDeptChart(items);
+  } else {
+    deptCard.style.display = 'none';
+  }
+  renderCategoryChart(items);
+  renderMonthChart();   // 월별은 기간 토글 무관 (최근 6개월 고정)
+}
+
+function renderKPI(items){
+  // 1) 청구 건수
+  const totalCount = items.length;
+  
+  // 2) 총 청구 금액 (승인됨 기준)
+  const approved = items.filter(r => r.status === 'approved');
+  const approvedTotal = approved.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+  
+  // 3) 평균 청구 금액 (모든 정상 청구 기준)
+  const allAmount = items.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+  const avgAmount = totalCount > 0 ? Math.round(allAmount / totalCount) : 0;
+  
+  // 4) 승인율 (처리됨 = 승인 + 취소, 전체 정상 청구 중)
+  //    승인 대기는 처리 안 된 거니까 분모에서 제외해도 의미 있지만,
+  //    부서장이 직관적으로 이해할 수 있게 "전체 중 승인 비율"
+  const approvedCount = approved.length;
+  const approvalRate = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
+  
+  const grid = document.getElementById('kpi-grid');
+  grid.innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label"><span class="kpi-mark">№</span>청구 건수</div>
+      <div class="kpi-value">${fmtMoney(totalCount)}<span class="unit">건</span></div>
+      <div class="kpi-meta">${periodLabel()} 접수 기준</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label"><span class="kpi-mark">₩</span>승인 금액</div>
+      <div class="kpi-value">${fmtMoney(approvedTotal)}<span class="unit">원</span></div>
+      <div class="kpi-meta">승인 ${approvedCount}건 합계</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label"><span class="kpi-mark">x̄</span>평균 청구</div>
+      <div class="kpi-value">${fmtMoney(avgAmount)}<span class="unit">원</span></div>
+      <div class="kpi-meta">정상 청구 ${totalCount}건 평균</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label"><span class="kpi-mark">%</span>승인율</div>
+      <div class="kpi-value">${approvalRate}<span class="unit">%</span></div>
+      <div class="kpi-meta">전체 중 승인 비율</div>
+    </div>
+  `;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 차트 — 회계 장부 톤
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 차트 인스턴스 보관 (재렌더 시 destroy)
+const _charts = { dept: null, category: null, month: null };
+
+// CSS 변수 읽기 헬퍼
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// 부서 → 그룹 색 매핑
+function deptGroupColor(deptId){
+  const d = findDept(deptId);
+  if(!d) return cssVar('--text-tertiary');
+  if(d.group === 'inner')   return cssVar('--grp-inner');
+  if(d.group === 'admin')   return cssVar('--grp-admin');
+  if(d.group === 'culture') return cssVar('--grp-culture');
+  return cssVar('--accent');
+}
+
+// 공통 폰트 설정
+const _chartFont = {
+  family: '"JetBrains Mono", "SF Mono", Consolas, monospace',
+  size: 11,
+  weight: '600',
+};
+
+// ─── 1) 부서별 가로 막대 (마스터만) ─────────────────────────
+function renderDeptChart(items){
+  const ctx = document.getElementById('chart-dept');
+  if(!ctx) return;
+
+  // 부서별 합계 (모든 정상 청구 — pending도 포함)
+  const byDept = {};
+  items.forEach(r => {
+    if(!byDept[r.dept_id]) byDept[r.dept_id] = { sum: 0, count: 0 };
+    byDept[r.dept_id].sum += Number(r.amount) || 0;
+    byDept[r.dept_id].count += 1;
+  });
+  
+  // 정렬 + 상위 10개
+  const sorted = Object.entries(byDept)
+    .map(([id, v]) => ({ id, sum: v.sum, count: v.count }))
+    .sort((a,b) => b.sum - a.sum)
+    .slice(0, 10);
+
+  const sub  = document.getElementById('chart-dept-sub');
+  const empty = document.getElementById('chart-dept-empty');
+  const wrap = ctx.parentElement;
+  
+  if(sorted.length === 0){
+    if(_charts.dept){ _charts.dept.destroy(); _charts.dept = null; }
+    wrap.style.visibility = 'hidden';
+    empty.style.display = 'flex';
+    sub.textContent = '0건';
+    return;
+  }
+  wrap.style.visibility = '';
+  empty.style.display = 'none';
+  sub.textContent = `상위 ${sorted.length}개 부서 · ${items.length}건`;
+
+  const labels = sorted.map(d => (findDept(d.id) || {}).name || deptDisplayName(d.id));
+  const data   = sorted.map(d => d.sum);
+  const colors = sorted.map(d => deptGroupColor(d.id));
+
+  if(_charts.dept) _charts.dept.destroy();
+  _charts.dept = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '청구 금액',
+        data,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c),
+        borderWidth: 0,
+        borderRadius: 4,
+        barThickness: 'flex',
+        maxBarThickness: 28,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick(evt, els){
+        if(!els.length) return;
+        const idx = els[0].index;
+        const deptId = sorted[idx].id;
+        // 원장 탭으로 이동 + 그 부서로 필터
+        switchTab('ledger');
+        const deptSel = document.getElementById('f-dept');
+        if(deptSel){
+          deptSel.value = deptId;
+          renderList();
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: cssVar('--text'),
+          titleFont: { family: _chartFont.family, size: 12, weight: '700' },
+          bodyFont: { family: _chartFont.family, size: 12 },
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: {
+            label(c){
+              const item = sorted[c.dataIndex];
+              return `  ${fmtMoney(c.parsed.x)}원 · ${item.count}건`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: cssVar('--border'), drawTicks: false },
+          ticks: {
+            font: _chartFont,
+            color: cssVar('--text-tertiary'),
+            callback: v => {
+              if(v >= 100_000_000) return Math.round(v/10_000_000)/10 + '억';
+              if(v >= 10_000_000)  return Math.round(v/10_000)/100 + '천만';
+              if(v >= 10_000)      return Math.round(v/10_000) + '만';
+              return v;
+            },
+          },
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            font: { ..._chartFont, family: '"Noto Sans KR", sans-serif', weight: '600', size: 12 },
+            color: cssVar('--text'),
+            crossAlign: 'far',
+          },
+        },
+      },
+    }
+  });
+}
+
+// ─── 2) 구분별 도넛 ─────────────────────────────────────
+function renderCategoryChart(items){
+  const ctx = document.getElementById('chart-category');
+  if(!ctx) return;
+
+  // 사용구분별 합계
+  const byCat = {};
+  items.forEach(r => {
+    const k = r.category || '미분류';
+    if(!byCat[k]) byCat[k] = { sum: 0, count: 0 };
+    byCat[k].sum += Number(r.amount) || 0;
+    byCat[k].count += 1;
+  });
+
+  let sorted = Object.entries(byCat)
+    .map(([k, v]) => ({ label: k, sum: v.sum, count: v.count }))
+    .sort((a,b) => b.sum - a.sum);
+
+  // 상위 7개 + 기타
+  if(sorted.length > 8){
+    const top = sorted.slice(0, 7);
+    const rest = sorted.slice(7);
+    const restSum = rest.reduce((s,x) => s + x.sum, 0);
+    const restCnt = rest.reduce((s,x) => s + x.count, 0);
+    top.push({ label: '기타', sum: restSum, count: restCnt });
+    sorted = top;
+  }
+
+  const sub   = document.getElementById('chart-cat-sub');
+  const empty = document.getElementById('chart-cat-empty');
+  const wrap  = ctx.parentElement;
+
+  if(sorted.length === 0){
+    if(_charts.category){ _charts.category.destroy(); _charts.category = null; }
+    wrap.style.visibility = 'hidden';
+    empty.style.display = 'flex';
+    sub.textContent = '0건';
+    return;
+  }
+  wrap.style.visibility = '';
+  empty.style.display = 'none';
+  sub.textContent = `${sorted.length}개 분류`;
+
+  // 잉크 톤 팔레트 — 회계 장부 톤
+  const palette = [
+    cssVar('--accent'),           // 코발트
+    cssVar('--grp-admin'),        // 갈색
+    cssVar('--approved'),         // 검녹
+    cssVar('--grp-culture'),      // 적자
+    cssVar('--grp-inner'),        // 청
+    cssVar('--pending'),          // 황토
+    cssVar('--cancelled'),        // 적
+    cssVar('--text-tertiary'),    // 회색
+  ];
+
+  const labels = sorted.map(s => s.label);
+  const data   = sorted.map(s => s.sum);
+  const colors = sorted.map((_, i) => palette[i % palette.length]);
+
+  if(_charts.category) _charts.category.destroy();
+  _charts.category = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderColor: cssVar('--bg-card'),
+        borderWidth: 2,
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'right',
+          align: 'center',
+          labels: {
+            font: { ..._chartFont, family: '"Noto Sans KR", sans-serif', size: 12, weight: '600' },
+            color: cssVar('--text-secondary'),
+            boxWidth: 12,
+            boxHeight: 12,
+            padding: 10,
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+          },
+        },
+        tooltip: {
+          backgroundColor: cssVar('--text'),
+          titleFont: { family: _chartFont.family, size: 12, weight: '700' },
+          bodyFont: { family: _chartFont.family, size: 12 },
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: {
+            label(c){
+              const item = sorted[c.dataIndex];
+              const total = data.reduce((s,v) => s + v, 0);
+              const pct = total > 0 ? Math.round((item.sum/total)*100) : 0;
+              return `  ${fmtMoney(item.sum)}원 · ${pct}% · ${item.count}건`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ─── 3) 월별 라인 (최근 6개월 — 기간 토글과 무관) ────────────
+function renderMonthChart(){
+  const ctx = document.getElementById('chart-month');
+  if(!ctx) return;
+
+  // 부서장은 자기 부서, 마스터는 전체 — getStatsItems와 다르게 기간 무관
+  const baseItems = allRequests.filter(r =>
+    r.status !== 'deleted' && r.status !== 'parse_failed'
+  );
+
+  // 최근 6개월 라벨 (오늘 포함)
+  const now = new Date();
+  const months = [];
+  for(let i = 5; i >= 0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    months.push({ ym, label: `${d.getMonth()+1}월` });
+  }
+
+  // 각 월 합계
+  const sums = months.map(m => {
+    const sum = baseItems
+      .filter(r => (r.request_date || (r.created_at||'').slice(0,10)).slice(0,7) === m.ym)
+      .reduce((s,r) => s + (Number(r.amount) || 0), 0);
+    return sum;
+  });
+
+  const sub = document.getElementById('chart-month-sub');
+  const totalSum = sums.reduce((s,v) => s + v, 0);
+  sub.textContent = `최근 6개월 합계 ${fmtMoney(totalSum)}원`;
+
+  const accent = cssVar('--accent');
+
+  if(_charts.month) _charts.month.destroy();
+  _charts.month = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months.map(m => m.label),
+      datasets: [{
+        label: '월별 청구 금액',
+        data: sums,
+        borderColor: accent,
+        backgroundColor: accent + '20',  // 12% 알파
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: cssVar('--bg-card'),
+        pointBorderColor: accent,
+        pointBorderWidth: 2.5,
+        pointRadius: 4.5,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: cssVar('--text'),
+          titleFont: { family: _chartFont.family, size: 12, weight: '700' },
+          bodyFont: { family: _chartFont.family, size: 12 },
+          padding: 10,
+          cornerRadius: 6,
+          callbacks: {
+            title(c){ return months[c[0].dataIndex].ym; },
+            label(c){ return `  ${fmtMoney(c.parsed.y)}원`; },
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { ..._chartFont, family: '"Noto Sans KR", sans-serif', size: 12, weight: '600' },
+            color: cssVar('--text-secondary'),
+          },
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: cssVar('--border'), drawTicks: false },
+          ticks: {
+            font: _chartFont,
+            color: cssVar('--text-tertiary'),
+            callback: v => {
+              if(v >= 100_000_000) return Math.round(v/10_000_000)/10 + '억';
+              if(v >= 10_000_000)  return Math.round(v/10_000)/100 + '천만';
+              if(v >= 10_000)      return Math.round(v/10_000) + '만';
+              if(v === 0) return '0';
+              return v;
+            },
+          },
+        },
+      },
+    }
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 필터링 + 목록 렌더
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function getFiltered(){
@@ -1757,6 +2645,10 @@ function renderList(){
   } else {
     footer.style.display = 'none';
   }
+  
+  // CSV 버튼 활성/비활성
+  const csvBtn = document.getElementById('btn-csv');
+  if(csvBtn) csvBtn.disabled = items.length === 0;
 
   const container = document.getElementById('list-container');
   if(items.length === 0){
@@ -1817,6 +2709,106 @@ function resetFilters(){
   document.getElementById('f-from').value = '';
   document.getElementById('f-to').value = '';
   renderList();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CSV 내보내기 — 현재 필터된 결과를 다운로드
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// CSV 한 셀 값 이스케이프 — 쉼표·따옴표·줄바꿈 있으면 따옴표로 감싸기
+function csvCell(v){
+  if(v == null) return '';
+  let s = String(v);
+  // 따옴표는 두 개로 이스케이프 (CSV 표준)
+  if(s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')){
+    s = '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function csvDateTime(s){
+  if(!s) return '';
+  const d = new Date(s);
+  if(isNaN(d.getTime())) return s;
+  // 로컬 시각으로 YYYY-MM-DD HH:MM 형식
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function downloadCSV(){
+  const items = getFiltered();
+  if(items.length === 0){
+    showToast('내보낼 데이터가 없어요');
+    return;
+  }
+
+  // 컬럼 — 회계 보고에 필요한 핵심
+  const headers = [
+    '청구번호', '부서', '사용날짜',
+    '자금출처', '행사이름', '사용구분',
+    '세부내역', '청구금액', '추가설명',
+    '상태', '승인자', '승인일시', '접수일시',
+  ];
+
+  // 행 변환
+  const rows = items.map(r => {
+    const dept = findDept(r.dept_id);
+    const deptName = dept ? dept.name : deptDisplayName(r.dept_id);
+    const dateStr  = r.request_date || (r.created_at || '').slice(0,10);
+    return [
+      r.request_no || '',
+      deptName,
+      dateStr,
+      r.funding_source || '',
+      r.event_name || '',
+      r.category || '',
+      r.detail || '',
+      r.amount != null ? r.amount : '',
+      r.description || '',
+      STATUS_LABEL[r.status] || r.status || '',
+      r.approved_by_name || '',
+      csvDateTime(r.approved_at),
+      csvDateTime(r.created_at),
+    ];
+  });
+
+  // 합계 행 추가
+  const totalAmount = items.reduce((s,r) => s + (Number(r.amount) || 0), 0);
+  const summaryRow = [
+    '', '합계', '', '', '', '', '',
+    totalAmount, '',
+    `${items.length}건`,
+    '', '', '',
+  ];
+
+  // CSV 본문 조립
+  const csvLines = [
+    headers.map(csvCell).join(','),
+    ...rows.map(row => row.map(csvCell).join(',')),
+    summaryRow.map(csvCell).join(','),
+  ];
+  const csvText = csvLines.join('\r\n');
+
+  // UTF-8 BOM 추가 (Excel 한글 깨짐 방지)
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvText], { type: 'text/csv;charset=utf-8;' });
+
+  // 파일명: 자금청구_2026-06-18_5건.csv
+  const today = new Date();
+  const ymd = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const filename = `자금청구_${ymd}_${items.length}건.csv`;
+
+  // 다운로드 트리거
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(`📥 CSV 다운로드 (${items.length}건)`);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
