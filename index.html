@@ -1103,6 +1103,17 @@
     background: var(--accent);
     color: #fff;
   }
+  /* 자금청구 빠른 링크 (부서 카드) */
+  .icon-btn.fund-quick-btn {
+    color: #1c3e63;
+    background: #e0e8f0;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+  .icon-btn.fund-quick-btn:hover {
+    background: #1c3e63;
+    color: #fff;
+  }
 
   /* 월별 그리드 */
   .month-grid {
@@ -2193,15 +2204,15 @@
     flex-wrap: wrap;
   }
   .dept-name {
-    font-size: 17px;
-    font-weight: 800;
+    font-size: 16px;
+    font-weight: 700;
     letter-spacing: -0.3px;
     color: var(--text);
   }
   .dept-leader {
-    font-size: 13.5px;
-    color: var(--text-secondary);
-    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 500;
   }
   .dept-progress-row {
     display: flex;
@@ -2265,11 +2276,12 @@
   .sec-icon.task { background: var(--success-soft); color: var(--success); }
   .sec-icon.event { background: var(--warning-soft); color: var(--warning); }
   .sec-label {
-    font-size: 13.5px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.2px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
     flex: 1;
+    text-transform: uppercase;
   }
   .sec-count {
     font-family: var(--font-num);
@@ -2882,13 +2894,13 @@
     .chip { padding: 7px 14px; font-size: 13px; }
 
     .dept-head { padding: 14px 16px; gap: 12px; min-height: 70px; }
-    .dept-name { font-size: 16px; }
-    .dept-leader { font-size: 13px; }
+    .dept-name { font-size: 15px; }
+    .dept-leader { font-size: 12.5px; }
     .dept-prog-text { font-size: 12.5px; min-width: 64px; }
 
     .sec-header { padding: 12px 16px 8px; }
     .sec-icon { width: 20px; height: 20px; }
-    .sec-label { font-size: 13px; }
+    .sec-label { font-size: 11.5px; }
 
     .check-row { padding: 14px 16px; gap: 12px; min-height: 56px; }
     .check-text { font-size: 14px; line-height: 1.5; }
@@ -2940,8 +2952,7 @@
   @media (max-width: 380px) {
     .summary-num { font-size: 20px; }
     .check-text { font-size: 13.5px; }
-    .dept-name { font-size: 15.5px; }
-    .sec-label { font-size: 12.5px; }
+    .dept-name { font-size: 14.5px; }
 
     /* 진행률 영역 작은 모바일 */
     .quant-block {
@@ -2990,6 +3001,49 @@
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
+  }
+
+  /* ─── 자금청구 시스템 링크 (상단바) ─── */
+  .fund-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px 6px 8px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #1c3e63 0%, #2c5d9e 100%);
+    border: 1px solid #1c3e63;
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(28,62,99,0.25);
+    letter-spacing: -0.1px;
+  }
+  .fund-link-btn:hover {
+    background: linear-gradient(135deg, #142d49 0%, #234e85 100%);
+    box-shadow: 0 2px 6px rgba(28,62,99,0.35);
+    transform: translateY(-1px);
+  }
+  .fund-link-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.18);
+    font-family: "Noto Serif KR", Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .fund-link-label {
+    line-height: 1;
+  }
+  @media (max-width: 640px) {
+    .fund-link-btn { padding: 6px 9px 6px 7px; font-size: 11.5px; }
+    .fund-link-label { display: none; }
+    .fund-link-mark { width: 22px; height: 22px; font-size: 14px; }
   }
 
   body.edit-mode .check-row { cursor: default; }
@@ -3437,6 +3491,10 @@
       </svg>
       <span class="edit-toggle-label">편집</span>
     </button>
+    <a href="fund.html" class="fund-link-btn" title="자금청구 시스템 (자금 원장)">
+      <span class="fund-link-mark">₩</span>
+      <span class="fund-link-label">자금청구</span>
+    </a>
     <button class="menu-btn" onclick="openSheet('menu')" aria-label="메뉴">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -4836,19 +4894,7 @@ function getEffectiveDepts(){
       if(!section) return;
       const item = section.items.find(it => it.id === ov.target_id);
       if(!item) return;
-
-      const payload = { ...ov.payload };
-
-      // ★ 제목 불일치 감지 → completed 자동 초기화
-      // _itemTitle이 저장돼 있고 현재 항목 제목과 다르면 → 제목이 바뀐 것이므로 완료 해제
-      if(payload._itemTitle && payload._itemTitle !== item.t && payload.completed === true){
-        payload.completed = false;
-        payload.completedAt = null;
-        payload.completedBy = null;
-        console.warn(`[제목 불일치] ${item.id}: "${payload._itemTitle}" → "${item.t}" → completed 초기화`);
-      }
-
-      item.detail = payload;
+      item.detail = ov.payload; // {when, where, who, what, how, why}
     }
   });
 
@@ -4958,6 +5004,7 @@ async function changeDeptPassword(deptId, newPassword){
     const { error } = await sb.from('exec_dept_passwords').upsert({
       dept_id: deptId,
       password: newPassword,
+      updated_by: user ? user.name : 'unknown',
       updated_at: new Date().toISOString()
     }, { onConflict: 'dept_id' });
     if(error) throw error;
@@ -5566,10 +5613,7 @@ function getCurrent(item){
 
 function isItemDone(item){
   // 수치형 항목 (중점추진과제 등): 목표 달성 여부
-  // target이 숫자일 때만 수치형으로 판단 (null/undefined는 텍스트형)
-  if(typeof item.target === 'number' && item.target > 0){
-    return getCurrent(item) >= item.target;
-  }
+  if(item.target !== undefined) return getCurrent(item) >= item.target;
   // 연간 월별 계획: detail.completed만 신뢰 (옛 cloudState 무시)
   // 이유: 수치 항목이었던 게 텍스트로 바뀌면 옛 cloudState 값이 잘못 인식됨
   return !!(item.detail && item.detail.completed === true);
@@ -5800,20 +5844,8 @@ async function saveItem(deptId, sectionId, itemId){
   if(itemId){
     // 수정
     const payload = { t: text };
-    if(hasTarget){
-      payload.target = target;
-      payload.unit = unit;
-    }
-    // hasTarget이 false면 target/unit 키 자체를 넣지 않음
-    // (null로 저장하면 isItemDone에서 잘못 수치형으로 인식되는 버그 방지)
-
-    // 기존 항목과 제목이 바뀌었는지 확인
-    const depts = getEffectiveDepts();
-    const dept = depts.find(d => d.id === deptId);
-    const sec = dept?.sections.find(s => s.id === sectionId);
-    const oldItem = sec?.items.find(i => i.id === itemId);
-    const titleChanged = oldItem && oldItem.t !== text;
-
+    if(hasTarget){ payload.target = target; payload.unit = unit; }
+    else { payload.target = null; payload.unit = null; }
     ok = await writeOverride({
       id: yearPrefix() + 'item_update_' + itemId,
       kind: 'item',
@@ -5823,28 +5855,6 @@ async function saveItem(deptId, sectionId, itemId){
       section_id: sectionId,
       payload: payload
     });
-
-    // ★ 제목이 바뀌면 detail의 completed를 자동 초기화
-    // 이유: 항목 제목이 바뀌면 사실상 새 항목이므로 이전 완료 상태를 이어받으면 안 됨
-    if(ok && titleChanged && oldItem.detail?.completed === true){
-      const existing = oldItem.detail || {};
-      await writeOverride({
-        id: yearPrefix() + 'detail_' + itemId,
-        kind: 'detail',
-        action: 'update',
-        target_id: itemId,
-        dept_id: deptId,
-        section_id: sectionId,
-        payload: {
-          ...existing,
-          completed: false,
-          completedAt: null,
-          completedBy: null
-        },
-        _skipAutoComplete: true  // 제목 변경에 의한 초기화라 자동완료 로직 우회
-      });
-      showToast('ℹ️ 제목이 변경되어 완료 상태가 초기화되었습니다', 'info');
-    }
   } else {
     // 추가
     const newId = genId('item');
@@ -6334,13 +6344,6 @@ async function saveEventDetail(deptId, sectionId, itemId){
   const planFilesExisting = existing.planFiles || existing.files || [];
   const resultFilesExisting = existing.resultFiles || [];
 
-  // 현재 항목 제목 조회 (제목 불일치 감지용)
-  const _itemTitle = (() => {
-    const d = getEffectiveDepts().find(d => d.id === deptId);
-    const s = d?.sections.find(s => s.id === sectionId);
-    return s?.items.find(i => i.id === itemId)?.t || '';
-  })();
-
   const detail = {
     plan: plan,
     resultMemo: resultMemo,
@@ -6353,8 +6356,7 @@ async function saveEventDetail(deptId, sectionId, itemId){
     completed: existing.completed || false,
     completedAt: existing.completedAt || null,
     completedBy: existing.completedBy || null,
-    completedLink: existing.completedLink || '',
-    _itemTitle: _itemTitle  // 제목 불일치 감지용 (제목 변경 시 completed 자동 초기화)
+    completedLink: existing.completedLink || ''
   };
 
   console.log('[저장 시작] saveEventDetail', {deptId, sectionId, itemId, planLength: plan.length, planFiles: detail.planFiles.length, resultFiles: detail.resultFiles.length});
@@ -7631,39 +7633,13 @@ const JSON_NAME_TO_DEPT_ID = {
 
 // === 지난 달 미완료 부서 알림 (총무부 전용) ===
 // 현재 달보다 이전 달의 연간계획 항목 중 미완료가 있는 부서만 골라 발송
-// "오늘 받은 부서 숨기기" 체크박스 토글 핸들러
-function _toggleOverdueSent(hide){
-  document.querySelectorAll('.overdue-row[data-sent-today="1"]').forEach(row => {
-    row.style.display = hide ? 'none' : 'block';
-    // 숨겨질 때는 체크도 자동 해제(중복 발송 방지), 다시 보일 땐 체크 활성화
-    const cb = row.querySelector('.overdue-dept');
-    if(cb) cb.checked = !hide;
-  });
-}
-
-async function openOverdueAlert(){
+function openOverdueAlert(){
   if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
 
   const currentMonth = new Date().getMonth() + 1; // 1~12
   const depts = getEffectiveDepts();
 
-  // ★ 오늘 자정 이후 overdue_manual 발송된 부서 ID 조회 (중복 발송 방지용)
-  const alreadySentToday = new Set();
-  try {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const { data: sentRows, error: sentErr } = await window._sb
-      .from('exec_notify_log')
-      .select('dept_id, sent_at, notify_type, status')
-      .eq('notify_type', 'overdue_manual')
-      .eq('status', 'success')
-      .gte('sent_at', todayStart.toISOString());
-    if(!sentErr && sentRows){
-      sentRows.forEach(r => alreadySentToday.add(r.dept_id));
-    }
-  } catch(e){ console.warn('[overdue] 발송 로그 조회 실패 (무시):', e); }
-
-  const overdueByDept = [];  // [{dept, items:[{t, month}], tg, sentToday}]
+  const overdueByDept = [];  // [{dept, items:[{t, month}], tg}]
   depts.forEach(dept => {
     const tg = cloudTelegram[dept.id];
     if(!tg || !tg.chat_id) return;  // chat_id 없는 부서는 제외
@@ -7681,10 +7657,7 @@ async function openOverdueAlert(){
 
     if(overdueItems.length > 0){
       overdueItems.sort((a,b) => a.month - b.month);
-      overdueByDept.push({
-        dept, items: overdueItems, tg,
-        sentToday: alreadySentToday.has(dept.id)
-      });
+      overdueByDept.push({ dept, items: overdueItems, tg });
     }
   });
 
@@ -7698,28 +7671,20 @@ async function openOverdueAlert(){
 
   const totalDepts = overdueByDept.length;
   const totalItems = overdueByDept.reduce((s,d) => s + d.items.length, 0);
-  const sentTodayCount = overdueByDept.filter(d => d.sentToday).length;
-  const remainingCount = totalDepts - sentTodayCount;
 
   let deptRows = '';
-  overdueByDept.forEach(({dept, items, tg, sentToday}) => {
+  overdueByDept.forEach(({dept, items, tg}) => {
     const itemList = items.map(it =>
       `<div style="font-size:11.5px;color:var(--text-secondary);padding-left:18px">· ${it.month}월 — ${escapeHtml(it.t)}</div>`
     ).join('');
     const topicInfo = tg.topic_id ? ` · 토픽 ${tg.topic_id}` : '';
-    const sentBadge = sentToday
-      ? `<span style="margin-left:auto;font-size:10.5px;padding:2px 6px;background:#e8f0fe;color:#1a4480;border-radius:4px;font-weight:600">✓ 오늘 발송됨</span>`
-      : '';
-    // 오늘 이미 발송된 부서는 기본 체크 해제 (중복 방지)
-    const checkedAttr = sentToday ? '' : 'checked';
     deptRows += `
-      <label class="overdue-row" data-sent-today="${sentToday ? '1' : '0'}" style="display:block;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;margin-bottom:8px${sentToday ? ';opacity:0.65' : ''}">
+      <label style="display:block;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
-          <input type="checkbox" class="overdue-dept" data-dept-id="${dept.id}" ${checkedAttr}>
+          <input type="checkbox" class="overdue-dept" data-dept-id="${dept.id}" checked>
           <span style="width:8px;height:8px;border-radius:50%;background:${dept.color}"></span>
           <span style="font-weight:600;font-size:13px">${escapeHtml(dept.name)}</span>
           <span style="color:var(--text-tertiary);font-size:11px">미완료 ${items.length}건${topicInfo}</span>
-          ${sentBadge}
         </div>
         ${itemList}
       </label>
@@ -7728,19 +7693,12 @@ async function openOverdueAlert(){
 
   const body = `
     <div style="margin-bottom:14px;padding:12px;background:#fff0e6;border:1px solid #f0b380;border-radius:var(--radius-sm);font-size:12.5px;color:#9a5418;line-height:1.6">
-      ⏰ <b>${currentMonth}월 이전</b> 연간계획 중 <b>완료되지 않은 항목</b>이 있는 부서 <b>${totalDepts}곳</b> (총 ${totalItems}건)
-      ${sentTodayCount > 0 ? `<br>오늘 이미 발송된 부서 <b>${sentTodayCount}곳</b>은 기본으로 제외됩니다.` : ''}
+      ⏰ <b>${currentMonth}월 이전</b> 연간계획 중 <b>완료되지 않은 항목</b>이 있는 부서 <b>${totalDepts}곳</b> (총 ${totalItems}건)<br>
+      선택한 부서에만 각자의 미완료 목록이 발송됩니다.
     </div>
 
-    ${sentTodayCount > 0 ? `
-      <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:#eef3fa;border:1px solid #c7d8ec;border-radius:var(--radius-sm);font-size:12.5px;cursor:pointer">
-        <input type="checkbox" id="overdue-hide-sent" checked onchange="_toggleOverdueSent(this.checked)">
-        <span>오늘 이미 받은 부서 ${sentTodayCount}곳 숨기기 (재발송 시 끄세요)</span>
-      </label>
-    ` : ''}
-
     <div style="margin-bottom:12px">
-      <button class="btn" onclick="document.querySelectorAll('.overdue-row:not([style*=\\'display:none\\']) .overdue-dept').forEach(c=>c.checked=true)" style="padding:3px 10px;font-size:11px">보이는 항목 전체 선택</button>
+      <button class="btn" onclick="document.querySelectorAll('.overdue-dept').forEach(c=>c.checked=true)" style="padding:3px 10px;font-size:11px">전체 선택</button>
       <button class="btn" onclick="document.querySelectorAll('.overdue-dept').forEach(c=>c.checked=false)" style="padding:3px 10px;font-size:11px">전체 해제</button>
     </div>
 
@@ -7774,11 +7732,6 @@ async function openOverdueAlert(){
   window._overdueMonth = currentMonth;
 
   openModal('⏰ 미완료 부서 알림', body, footer);
-
-  // 모달 렌더 후 "오늘 받음" 행을 기본 숨김 처리 (체크박스가 기본 켜져있으므로)
-  if(sentTodayCount > 0){
-    setTimeout(() => _toggleOverdueSent(true), 0);
-  }
 }
 
 async function executeOverdueAlert(){
@@ -7810,7 +7763,6 @@ async function executeOverdueAlert(){
   if(sendBtn){ sendBtn.disabled = true; sendBtn.textContent = '발송 중...'; }
 
   let success = 0, fail = 0;
-  const failures = [];  // 실패 상세: [{name, reason}]
 
   for(const t of targets){
     const lines = [];
@@ -7835,61 +7787,18 @@ async function executeOverdueAlert(){
         } catch(e){}
       } else {
         fail++;
-        const reason = (result && (result.error || result.description || result.error_code))
-          || '알 수 없는 오류';
-        failures.push({
-          name: t.deptName,
-          chatId: t.chatId,
-          topicId: t.topicId,
-          reason: String(reason).slice(0, 200)
-        });
       }
     } catch(e){
       console.error('[미완료 알림 발송 실패]', t.deptName, e);
       fail++;
-      failures.push({
-        name: t.deptName,
-        chatId: t.chatId,
-        topicId: t.topicId,
-        reason: (e && e.message) ? e.message.slice(0, 200) : '네트워크/예외'
-      });
     }
     await new Promise(r => setTimeout(r, 250));  // rate limit 보호
   }
 
   if(sendBtn){ sendBtn.disabled = false; sendBtn.textContent = '⏰ 미완료 부서에 발송'; }
-
-  if(fail === 0){
-    showToast(`✅ 발송 완료: ${success}곳`, 'success');
-    if(success > 0) setTimeout(() => closeModal(), 1200);
-  } else {
-    // 실패가 있으면 토스트 + 상세 모달로 어느 부서가 왜 실패했는지 안내
-    showToast(`발송 ${success}곳 · 실패 ${fail}곳`, 'info');
-
-    const rows = failures.map(f =>
-      `<div style="padding:10px;background:#fff4f4;border:1px solid #f3c2c2;border-radius:var(--radius-sm);margin-bottom:6px">
-        <div style="font-weight:700;font-size:14px;color:#b04141">❌ ${escapeHtml(f.name)}</div>
-        <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;font-family:var(--font-num)">chat_id: ${escapeHtml(String(f.chatId || '?'))}${f.topicId ? ' · topic_id: ' + escapeHtml(String(f.topicId)) : ''}</div>
-        <div style="font-size:12px;color:#7a2424;margin-top:6px;padding:6px 8px;background:#fff;border-radius:4px;word-break:break-all;font-family:var(--font-num)">${escapeHtml(f.reason)}</div>
-      </div>`
-    ).join('');
-
-    const body = `
-      <div style="margin-bottom:12px;padding:10px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:12.5px;line-height:1.6">
-        ✅ 성공 <b>${success}곳</b> · ❌ 실패 <b>${fail}곳</b><br>
-        아래 부서는 발송이 안 됐습니다. 사유를 확인해주세요.
-      </div>
-      <div style="max-height:360px;overflow-y:auto">${rows}</div>
-      <div style="margin-top:10px;padding:9px;background:var(--bg-subtle);border-radius:var(--radius-sm);font-size:11.5px;color:var(--text-secondary);line-height:1.55">
-        💡 자주 나오는 사유:<br>
-        • <code>chat not found</code> → 봇이 그 그룹에 없음. 봇을 그룹에 추가하세요.<br>
-        • <code>message thread not found</code> → topic_id가 잘못됨. 봇 관리에서 수정하세요.<br>
-        • <code>403 Forbidden</code> → 봇이 메시지 보낼 권한 없음. 그룹에서 봇 권한 확인.<br>
-        • <code>bot was blocked</code> → 봇이 차단됨. 차단 해제 필요.
-      </div>
-    `;
-    const footer = `<button class="btn btn-primary" onclick="closeModal()">확인</button>`;
-    openModal('⚠️ 일부 부서 발송 실패', body, footer);
+  showToast(`✅ 발송 완료: ${success}곳${fail ? ` · 실패 ${fail}곳` : ''}`, fail ? 'info' : 'success');
+  if(success > 0 && fail === 0){
+    setTimeout(() => closeModal(), 1200);
   }
 }
 
@@ -8422,9 +8331,8 @@ function escapeAttr(s){
 // === 부서별 즉시 알림 발송 (월 업무 상세 모달에서 사용, v43에서 개선) ===
 // 한 항목에서 버튼을 누르면 → 그 부서의 그 달 미제출 항목 전체를 한 메시지로 발송
 // 서식은 자동 알림(plan_reminder/result_reminder)과 동일하게 통일
-async function sendDeptAlert(deptId, alertType, itemId, itemTitle, targetMonth){
+async function sendDeptAlert(deptId, alertType, itemId, itemTitle){
   // alertType: 'plan' | 'result' | 'link'
-  // targetMonth: 발송할 달 (없으면 현재 달) — 5월 상세에서 눌렀으면 5가 전달됨
   if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
 
   const depts = getEffectiveDepts();
@@ -8437,11 +8345,11 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle, targetMonth){
     return;
   }
 
-  // 봇 토큰 확인 + 자동 저장
+  // 봇 토큰 확인
   let token = '';
   try { token = localStorage.getItem('sjames_bot_token') || ''; } catch(e){}
   if(!token){
-    token = prompt('텔레그램 봇 토큰을 입력해주세요:\n(입력하면 이 기기에 저장됩니다)');
+    token = prompt('텔레그램 봇 토큰을 입력해주세요:\n(한 번 입력하면 일괄 메시지 모달에서 저장 가능)');
     if(!token) return;
     token = token.trim();
   }
@@ -8449,11 +8357,9 @@ async function sendDeptAlert(deptId, alertType, itemId, itemTitle, targetMonth){
     showToast('봇 토큰 형식이 올바르지 않습니다', 'error');
     return;
   }
-  // ★ 토큰 자동 저장 (매번 입력하지 않아도 되도록)
-  try { localStorage.setItem('sjames_bot_token', token); } catch(e){}
 
-  // ★ 발송 대상 달: 파라미터로 받은 달 우선, 없으면 현재 달
-  const currentMonth = targetMonth || (new Date().getMonth() + 1);
+  // ★ 현재 달의 그 부서 미제출 항목 모두 수집
+  const currentMonth = new Date().getMonth() + 1;
   const noPlanItems = [];      // 계획서 미제출
   const noResultItems = [];    // 결과보고 미제출 (계획은 있지만)
   const noLinkItems = [];      // 링크만 미제출 (계획+결과 있음)
@@ -10138,17 +10044,17 @@ function openMonthDetail(month, filterType){
               ${canSendAlert && (needPlanAlert || needResultAlert || needLinkAlert) ? `
                 <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" onclick="event.stopPropagation()">
                   ${needPlanAlert ? `
-                    <button class="alert-btn alert-btn-plan" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','plan','${item.id}','${escapeAttr(item.t)}',${month})">
+                    <button class="alert-btn alert-btn-plan" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','plan','${item.id}','${escapeAttr(item.t)}')">
                       🔔 계획서 보고 요청
                     </button>
                   ` : ''}
                   ${needResultAlert ? `
-                    <button class="alert-btn alert-btn-result" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','result','${item.id}','${escapeAttr(item.t)}',${month})">
+                    <button class="alert-btn alert-btn-result" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','result','${item.id}','${escapeAttr(item.t)}')">
                       🔔 결과보고 요청
                     </button>
                   ` : ''}
                   ${needLinkAlert ? `
-                    <button class="alert-btn alert-btn-link" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','link','${item.id}','${escapeAttr(item.t)}',${month})">
+                    <button class="alert-btn alert-btn-link" onclick="event.stopPropagation();sendDeptAlert('${dept.id}','link','${item.id}','${escapeAttr(item.t)}')">
                       🔔 보고 링크 요청
                     </button>
                   ` : ''}
@@ -10418,6 +10324,9 @@ function render(){
         </div>
       </div>
       <div class="dept-actions">
+        <a class="icon-btn fund-quick-btn" href="fund.html?dept=${dept.id}" onclick="event.stopPropagation()" title="${dept.name} 자금청구 보기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </a>
         ${deptItemCount > 0 ? `
         <button class="icon-btn dl-btn" onclick="event.stopPropagation();openDeptDownloadModal('${dept.id}')" title="연간계획 일괄 다운로드">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>

@@ -2070,6 +2070,37 @@ async function loadRequests(){
   allRequests = data || [];
   renderSummary();
   renderList();
+  // URL 파라미터(?dept=d05) 처리 — 한 번만 실행
+  applyURLParamsOnce();
+}
+
+// URL 파라미터로 진입한 부서 필터 자동 적용 (1회용)
+let _urlParamsApplied = false;
+function applyURLParamsOnce(){
+  if(_urlParamsApplied) return;
+  _urlParamsApplied = true;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const deptParam = params.get('dept');
+    if(!deptParam) return;
+    // 마스터인 경우만 부서 필터 적용 (부서장은 자기 부서가 자동 적용됨)
+    if(currentUser && currentUser.isMaster){
+      const deptSel = document.getElementById('f-dept');
+      if(deptSel){
+        // DEPTS에 있는 ID인지 확인
+        const exists = DEPTS.find(d => d.id === deptParam);
+        if(exists){
+          deptSel.value = deptParam;
+          renderList();
+          showToast(`📋 ${exists.name} 자금청구로 이동`);
+        }
+      }
+    }
+    // URL을 깨끗하게 (뒤로가기·새로고침 시 다시 적용 안 되게)
+    window.history.replaceState({}, '', window.location.pathname);
+  } catch(e){
+    console.warn('[URL params]', e);
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
