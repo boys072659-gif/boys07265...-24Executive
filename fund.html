@@ -1076,7 +1076,7 @@
     <!-- 필터 -->
     <div class="filter-bar">
       <div class="field">
-        <label for="f-search">검색 (내역·구분·청구번호)</label>
+        <label for="f-search">검색 (내역·구분·행사·청구번호)</label>
         <input type="text" id="f-search" placeholder="예: 전도활동, 2026-06" oninput="renderList()">
       </div>
       <div class="field" id="f-dept-wrap">
@@ -1529,6 +1529,8 @@ function getFiltered(){
         (r.request_no || '') + ' ' +
         (r.detail || '') + ' ' +
         (r.category || '') + ' ' +
+        (r.event_name || '') + ' ' +
+        (r.funding_source || '') + ' ' +
         (r.description || '')
       ).toLowerCase();
       if(!hay.includes(search)) return false;
@@ -1621,14 +1623,16 @@ function openDetail(id){
   const deptName = deptDisplayName(r.dept_id);
   const dateStr  = r.request_date || (r.created_at || '').slice(0,10);
 
-  // 메타 박스 (회계 장부 톤)
+  // 메타 박스 (회계 장부 톤) — 양식 v2 8개 필드
   const meta = `
     <div class="detail-meta">
-      <div class="row"><div class="k">부서</div><div class="v">${escapeHtml(deptName)}</div></div>
-      <div class="row"><div class="k">날짜</div><div class="v num">${escapeHtml(dateStr)}</div></div>
-      <div class="row"><div class="k">구분</div><div class="v">${escapeHtml(r.category || '—')}</div></div>
-      <div class="row"><div class="k">내역</div><div class="v">${escapeHtml(r.detail || '—')}</div></div>
-      <div class="row"><div class="k">금액</div><div class="v amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</div></div>
+      <div class="row"><div class="k">청구부서</div><div class="v">${escapeHtml(deptName)}</div></div>
+      <div class="row"><div class="k">사용날짜</div><div class="v num">${escapeHtml(dateStr)}</div></div>
+      ${r.funding_source ? `<div class="row"><div class="k">자금출처</div><div class="v">${escapeHtml(r.funding_source)}</div></div>` : ''}
+      ${r.event_name     ? `<div class="row"><div class="k">행사이름</div><div class="v">${escapeHtml(r.event_name)}</div></div>` : ''}
+      <div class="row"><div class="k">사용구분</div><div class="v">${escapeHtml(r.category || '—')}</div></div>
+      <div class="row"><div class="k">세부내역</div><div class="v">${escapeHtml(r.detail || '—')}</div></div>
+      <div class="row"><div class="k">청구금액</div><div class="v amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</div></div>
       ${r.description ? `<div class="row"><div class="k">추가설명</div><div class="v">${escapeHtml(r.description)}</div></div>` : ''}
     </div>
   `;
