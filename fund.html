@@ -1076,7 +1076,7 @@
     <!-- 필터 -->
     <div class="filter-bar">
       <div class="field">
-        <label for="f-search">검색 (내역·구분·행사·청구번호)</label>
+        <label for="f-search">검색 (내역·행사이름·청구번호)</label>
         <input type="text" id="f-search" placeholder="예: 전도활동, 2026-06" oninput="renderList()">
       </div>
       <div class="field" id="f-dept-wrap">
@@ -1572,7 +1572,7 @@ function renderList(){
         <td class="req-no-cell" data-label="청구번호"><span class="request-no">#${escapeHtml(r.request_no || '—')}</span></td>
         <td data-label="부서"><span class="dept-chip ${grpClass}">${escapeHtml(deptName)}</span></td>
         <td data-label="날짜" class="num"><span class="date">${escapeHtml(dateStr)}</span></td>
-        <td data-label="구분"><span class="category">${escapeHtml(r.category || '—')}</span></td>
+        <td data-label="행사이름"><span class="category">${escapeHtml(r.event_name || r.category || '—')}</span></td>
         <td data-label="내역" class="detail-cell">${escapeHtml(r.detail || '—')}</td>
         <td data-label="금액" class="num amount">${amountCell}</td>
         <td data-label="상태"><span class="status ${r.status}">${statusLabel}</span></td>
@@ -1587,7 +1587,7 @@ function renderList(){
           <th>청구번호</th>
           <th>부서</th>
           <th>날짜</th>
-          <th>구분</th>
+          <th>행사이름</th>
           <th>내역</th>
           <th class="num">금액</th>
           <th>상태</th>
