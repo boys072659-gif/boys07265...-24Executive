@@ -1179,6 +1179,11 @@
     flex: 1;
     color: var(--text);
   }
+  .detail-meta .row .v.v-multiline {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+  }
   .detail-meta .row .v.num {
     font-family: var(--font-num);
     font-weight: 700;
@@ -1887,7 +1892,30 @@ function initLoginScreen(){
     sel.appendChild(o);
   });
 
-  // 저장된 로그인 자동 복원 (자동 로그인 켜둔 경우만)
+  // ① URL 파라미터 우선 — ?dept=d19 같이 들어오면 그 부서로 강제 진입
+  //    (자동 로그인보다 먼저 처리해서, 어느 부서에서 왔든 그 부서로 보임)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const deptParam = params.get('dept');
+    if(deptParam){
+      const deptObj = DEPTS.find(d => d.id === deptParam);
+      if(deptObj){
+        // 비번 없이 자동 로그인 (사용자 요청)
+        currentUser = {
+          dept: deptObj.name, deptId: deptObj.id, isMaster: false, remember: false
+        };
+        // URL은 깨끗하게 (새로고침 시 다시 적용 안 되게)
+        window.history.replaceState({}, '', window.location.pathname);
+        enterApp();
+        showToast(`📋 ${deptObj.name} 자금청구로 진입`);
+        return;
+      }
+    }
+  } catch(e){
+    console.warn('[URL params init]', e);
+  }
+
+  // ② 저장된 로그인 자동 복원 (자동 로그인 켜둔 경우만)
   try {
     const saved = JSON.parse(localStorage.getItem('sjames_fund_user') || 'null');
     if(saved && saved.dept && saved.remember){
@@ -2846,7 +2874,7 @@ function openDetail(id){
       ${r.funding_source ? `<div class="row"><div class="k">자금출처</div><div class="v">${escapeHtml(r.funding_source)}</div></div>` : ''}
       ${r.event_name     ? `<div class="row"><div class="k">행사이름</div><div class="v">${escapeHtml(r.event_name)}</div></div>` : ''}
       <div class="row"><div class="k">사용구분</div><div class="v">${escapeHtml(r.category || '—')}</div></div>
-      <div class="row"><div class="k">세부내역</div><div class="v">${escapeHtml(r.detail || '—')}</div></div>
+      <div class="row"><div class="k">세부내역</div><div class="v v-multiline">${escapeHtml(r.detail || '—')}</div></div>
       <div class="row"><div class="k">청구금액</div><div class="v amount">${r.amount != null ? fmtMoney(r.amount) + '원' : '—'}</div></div>
       ${r.description ? `<div class="row"><div class="k">추가설명</div><div class="v">${escapeHtml(r.description)}</div></div>` : ''}
     </div>
