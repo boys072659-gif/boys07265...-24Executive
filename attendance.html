@@ -399,6 +399,180 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* ─── 사유 입력 모달 ─── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(28,35,51,0.55);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 500;
+  }
+  .modal-backdrop.show {
+    display: flex;
+    animation: fadeIn 0.18s;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .reason-modal {
+    background: #FFFFFF;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    animation: modalIn 0.2s;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: none; }
+  }
+  .reason-modal-head {
+    padding: 22px 24px 0;
+  }
+  .reason-modal-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .reason-modal-sub {
+    font-size: 13px;
+    color: var(--text-3);
+    margin: 0;
+  }
+  .reason-modal-body {
+    padding: 20px 24px;
+  }
+  .reason-modal-body label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    margin-bottom: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .reason-modal-body textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 11px 13px;
+    border: 1px solid var(--border-3);
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text);
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .reason-modal-body textarea:focus {
+    outline: none;
+    border-color: var(--text);
+  }
+  .reason-modal-footer {
+    padding: 14px 24px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .reason-modal-footer button {
+    border: none;
+    padding: 10px 18px;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13.5px;
+  }
+  .reason-modal-footer .btn-cancel {
+    background: var(--bg-subtle);
+    color: var(--text-2);
+  }
+  .reason-modal-footer .btn-cancel:hover { background: var(--border-2); }
+  .reason-modal-footer .btn-confirm {
+    background: var(--text);
+    color: #FFFFFF;
+  }
+  .reason-modal-footer .btn-confirm:hover { background: #2A3247; }
+  .reason-modal-footer .btn-confirm:disabled {
+    background: var(--text-4);
+    cursor: not-allowed;
+  }
+
+  /* "본인 잠금" 안내 줄 */
+  .locked-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13.5px;
+  }
+  .locked-row .lock-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--action-soft);
+    color: var(--action-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .locked-row .lock-info {
+    flex: 1;
+    line-height: 1.3;
+  }
+  .locked-row .lock-info .who {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .locked-row .lock-info .where {
+    color: var(--text-3);
+    font-size: 12.5px;
+    margin-top: 2px;
+  }
+  .locked-row .lock-change {
+    background: transparent;
+    border: 1px solid var(--border-3);
+    color: var(--text-3);
+    padding: 6px 11px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .locked-row .lock-change:hover {
+    border-color: var(--text-3);
+    color: var(--text);
+  }
+
+  /* 봉사 장소 선택 줄 */
+  .loc-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--text-3);
+    justify-content: center;
+  }
+  .loc-row select {
+    border: 1px solid #4B5468;
+    background: #2A3247;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 7px 11px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .loc-row select:focus { outline: none; border-color: #7280A0; }
+
   /* 관리자 탭 placeholder */
   .admin-placeholder {
     background: #FFFFFF;
@@ -459,8 +633,8 @@
   <!-- ━━━ 탭 1: 내 봉사 ━━━ -->
   <div id="tab-member" class="tab-panel active">
 
-    <!-- 부서·사명자 선택 -->
-    <div class="picker-row">
+    <!-- A) 잠금 전 — 부서·사명자 선택 -->
+    <div class="picker-row" id="picker-unlocked">
       <span class="picker-label">부서</span>
       <select id="sel-dept" onchange="onDeptChange()">
         <option value="">부서 선택…</option>
@@ -471,6 +645,18 @@
       </select>
     </div>
 
+    <!-- B) 잠금 후 — "○○○님 기기" 표시 + 변경 -->
+    <div class="locked-row" id="picker-locked" style="display:none">
+      <div class="lock-icon">✓</div>
+      <div class="lock-info">
+        <div class="who" id="locked-who">—</div>
+        <div class="where" id="locked-where">—</div>
+      </div>
+      <button class="lock-change" onclick="changeLockedMember()" title="다른 사명자로 변경">
+        변경
+      </button>
+    </div>
+
     <!-- 시계 카드 -->
     <div class="clock-card">
       <div class="clock-label">현재 시각</div>
@@ -478,6 +664,11 @@
       <div class="status-row">
         <span class="status-dot" id="status-dot"></span>
         <span class="status-text" id="status-text">사명자를 선택해주세요</span>
+      </div>
+      <!-- 봉사 장소 (시작 전에만 보임) -->
+      <div class="loc-row" id="loc-row" style="display:none">
+        <span>봉사 장소</span>
+        <select id="sel-location" onchange="onLocationChange()"></select>
       </div>
       <div class="actions" id="actions">
         <button class="btn-start" id="btn-start" onclick="onStartClick()" disabled>
@@ -516,6 +707,24 @@
 
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
+
+<!-- ━━━ 사유 입력 모달 ━━━ -->
+<div class="modal-backdrop" id="reason-modal-backdrop" onclick="closeReasonModalIfBackdrop(event)">
+  <div class="reason-modal" onclick="event.stopPropagation()">
+    <div class="reason-modal-head">
+      <h3 class="reason-modal-title" id="reason-modal-title">사유 입력</h3>
+      <p class="reason-modal-sub" id="reason-modal-sub">—</p>
+    </div>
+    <div class="reason-modal-body">
+      <label for="reason-input">사유 (필수)</label>
+      <textarea id="reason-input" placeholder="예: 외부 일정으로 늦게 시작합니다 / 개인 사정으로 조퇴" oninput="onReasonInput()"></textarea>
+    </div>
+    <div class="reason-modal-footer">
+      <button class="btn-cancel" onclick="closeReasonModal()">취소</button>
+      <button class="btn-confirm" id="reason-confirm" onclick="confirmReason()" disabled>확인</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ────────────────────────────────────────────────────────────
@@ -564,9 +773,25 @@ const DEPTS = [
 // 상태
 // ────────────────────────────────────────────────────────────
 let allMembers = [];
+let allLocations = [];      // 봉사 장소 목록
 let currentDeptId = '';
 let currentMemberId = null;
 let currentMember = null;
+let currentLocationId = null;
+let todayRecord = null;     // 오늘 본인 기록 (있으면 시작 못 함 + 종료 가능)
+let isLocked = false;       // 사명자 잠금 상태
+
+// 시간 기준 (사용자 결정)
+const WORK_START_HM = { h: 8, m: 40 };   // 08:40 — 이 시각 이후 시작 → 사유 필요
+const WORK_END_HM   = { h: 20, m: 0 };   // 20:00 — 이 시각 이전 종료 → 사유 필요
+
+// LocalStorage 키
+const LS_KEY_MEMBER  = 'sjames_attend_member_id';
+const LS_KEY_DEPT    = 'sjames_attend_dept_id';
+const LS_KEY_LOC     = 'sjames_attend_location_id';
+
+// 사유 모달 상태
+let pendingReasonAction = null;  // { type: 'start'|'end' }
 
 // ────────────────────────────────────────────────────────────
 // 유틸
@@ -656,6 +881,46 @@ async function loadAllMembers(){
   populateDeptOptions();
 }
 
+// 봉사 장소 로드
+async function loadAllLocations(){
+  const { data, error } = await sb
+    .from('attend_locations')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
+  if(error){
+    console.error('[loadAllLocations]', error);
+    return;
+  }
+  allLocations = data || [];
+  populateLocationOptions();
+}
+
+function populateLocationOptions(){
+  const sel = document.getElementById('sel-location');
+  if(!sel) return;
+  sel.innerHTML = allLocations.map(l => 
+    `<option value="${l.id}">${escapeHtml(l.name)}</option>`
+  ).join('');
+  // 저장된 장소 복원
+  const savedLoc = localStorage.getItem(LS_KEY_LOC);
+  if(savedLoc && allLocations.find(l => String(l.id) === savedLoc)){
+    sel.value = savedLoc;
+    currentLocationId = Number(savedLoc);
+  } else if(allLocations.length > 0){
+    currentLocationId = allLocations[0].id;
+    sel.value = String(currentLocationId);
+  }
+}
+
+function onLocationChange(){
+  const val = document.getElementById('sel-location').value;
+  currentLocationId = val ? Number(val) : null;
+  if(currentLocationId){
+    localStorage.setItem(LS_KEY_LOC, String(currentLocationId));
+  }
+}
+
 function populateDeptOptions(){
   const sel = document.getElementById('sel-dept');
   sel.innerHTML = '<option value="">부서 선택…</option>';
@@ -698,37 +963,299 @@ function onMemberChange(){
   if(!memberId){
     currentMemberId = null;
     currentMember = null;
+    todayRecord = null;
     updateClockArea();
     renderEmptyRecords();
     return;
   }
   currentMemberId = Number(memberId);
   currentMember = allMembers.find(m => m.id === currentMemberId);
-  updateClockArea();
+  loadTodayRecord();
   loadMyRecords();
 }
 
-// 시계 영역 — 사명자 선택 상태 반영
+// 오늘 본인 기록 로드 — 시작/종료 상태 결정
+async function loadTodayRecord(){
+  if(!currentMemberId){ todayRecord = null; updateClockArea(); return; }
+  const today = fmtYMD(new Date());
+  const { data, error } = await sb
+    .from('attend_records')
+    .select('*, attend_locations(name)')
+    .eq('member_id', currentMemberId)
+    .eq('record_date', today)
+    .maybeSingle();
+  if(error){
+    console.error('[loadTodayRecord]', error);
+  }
+  todayRecord = data || null;
+  updateClockArea();
+}
+
+// 시계 영역 — 사명자 + 오늘 상태 반영
 function updateClockArea(){
   const statusText = document.getElementById('status-text');
   const statusDot  = document.getElementById('status-dot');
-  const btnStart   = document.getElementById('btn-start');
+  const actions    = document.getElementById('actions');
+  const locRow     = document.getElementById('loc-row');
   
   if(!currentMember){
     statusText.textContent = '사명자를 선택해주세요';
     statusDot.className = 'status-dot';
-    btnStart.disabled = true;
+    actions.innerHTML = `<button class="btn-start" disabled>봉사 시작</button>`;
+    locRow.style.display = 'none';
     return;
   }
   
-  statusText.textContent = `${currentMember.name} · ${currentMember.role || '—'} · 아직 봉사 시작 전`;
-  statusDot.className = 'status-dot';
-  btnStart.disabled = false;
+  // 오늘 기록 상태별로 UI 분기
+  if(!todayRecord){
+    // 아직 시작 안 함
+    statusText.textContent = `${currentMember.name} · ${currentMember.role || '—'} · 아직 봉사 시작 전`;
+    statusDot.className = 'status-dot';
+    actions.innerHTML = `<button class="btn-start" id="btn-start" onclick="onStartClick()">봉사 시작</button>`;
+    locRow.style.display = 'flex';
+  } else if(todayRecord.check_in_at && !todayRecord.check_out_at){
+    // 봉사 중
+    const inHM = fmtHM(new Date(todayRecord.check_in_at));
+    const locName = todayRecord.attend_locations?.name || '—';
+    statusText.textContent = `봉사 중 · ${inHM} 시작 · ${locName}`;
+    statusDot.className = 'status-dot working';
+    actions.innerHTML = `<button class="btn-end" id="btn-end" onclick="onEndClick()">봉사 종료</button>`;
+    locRow.style.display = 'none';
+  } else if(todayRecord.check_in_at && todayRecord.check_out_at){
+    // 종료 완료
+    const dur = fmtDuration(new Date(todayRecord.check_out_at) - new Date(todayRecord.check_in_at));
+    statusText.textContent = `오늘 봉사 종료 · ${dur} 봉사`;
+    statusDot.className = 'status-dot done';
+    actions.innerHTML = `<div class="done-box">오늘 봉사가 종료되었습니다. 수고하셨습니다.</div>`;
+    locRow.style.display = 'none';
+  }
 }
 
-// 임시 — 2-2단계에서 실제 동작
-function onStartClick(){
-  showToast('🔧 봉사 시작 동작은 2-2단계에서 추가됩니다');
+// 시각이 사유 필요한 시간인지 확인
+function needStartReason(now){
+  const startMin = WORK_START_HM.h * 60 + WORK_START_HM.m;  // 08:40 → 520
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return nowMin > startMin;
+}
+function needEndReason(now){
+  const endMin = WORK_END_HM.h * 60 + WORK_END_HM.m;        // 20:00 → 1200
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return nowMin < endMin;
+}
+
+// 봉사 시작
+async function onStartClick(){
+  if(!currentMember || !currentLocationId){
+    showToast('사명자와 봉사 장소를 선택해주세요');
+    return;
+  }
+  const now = new Date();
+  if(needStartReason(now)){
+    // 사유 모달 띄움
+    openReasonModal('start', `봉사 시작 사유 입력`,
+      `봉사 시작 기준 시각(${pad(WORK_START_HM.h)}:${pad(WORK_START_HM.m)}) 이후입니다. 사유를 적어주세요.`);
+  } else {
+    // 즉시 시작
+    await doStart(null);
+  }
+}
+
+// 실제 시작 처리
+async function doStart(reason){
+  if(!currentMember || !currentLocationId){
+    showToast('사명자와 봉사 장소를 선택해주세요');
+    return;
+  }
+  const now = new Date();
+  const today = fmtYMD(now);
+  
+  const row = {
+    member_id:    currentMemberId,
+    location_id:  currentLocationId,
+    record_date:  today,
+    check_in_at:  now.toISOString(),
+    check_in_reason: reason || null,
+  };
+  
+  const { data, error } = await sb
+    .from('attend_records')
+    .insert(row)
+    .select('*, attend_locations(name)')
+    .single();
+  
+  if(error){
+    // 이미 오늘 기록 있는 경우 UNIQUE 위반
+    if(error.code === '23505'){
+      showToast('오늘 이미 봉사를 시작하셨어요. 새로고침 후 확인해주세요');
+      loadTodayRecord();
+    } else {
+      console.error('[doStart]', error);
+      showToast('봉사 시작 실패: ' + (error.message || '서버 오류'));
+    }
+    return;
+  }
+  
+  // 사명자 잠금 (한 기기에 한 사람 정책)
+  if(!isLocked){
+    localStorage.setItem(LS_KEY_MEMBER, String(currentMemberId));
+    localStorage.setItem(LS_KEY_DEPT,   currentDeptId);
+    localStorage.setItem(LS_KEY_LOC,    String(currentLocationId));
+    isLocked = true;
+    renderLockedPicker();
+  }
+  
+  todayRecord = data;
+  updateClockArea();
+  loadMyRecords();
+  showToast(`✅ 봉사 시작 — ${currentMember.name}`);
+}
+
+// 봉사 종료
+async function onEndClick(){
+  if(!todayRecord || !todayRecord.check_in_at){
+    showToast('아직 봉사를 시작하지 않았어요');
+    return;
+  }
+  if(todayRecord.check_out_at){
+    showToast('이미 종료된 봉사입니다');
+    return;
+  }
+  const now = new Date();
+  if(needEndReason(now)){
+    openReasonModal('end', `봉사 종료 사유 입력`,
+      `봉사 종료 기준 시각(${pad(WORK_END_HM.h)}:${pad(WORK_END_HM.m)}) 이전입니다. 사유를 적어주세요.`);
+  } else {
+    await doEnd(null);
+  }
+}
+
+async function doEnd(reason){
+  if(!todayRecord) return;
+  const now = new Date();
+  
+  const updates = {
+    check_out_at: now.toISOString(),
+    check_out_reason: reason || null,
+  };
+  
+  const { data, error } = await sb
+    .from('attend_records')
+    .update(updates)
+    .eq('id', todayRecord.id)
+    .select('*, attend_locations(name)')
+    .single();
+  
+  if(error){
+    console.error('[doEnd]', error);
+    showToast('봉사 종료 실패: ' + (error.message || '서버 오류'));
+    return;
+  }
+  
+  todayRecord = data;
+  updateClockArea();
+  loadMyRecords();
+  showToast(`✅ 봉사 종료 — ${currentMember.name}`);
+}
+
+// ────────────────────────────────────────────────────────────
+// 사유 모달
+// ────────────────────────────────────────────────────────────
+function openReasonModal(type, title, sub){
+  pendingReasonAction = { type };
+  document.getElementById('reason-modal-title').textContent = title;
+  document.getElementById('reason-modal-sub').textContent = sub;
+  const input = document.getElementById('reason-input');
+  input.value = '';
+  document.getElementById('reason-confirm').disabled = true;
+  document.getElementById('reason-modal-backdrop').classList.add('show');
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeReasonModal(){
+  document.getElementById('reason-modal-backdrop').classList.remove('show');
+  pendingReasonAction = null;
+}
+
+function closeReasonModalIfBackdrop(e){
+  if(e.target.id === 'reason-modal-backdrop') closeReasonModal();
+}
+
+function onReasonInput(){
+  const v = document.getElementById('reason-input').value.trim();
+  document.getElementById('reason-confirm').disabled = v.length === 0;
+}
+
+async function confirmReason(){
+  const reason = document.getElementById('reason-input').value.trim();
+  if(!reason || !pendingReasonAction){
+    closeReasonModal();
+    return;
+  }
+  const type = pendingReasonAction.type;
+  closeReasonModal();
+  if(type === 'start') await doStart(reason);
+  else if(type === 'end') await doEnd(reason);
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 잠금 (한 기기 한 사람)
+// ────────────────────────────────────────────────────────────
+function renderLockedPicker(){
+  if(!isLocked || !currentMember) return;
+  document.getElementById('picker-unlocked').style.display = 'none';
+  document.getElementById('picker-locked').style.display = 'flex';
+  const dept = DEPTS.find(d => d.id === currentMember.dept_id);
+  document.getElementById('locked-who').textContent =
+    `${currentMember.name} · ${currentMember.role || '—'}`;
+  document.getElementById('locked-where').textContent =
+    dept ? dept.name : currentMember.dept_id;
+}
+
+function renderUnlockedPicker(){
+  document.getElementById('picker-unlocked').style.display = 'flex';
+  document.getElementById('picker-locked').style.display = 'none';
+}
+
+function changeLockedMember(){
+  if(!confirm('이 기기를 다른 사명자에게 양도하시겠어요?\n\n선택 정보가 초기화되고, 새 사명자를 선택하실 수 있습니다.')){
+    return;
+  }
+  localStorage.removeItem(LS_KEY_MEMBER);
+  localStorage.removeItem(LS_KEY_DEPT);
+  // 장소는 유지 (기기 위치는 안 바뀌니까)
+  isLocked = false;
+  currentMemberId = null;
+  currentMember = null;
+  currentDeptId = '';
+  todayRecord = null;
+  renderUnlockedPicker();
+  document.getElementById('sel-dept').value = '';
+  document.getElementById('sel-member').innerHTML = '<option value="">먼저 부서 선택</option>';
+  document.getElementById('sel-member').disabled = true;
+  updateClockArea();
+  renderEmptyRecords();
+}
+
+// 저장된 사명자 자동 복원
+async function restoreSavedMember(){
+  const savedId = localStorage.getItem(LS_KEY_MEMBER);
+  const savedDept = localStorage.getItem(LS_KEY_DEPT);
+  if(!savedId) return false;
+  const member = allMembers.find(m => String(m.id) === savedId);
+  if(!member){
+    // 사명자가 삭제됐거나 없어진 경우
+    localStorage.removeItem(LS_KEY_MEMBER);
+    localStorage.removeItem(LS_KEY_DEPT);
+    return false;
+  }
+  currentMember = member;
+  currentMemberId = member.id;
+  currentDeptId = savedDept || member.dept_id;
+  isLocked = true;
+  renderLockedPicker();
+  await loadTodayRecord();
+  await loadMyRecords();
+  return true;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -810,6 +1337,12 @@ async function init(){
   setPageDate();
   startClock();
   await loadAllMembers();
+  await loadAllLocations();
+  // 저장된 사명자 자동 복원 (잠금 모드)
+  const restored = await restoreSavedMember();
+  if(!restored){
+    renderUnlockedPicker();
+  }
 }
 
 init();
