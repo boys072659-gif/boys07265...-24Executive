@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SJAMES 봉사 기록부</title>
+
+<!-- Pretendard: Inter 같은 느낌의 한국 모던 폰트 -->
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* Design tokens — React 봉사 기록부 톤 그대로
+     베이지 + 짙은 네이비 + 사프란 노랑, 모든 텍스트 산세리프 */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  :root {
+    /* 배경 */
+    --bg:          #FAF8F4;
+    --bg-card:     #FFFFFF;
+    --bg-subtle:   #F3F1EC;
+    --bg-soft:     #FCFBF8;
+
+    /* 본문 — 짙은 네이비 잉크 */
+    --text:        #1C2333;
+    --text-2:      #4B5468;
+    --text-3:      #6B7280;
+    --text-4:      #9CA3AF;
+    --text-on-dark:#D7DCE5;
+    --text-faint:  #9CA6BD;
+
+    /* 경계선 */
+    --border:      #E8E4DA;
+    --border-2:    #EDE9DF;
+    --border-3:    #E0DCD0;
+
+    /* 강조 — 사프란 노랑 (Brand accent) */
+    --action:      #E8A33D;
+    --action-soft: #FBEED2;
+    --action-deep: #C28525;
+
+    /* 상태 */
+    --ok:          #1C7C54;
+    --ok-soft:     #E7F5EC;
+    --late:        #D14343;
+    --late-soft:   #FBEAEA;
+    --absent:      #9CA3AF;
+    --absent-soft: #F3F4F6;
+
+    /* 폰트 */
+    --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+            "Apple SD Gothic Neo", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+  }
+
+  button, input, select {
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  /* ─── 상단바 ─── */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #FFFFFF;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--text);              /* 짙은 네이비 */
+    color: var(--action);                 /* 사프란 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .brand-name .title {
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .brand-name .sub {
+    display: block;
+    font-size: 12.5px;
+    color: var(--text-3);
+    margin-top: 1px;
+  }
+
+  /* 탭 (React 톤 — 배경 박스 + 활성 다크) */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-subtle);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .tab {
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    cursor: pointer;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--text);
+    color: #FFFFFF;
+  }
+
+  /* ─── 메인 ─── */
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  /* 탭 패널 */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: tabIn 0.2s; }
+  @keyframes tabIn {
+    from { opacity: 0; transform: translateY(2px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ─── 사명자 선택 줄 ─── */
+  .picker-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .picker-label {
+    color: var(--text-3);
+  }
+  .picker-row select {
+    border: 1px solid var(--border-3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .picker-row select:disabled {
+    background: var(--bg-subtle);
+    color: var(--text-3);
+    cursor: not-allowed;
+  }
+  .picker-row select:focus {
+    outline: none;
+    border-color: var(--text);
+  }
+
+  /* ─── 시계 카드 — 시그니처 ─── */
+  /* React 코드 그대로: 짙은 네이비 + 큰 시계 + 사프란 버튼 */
+  .clock-card {
+    background: var(--text);                /* 짙은 네이비 */
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-align: center;
+    color: #FFFFFF;
+    margin-bottom: 20px;
+  }
+  .clock-label {
+    font-size: 12.5px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .clock-display {
+    font-size: 52px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 18px;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #D1D5DB;
+    display: inline-block;
+  }
+  .status-dot.working { background: var(--action); }
+  .status-dot.done    { background: #6B7280; }
+  .status-text {
+    font-size: 13.5px;
+    color: var(--text-on-dark);
+  }
+
+  /* 버튼들 */
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-start, .btn-end {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 36px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .btn-start {
+    background: var(--action);
+    color: var(--text);
+  }
+  .btn-start:hover:not(:disabled) {
+    background: #F2B255;
+  }
+  .btn-start:disabled {
+    background: #C9933F;
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-end {
+    background: transparent;
+    color: #FFFFFF;
+    border: 1.5px solid #4B5468;
+  }
+  .btn-end:hover {
+    border-color: #7280A0;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .done-box {
+    display: inline-block;
+    font-size: 13.5px;
+    color: var(--text-faint);
+    border: 1px dashed #4B5468;
+    border-radius: 10px;
+    padding: 12px 18px;
+  }
+
+  /* ─── 카드 (기록) ─── */
+  .card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .card-heading {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+  .card-heading .meta {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 기록 행 */
+  .history-list { display: flex; flex-direction: column; gap: 2px; }
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--bg-subtle);
+    font-size: 13.5px;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-date {
+    width: 84px;
+    color: var(--text-3);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .history-time {
+    flex: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .history-duration {
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    min-width: 80px;
+    text-align: right;
+  }
+  .tag {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .tag.working { background: var(--action-soft); color: var(--action-deep); }
+  .tag.done    { background: var(--absent-soft); color: var(--text-3); }
+  .tag.late    { background: var(--late-soft); color: var(--late); }
+  .tag.ok      { background: var(--ok-soft); color: var(--ok); }
+
+  /* 빈 상태 */
+  .empty {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--text-3);
+    font-size: 13.5px;
+  }
+  .empty .icon { font-size: 32px; opacity: 0.5; margin-bottom: 10px; }
+  .empty .msg { font-weight: 600; color: var(--text-2); }
+  .empty .hint { font-size: 12.5px; margin-top: 4px; color: var(--text-3); }
+
+  /* 로딩 */
+  .loading {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border-3);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 토스트 */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--text);
+    color: #FFFFFF;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+    z-index: 1000;
+    max-width: 86vw;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* 관리자 탭 placeholder */
+  .admin-placeholder {
+    background: #FFFFFF;
+    border: 1px dashed var(--border-3);
+    border-radius: 16px;
+    padding: 60px 20px;
+    text-align: center;
+  }
+  .admin-placeholder .ph-icon { font-size: 36px; opacity: 0.3; margin-bottom: 14px; }
+  .admin-placeholder .ph-msg {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-2);
+  }
+  .admin-placeholder .ph-hint {
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--text-3);
+  }
+
+  /* 반응형 */
+  @media (max-width: 640px) {
+    .topbar { padding: 16px 18px; }
+    .main { padding: 20px 14px 50px; }
+    .clock-card { padding: 28px 20px 24px; border-radius: 16px; }
+    .clock-display { font-size: 42px; }
+    .btn-start, .btn-end { padding: 12px 24px; font-size: 14px; }
+    .history-date { width: 70px; font-size: 12px; }
+    .history-time { font-size: 12.5px; }
+    .history-duration { font-size: 12.5px; min-width: 62px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- 상단바 -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">봉</div>
+    <div class="brand-name">
+      <div class="title">봉사 기록부</div>
+      <span class="sub" id="page-date">—</span>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="member" onclick="switchTab('member')">내 봉사</button>
+    <button class="tab" data-tab="admin" onclick="switchTab('admin')">관리자</button>
+  </nav>
+</header>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- 메인 -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<main class="main">
+
+  <!-- ━━━ 탭 1: 내 봉사 ━━━ -->
+  <div id="tab-member" class="tab-panel active">
+
+    <!-- 부서·사명자 선택 -->
+    <div class="picker-row">
+      <span class="picker-label">부서</span>
+      <select id="sel-dept" onchange="onDeptChange()">
+        <option value="">부서 선택…</option>
+      </select>
+      <span class="picker-label">사명자</span>
+      <select id="sel-member" disabled onchange="onMemberChange()">
+        <option value="">먼저 부서 선택</option>
+      </select>
+    </div>
+
+    <!-- 시계 카드 -->
+    <div class="clock-card">
+      <div class="clock-label">현재 시각</div>
+      <div class="clock-display" id="clock-display">—:—:—</div>
+      <div class="status-row">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">사명자를 선택해주세요</span>
+      </div>
+      <div class="actions" id="actions">
+        <button class="btn-start" id="btn-start" onclick="onStartClick()" disabled>
+          봉사 시작
+        </button>
+      </div>
+    </div>
+
+    <!-- 본인 누적 기록 -->
+    <div class="card">
+      <div class="card-heading">
+        📋 최근 봉사 기록
+        <span class="meta" id="record-meta">—</span>
+      </div>
+      <div id="record-list">
+        <div class="empty">
+          <div class="icon">📋</div>
+          <div class="msg">사명자를 선택하면 기록이 보입니다</div>
+          <div class="hint">부서 → 사명자 순으로 선택해주세요</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-member -->
+
+  <!-- ━━━ 탭 2: 관리자 (2-4단계에서 채움) ━━━ -->
+  <div id="tab-admin" class="tab-panel">
+    <div class="admin-placeholder">
+      <div class="ph-icon">🔒</div>
+      <div class="ph-msg">관리자 모드는 다음 단계에서 추가됩니다</div>
+      <div class="ph-hint">전체 현황 · 사명자 관리 · 봉사 장소 · 통계</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ────────────────────────────────────────────────────────────
+// Supabase 연결 — 자금청구 시스템과 같은 프로젝트
+// ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://faxaqxyafsitdfykxgem.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZheGFxeHlhZnNpdGRmeWt4Z2VtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1OTI2MjYsImV4cCI6MjA5MjE2ODYyNn0.sE7eWx7HrCZpZ4jVlBScoFvREkER6wUsg7IzdVMzHLk';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ────────────────────────────────────────────────────────────
+// 부서 — 자금청구·업무대시보드와 동일
+// ────────────────────────────────────────────────────────────
+const DEPTS = [
+  {id:'d01', name:'01 총무부'},
+  {id:'d03', name:'03 내무부'},
+  {id:'d31', name:'3-1 자문회'},
+  {id:'d32', name:'3-2 장년회'},
+  {id:'d33', name:'3-3 부녀회'},
+  {id:'d34', name:'3-4 청년회'},
+  {id:'d35', name:'3-5 학생회'},
+  {id:'d36', name:'3-6 유년회'},
+  {id:'d37', name:'3-7 국제부'},
+  {id:'d38', name:'3-8 새신자'},
+  {id:'d04', name:'04 기획부'},
+  {id:'d05', name:'05 재정부'},
+  {id:'d06', name:'06 교육부'},
+  {id:'d07', name:'07 신학부'},
+  {id:'d08', name:'08 해외선교부'},
+  {id:'d09', name:'09 전도부'},
+  {id:'d14', name:'14 섭외부'},
+  {id:'d15', name:'15 국내선교부'},
+  {id:'d17', name:'17 법무부'},
+  {id:'d18', name:'18 행정서무부'},
+  {id:'d10', name:'10 문화부'},
+  {id:'d11', name:'11 출판부'},
+  {id:'d12', name:'12 정보통신부'},
+  {id:'d13', name:'13 찬양부'},
+  {id:'d19', name:'19 건설부'},
+  {id:'d20', name:'20 체육부'},
+  {id:'d21', name:'21 홍보부'},
+  {id:'d22', name:'22 보건후생복지부'},
+  {id:'d23', name:'23 봉사교통부'},
+];
+
+// ────────────────────────────────────────────────────────────
+// 상태
+// ────────────────────────────────────────────────────────────
+let allMembers = [];
+let currentDeptId = '';
+let currentMemberId = null;
+let currentMember = null;
+
+// ────────────────────────────────────────────────────────────
+// 유틸
+// ────────────────────────────────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtTime(d){ return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+function fmtHM(d){ return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function fmtYMD(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function fmtDuration(ms){
+  if(!ms || ms < 0) return '—';
+  const totalMin = Math.floor(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${h}시간 ${pad(m)}분`;
+}
+function fmtDateKor(dateStr){
+  const d = new Date(dateStr);
+  const weekday = ['일','월','화','수','목','금','토'][d.getDay()];
+  return `${pad(d.getMonth()+1)}.${pad(d.getDate())} (${weekday})`;
+}
+function fmtDateLong(d){
+  const weekday = ['일','월','화','수','목','금','토'][d.getDay()];
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${weekday})`;
+}
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function isLate(iso, workStart=9){
+  const d = new Date(iso);
+  return d.getHours() > workStart || (d.getHours() === workStart && d.getMinutes() > 0);
+}
+function showToast(msg, duration=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ────────────────────────────────────────────────────────────
+// 탭 전환
+// ────────────────────────────────────────────────────────────
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `tab-${tab}`);
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// 시계 (1초 갱신)
+// ────────────────────────────────────────────────────────────
+function tickClock(){
+  document.getElementById('clock-display').textContent = fmtTime(new Date());
+}
+function startClock(){
+  tickClock();
+  setInterval(tickClock, 1000);
+}
+
+// 날짜 (상단바 sub 라벨)
+function setPageDate(){
+  document.getElementById('page-date').textContent = fmtDateLong(new Date());
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 로드
+// ────────────────────────────────────────────────────────────
+async function loadAllMembers(){
+  const { data, error } = await sb
+    .from('attend_members')
+    .select('*')
+    .eq('is_active', true)
+    .order('dept_id', { ascending: true })
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true });
+  if(error){
+    console.error('[loadAllMembers]', error);
+    showToast('사명자 명단을 불러오지 못했어요');
+    return;
+  }
+  allMembers = data || [];
+  populateDeptOptions();
+}
+
+function populateDeptOptions(){
+  const sel = document.getElementById('sel-dept');
+  sel.innerHTML = '<option value="">부서 선택…</option>';
+  const deptsWithMembers = new Set(allMembers.map(m => m.dept_id));
+  DEPTS.forEach(d => {
+    if(!deptsWithMembers.has(d.id)) return;
+    const count = allMembers.filter(m => m.dept_id === d.id).length;
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = `${d.name} (${count}명)`;
+    sel.appendChild(opt);
+  });
+}
+
+function onDeptChange(){
+  const deptId = document.getElementById('sel-dept').value;
+  currentDeptId = deptId;
+  currentMemberId = null;
+  currentMember = null;
+  
+  const memberSel = document.getElementById('sel-member');
+  if(!deptId){
+    memberSel.innerHTML = '<option value="">먼저 부서 선택</option>';
+    memberSel.disabled = true;
+    updateClockArea();
+    renderEmptyRecords();
+    return;
+  }
+  
+  const members = allMembers.filter(m => m.dept_id === deptId);
+  memberSel.innerHTML = '<option value="">사명자 선택…</option>' +
+    members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} · ${escapeHtml(m.role || '')}</option>`).join('');
+  memberSel.disabled = false;
+  updateClockArea();
+  renderEmptyRecords();
+}
+
+function onMemberChange(){
+  const memberId = document.getElementById('sel-member').value;
+  if(!memberId){
+    currentMemberId = null;
+    currentMember = null;
+    updateClockArea();
+    renderEmptyRecords();
+    return;
+  }
+  currentMemberId = Number(memberId);
+  currentMember = allMembers.find(m => m.id === currentMemberId);
+  updateClockArea();
+  loadMyRecords();
+}
+
+// 시계 영역 — 사명자 선택 상태 반영
+function updateClockArea(){
+  const statusText = document.getElementById('status-text');
+  const statusDot  = document.getElementById('status-dot');
+  const btnStart   = document.getElementById('btn-start');
+  
+  if(!currentMember){
+    statusText.textContent = '사명자를 선택해주세요';
+    statusDot.className = 'status-dot';
+    btnStart.disabled = true;
+    return;
+  }
+  
+  statusText.textContent = `${currentMember.name} · ${currentMember.role || '—'} · 아직 봉사 시작 전`;
+  statusDot.className = 'status-dot';
+  btnStart.disabled = false;
+}
+
+// 임시 — 2-2단계에서 실제 동작
+function onStartClick(){
+  showToast('🔧 봉사 시작 동작은 2-2단계에서 추가됩니다');
+}
+
+// ────────────────────────────────────────────────────────────
+// 본인 기록
+// ────────────────────────────────────────────────────────────
+function renderEmptyRecords(){
+  document.getElementById('record-meta').textContent = '—';
+  document.getElementById('record-list').innerHTML = `
+    <div class="empty">
+      <div class="icon">📋</div>
+      <div class="msg">사명자를 선택하면 기록이 보입니다</div>
+      <div class="hint">부서 → 사명자 순으로 선택해주세요</div>
+    </div>`;
+}
+
+async function loadMyRecords(){
+  if(!currentMemberId) return;
+  
+  const container = document.getElementById('record-list');
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>불러오는 중…</div>';
+  
+  const since = new Date();
+  since.setDate(since.getDate() - 14);
+  
+  const { data, error } = await sb
+    .from('attend_records')
+    .select('*, attend_locations(name)')
+    .eq('member_id', currentMemberId)
+    .gte('record_date', fmtYMD(since))
+    .order('record_date', { ascending: false });
+  
+  if(error){
+    console.error('[loadMyRecords]', error);
+    container.innerHTML = `<div class="empty"><div class="msg">기록을 불러오지 못했어요</div><div class="hint">${escapeHtml(error.message)}</div></div>`;
+    return;
+  }
+  
+  if(!data || data.length === 0){
+    document.getElementById('record-meta').textContent = '최근 14일 · 기록 없음';
+    container.innerHTML = `
+      <div class="empty">
+        <div class="icon">📅</div>
+        <div class="msg">아직 봉사 기록이 없어요</div>
+        <div class="hint">첫 봉사를 시작해보세요</div>
+      </div>`;
+    return;
+  }
+  
+  document.getElementById('record-meta').textContent = `최근 14일 · ${data.length}건`;
+  
+  const html = data.map(r => {
+    const inDate  = r.check_in_at ? new Date(r.check_in_at) : null;
+    const outDate = r.check_out_at ? new Date(r.check_out_at) : null;
+    const timeText = inDate
+      ? `${fmtHM(inDate)} – ${outDate ? fmtHM(outDate) : '진행 중'}`
+      : '—';
+    const duration = (inDate && outDate) ? fmtDuration(outDate - inDate) : '';
+    
+    let tagHtml = '';
+    if(!outDate && inDate) tagHtml = '<span class="tag working">봉사 중</span>';
+    else if(outDate)       tagHtml = '<span class="tag done">종료</span>';
+    
+    return `
+      <div class="history-row">
+        <span class="history-date">${fmtDateKor(r.record_date)}</span>
+        <span class="history-time">${timeText}</span>
+        <span class="history-duration">${duration}</span>
+        ${tagHtml}
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = `<div class="history-list">${html}</div>`;
+}
+
+// ────────────────────────────────────────────────────────────
+// 초기화
+// ────────────────────────────────────────────────────────────
+async function init(){
+  setPageDate();
+  startClock();
+  await loadAllMembers();
+}
+
+init();
+</script>
+
+</body>
+</html>
