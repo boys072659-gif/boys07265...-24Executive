@@ -1053,6 +1053,26 @@
     }
   }
 
+  /* 사명자 수정 모달 폼 */
+  .member-form-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 11px;
+  }
+  .member-form-row label {
+    width: 76px;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .member-form-row .add-input {
+    flex: 1;
+  }
+
   /* 관리자 탭 placeholder (장소 임시) */
   .admin-placeholder {
     background: #FFFFFF;
@@ -1336,6 +1356,51 @@
     <div class="reason-modal-footer">
       <button class="btn-cancel" onclick="closeReasonModal()">취소</button>
       <button class="btn-confirm" id="reason-confirm" onclick="confirmReason()" disabled>확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━ 사명자 수정 모달 ━━━ -->
+<div class="modal-backdrop" id="member-modal-backdrop" onclick="closeMemberModalIfBackdrop(event)">
+  <div class="reason-modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="reason-modal-head">
+      <h3 class="reason-modal-title">사명자 수정</h3>
+      <p class="reason-modal-sub" id="member-modal-sub">—</p>
+    </div>
+    <div class="reason-modal-body">
+      <div class="member-form-row">
+        <label>부서</label>
+        <select id="edit-mem-dept" class="add-input"></select>
+      </div>
+      <div class="member-form-row">
+        <label>이름</label>
+        <input id="edit-mem-name" class="add-input" maxlength="20">
+      </div>
+      <div class="member-form-row">
+        <label>역할</label>
+        <select id="edit-mem-role" class="add-input">
+          <option value="부장">부장</option>
+          <option value="과장">과장</option>
+          <option value="서무">서무</option>
+          <option value="총무">총무</option>
+          <option value="회원">회원</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="member-form-row">
+        <label>연락처</label>
+        <input id="edit-mem-phone" class="add-input" maxlength="20" placeholder="선택">
+      </div>
+      <div class="member-form-row">
+        <label>표시 순서</label>
+        <input id="edit-mem-order" class="add-input" type="number" min="0" max="999"
+               title="작은 숫자가 위로. 부장은 0">
+      </div>
+      <div class="admin-add-err" id="edit-mem-err"></div>
+    </div>
+    <div class="reason-modal-footer">
+      <button class="btn-cancel" onclick="closeMemberModal()">취소</button>
+      <button class="btn-confirm" onclick="saveMemberEdit()">저장</button>
     </div>
   </div>
 </div>
@@ -2391,16 +2456,134 @@ function renderMembers(){
         <span><span class="col-name">${escapeHtml(m.name)}</span> · <span style="color:var(--text-3);font-size:12px">${escapeHtml(m.role || '—')}</span></span>
         <span style="color:var(--text-3)">${escapeHtml(deptName)}</span>
         <span class="col-phone">${escapeHtml(m.phone || '—')}</span>
-        <span class="col-edit"><button class="row-action" disabled title="2-4-B 2차에서 추가">수정</button></span>
+        <span class="col-edit"><button class="row-action" onclick="openMemberModal(${m.id})">수정</button></span>
         <span class="col-toggle">
           ${m.is_active 
-            ? `<button class="row-action danger" disabled title="2-4-B 2차에서 추가">비활성화</button>`
-            : `<button class="row-action ok" disabled title="2-4-B 2차에서 추가">활성화</button>`}
+            ? `<button class="row-action danger" onclick="toggleMemberActive(${m.id}, false)">비활성화</button>`
+            : `<button class="row-action ok" onclick="toggleMemberActive(${m.id}, true)">활성화</button>`}
         </span>
       </div>`;
   }).join('');
   
   container.innerHTML = head + body;
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 수정 모달
+// ────────────────────────────────────────────────────────────
+let editingMemberId = null;
+
+function openMemberModal(memberId){
+  const m = adminAllMembers.find(x => x.id === memberId);
+  if(!m){ showToast('사명자를 찾을 수 없어요'); return; }
+  
+  editingMemberId = memberId;
+  
+  // 부서 드롭다운 채우기
+  const deptSel = document.getElementById('edit-mem-dept');
+  deptSel.innerHTML = DEPTS.map(d => 
+    `<option value="${d.id}" ${d.id === m.dept_id ? 'selected' : ''}>${d.name}</option>`
+  ).join('');
+  
+  document.getElementById('edit-mem-name').value  = m.name || '';
+  document.getElementById('edit-mem-role').value  = m.role || '부장';
+  document.getElementById('edit-mem-phone').value = m.phone || '';
+  document.getElementById('edit-mem-order').value = m.sort_order ?? 0;
+  document.getElementById('edit-mem-err').textContent = '';
+  document.getElementById('member-modal-sub').textContent = 
+    `${m.name} · ${m.is_active ? '활성' : '비활성'}`;
+  
+  document.getElementById('member-modal-backdrop').classList.add('show');
+}
+
+function closeMemberModal(){
+  document.getElementById('member-modal-backdrop').classList.remove('show');
+  editingMemberId = null;
+}
+
+function closeMemberModalIfBackdrop(e){
+  if(e.target.id === 'member-modal-backdrop') closeMemberModal();
+}
+
+async function saveMemberEdit(){
+  if(!editingMemberId) return;
+  
+  const deptId = document.getElementById('edit-mem-dept').value;
+  const name   = document.getElementById('edit-mem-name').value.trim();
+  const role   = document.getElementById('edit-mem-role').value;
+  const phone  = document.getElementById('edit-mem-phone').value.trim();
+  const order  = parseInt(document.getElementById('edit-mem-order').value) || 0;
+  const err    = document.getElementById('edit-mem-err');
+  err.textContent = '';
+  
+  if(!name || name.length < 2){
+    err.textContent = '이름은 2자 이상';
+    return;
+  }
+  
+  // 같은 부서·이름 중복 체크 (본인 제외)
+  const dup = adminAllMembers.find(m => 
+    m.id !== editingMemberId && m.dept_id === deptId && m.name === name
+  );
+  if(dup){
+    err.textContent = '이 부서에 같은 이름이 이미 있습니다';
+    return;
+  }
+  
+  const updates = {
+    dept_id:    deptId,
+    name:       name,
+    role:       role,
+    phone:      phone || null,
+    sort_order: order,
+    updated_at: new Date().toISOString(),
+  };
+  
+  const { error } = await sb
+    .from('attend_members')
+    .update(updates)
+    .eq('id', editingMemberId);
+  
+  if(error){
+    console.error('[saveMemberEdit]', error);
+    err.textContent = '저장 실패: ' + (error.message || '서버 오류');
+    return;
+  }
+  
+  closeMemberModal();
+  showToast(`✅ ${name} 정보 수정됨`);
+  await loadAllMembersAdmin();
+  await loadAllMembers();  // 메인 사명자 드롭다운도 갱신
+}
+
+// ────────────────────────────────────────────────────────────
+// 활성화 / 비활성화 토글
+// ────────────────────────────────────────────────────────────
+async function toggleMemberActive(memberId, makeActive){
+  const m = adminAllMembers.find(x => x.id === memberId);
+  if(!m) return;
+  
+  // 비활성화 시 확인
+  if(!makeActive){
+    if(!confirm(`${m.name} 사명자를 비활성화하시겠습니까?\n\n비활성화된 사명자는 부서 선택 화면에 나타나지 않습니다.\n(기존 봉사 기록은 그대로 유지됩니다)`)){
+      return;
+    }
+  }
+  
+  const { error } = await sb
+    .from('attend_members')
+    .update({ is_active: makeActive, updated_at: new Date().toISOString() })
+    .eq('id', memberId);
+  
+  if(error){
+    console.error('[toggleMemberActive]', error);
+    showToast('변경 실패: ' + (error.message || '서버 오류'));
+    return;
+  }
+  
+  showToast(`✅ ${m.name} ${makeActive ? '활성화' : '비활성화'}됨`);
+  await loadAllMembersAdmin();
+  await loadAllMembers();  // 메인 사명자 드롭다운도 갱신
 }
 
 // 부서 필터 옵션
