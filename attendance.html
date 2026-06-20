@@ -612,11 +612,452 @@
   }
   .loc-gps-hint.on { color: var(--action); }
 
-  /* 관리자 탭 placeholder */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 관리자 모드 */
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  
+  /* 로그인 카드 */
+  .admin-login {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .admin-login-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px 28px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(28,35,51,0.05);
+  }
+  .admin-login-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--text);
+    color: var(--action);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto 16px;
+  }
+  .admin-login-title {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .admin-login-sub {
+    font-size: 13px;
+    color: var(--text-3);
+    margin: 0 0 22px;
+  }
+  .admin-login-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-3);
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+  .admin-login-input:focus {
+    outline: none;
+    border-color: var(--text);
+  }
+  .admin-login-remember {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--text-3);
+    margin-bottom: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .admin-login-btn {
+    width: 100%;
+    background: var(--text);
+    color: #FFFFFF;
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .admin-login-btn:hover { background: #2A3247; }
+  .admin-login-err {
+    margin-top: 12px;
+    color: var(--late);
+    font-size: 12.5px;
+    min-height: 16px;
+  }
+
+  /* 관리자 상단 액션 */
+  .admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--text);
+    color: #FFFFFF;
+    border-radius: 12px;
+    margin-bottom: 18px;
+  }
+  .admin-toolbar-label {
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+  .admin-logout-btn {
+    background: rgba(255,255,255,0.08);
+    color: #FFFFFF;
+    border: 1px solid rgba(255,255,255,0.18);
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .admin-logout-btn:hover { background: rgba(255,255,255,0.14); }
+
+  /* KPI 카드 */
+  .admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .admin-kpi-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .admin-kpi-card .k-label {
+    font-size: 11px;
+    color: var(--text-3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .admin-kpi-card .k-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .admin-kpi-card .k-meta {
+    font-size: 11px;
+    color: var(--text-4);
+    margin-top: 4px;
+  }
+  .admin-kpi-card.working .k-value { color: var(--action-deep); }
+  .admin-kpi-card.absent .k-value { color: var(--text-3); }
+
+  /* 필터 */
+  .admin-filter {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .admin-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 130px;
+  }
+  .admin-filter-field label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .admin-filter select {
+    padding: 8px 10px;
+    border: 1px solid var(--border-3);
+    border-radius: 7px;
+    font-size: 13px;
+    background: #FFFFFF;
+    cursor: pointer;
+  }
+  .admin-refresh-btn {
+    background: var(--bg-subtle);
+    color: var(--text-2);
+    border: 1px solid var(--border-3);
+    padding: 8px 14px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .admin-refresh-btn:hover { background: var(--border-2); }
+
+  /* 표 */
+  .admin-table-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .admin-table-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+  .admin-table-head h3 {
+    font-size: 14.5px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+  }
+  .admin-table-meta {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .admin-table-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 1fr 1fr 1fr 0.6fr 0.7fr;
+    gap: 8px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--bg-subtle);
+    font-size: 13px;
+    align-items: center;
+  }
+  .admin-table-row:last-child { border-bottom: none; }
+  .admin-table-row.head {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+  }
+  .admin-table-row .col-name {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .admin-table-row .col-role {
+    color: var(--text-3);
+    font-size: 12px;
+  }
+  .admin-table-row .col-dept {
+    color: var(--text-3);
+    font-size: 12.5px;
+  }
+  .admin-table-row .col-time {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-2);
+  }
+  .admin-table-row .col-dur {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-3);
+    font-size: 12px;
+  }
+
+  /* 반응형 — 관리자 */
+  @media (max-width: 720px) {
+    .admin-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-table-row {
+      grid-template-columns: 1.4fr 0.9fr 0.9fr 0.7fr;
+      font-size: 12.5px;
+      gap: 6px;
+    }
+    .admin-table-row .col-dept,
+    .admin-table-row .col-dur { display: none; }
+    .admin-table-row.head { font-size: 9.5px; }
+  }
+
+  /* ─── 관리자 서브 탭 ─── */
+  .admin-subtabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-subtab {
+    background: transparent;
+    border: none;
+    padding: 10px 14px 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+  }
+  .admin-subtab:hover { color: var(--text); }
+  .admin-subtab.active {
+    color: var(--text);
+    border-bottom-color: var(--text);
+  }
+  .admin-sub-panel { display: none; }
+  .admin-sub-panel.active { display: block; animation: tabIn 0.18s; }
+
+  /* ─── 사명자 추가 폼 ─── */
+  .admin-add-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .admin-add-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .admin-add-row {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 0.9fr 1.2fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .add-input {
+    padding: 9px 11px;
+    border: 1px solid var(--border-3);
+    border-radius: 8px;
+    font-size: 13px;
+    background: #FFFFFF;
+    font-family: var(--font);
+    color: var(--text);
+  }
+  .add-input:focus {
+    outline: none;
+    border-color: var(--text);
+  }
+  .add-btn {
+    background: var(--action);
+    color: var(--text);
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .add-btn:hover { background: #F2B255; }
+  .admin-add-err {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--late);
+    min-height: 14px;
+  }
+
+  /* ─── 사명자 표 행 ─── */
+  .members-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1.6fr 0.8fr 1.2fr 0.7fr 0.7fr;
+    gap: 8px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--bg-subtle);
+    font-size: 13px;
+    align-items: center;
+  }
+  .members-row:last-child { border-bottom: none; }
+  .members-row.head {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+  }
+  .members-row .col-name {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .members-row.inactive {
+    opacity: 0.5;
+    background: var(--bg-subtle);
+  }
+  .members-row .col-phone {
+    color: var(--text-3);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .row-action {
+    background: transparent;
+    border: 1px solid var(--border-3);
+    color: var(--text-2);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .row-action:hover {
+    border-color: var(--text-3);
+    color: var(--text);
+  }
+  .row-action.danger {
+    color: var(--late);
+    border-color: #F0C0BD;
+  }
+  .row-action.danger:hover {
+    background: var(--late-soft);
+  }
+  .row-action.ok {
+    color: var(--ok);
+    border-color: #BBE0C8;
+  }
+
+  /* 반응형 사명자 표 */
+  @media (max-width: 720px) {
+    .admin-add-row {
+      grid-template-columns: 1fr 1fr;
+    }
+    .add-btn { grid-column: span 2; }
+    .members-row {
+      grid-template-columns: 1.2fr 1fr 0.8fr;
+      font-size: 12.5px;
+    }
+    .members-row .col-phone,
+    .members-row .col-edit,
+    .members-row .col-toggle { display: none; }
+    .members-row .col-action-mobile { 
+      display: flex;
+      gap: 4px;
+    }
+  }
+
+  /* 관리자 탭 placeholder (장소 임시) */
   .admin-placeholder {
     background: #FFFFFF;
     border: 1px dashed var(--border-3);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 60px 20px;
     text-align: center;
   }
@@ -734,13 +1175,146 @@
 
   </div><!-- /tab-member -->
 
-  <!-- ━━━ 탭 2: 관리자 (2-4단계에서 채움) ━━━ -->
+  <!-- ━━━ 탭 2: 관리자 ━━━ -->
   <div id="tab-admin" class="tab-panel">
-    <div class="admin-placeholder">
-      <div class="ph-icon">🔒</div>
-      <div class="ph-msg">관리자 모드는 다음 단계에서 추가됩니다</div>
-      <div class="ph-hint">전체 현황 · 사명자 관리 · 봉사 장소 · 통계</div>
+
+    <!-- A) 로그인 화면 -->
+    <div id="admin-login" class="admin-login">
+      <div class="admin-login-card">
+        <div class="admin-login-mark">🔑</div>
+        <h2 class="admin-login-title">관리자 로그인</h2>
+        <p class="admin-login-sub">총무부 마스터 비밀번호로 접속하세요</p>
+        <input type="password" id="admin-pw" class="admin-login-input"
+               placeholder="비밀번호" autocomplete="current-password">
+        <label class="admin-login-remember">
+          <input type="checkbox" id="admin-remember">
+          이 기기에서 자동 로그인
+        </label>
+        <button class="admin-login-btn" onclick="doAdminLogin()">로그인</button>
+        <div class="admin-login-err" id="admin-login-err"></div>
+      </div>
     </div>
+
+    <!-- B) 관리자 메인 (로그인 후) -->
+    <div id="admin-main" style="display:none">
+      <!-- 상단 액션 줄 -->
+      <div class="admin-toolbar">
+        <span class="admin-toolbar-label">🔑 관리자</span>
+        <button class="admin-logout-btn" onclick="doAdminLogout()">로그아웃</button>
+      </div>
+
+      <!-- 서브 탭 -->
+      <div class="admin-subtabs">
+        <button class="admin-subtab active" data-subtab="today" onclick="switchAdminSubtab('today')">📋 오늘 현황</button>
+        <button class="admin-subtab" data-subtab="members" onclick="switchAdminSubtab('members')">👥 사명자 관리</button>
+        <button class="admin-subtab" data-subtab="locations" onclick="switchAdminSubtab('locations')">📍 봉사 장소</button>
+      </div>
+
+      <!-- ━━ 서브 탭 1: 오늘 현황 ━━ -->
+      <div id="admin-sub-today" class="admin-sub-panel active">
+        <!-- KPI 4개 -->
+        <div class="admin-kpi-grid" id="admin-kpi"></div>
+
+        <!-- 필터 -->
+        <div class="admin-filter">
+          <div class="admin-filter-field">
+            <label>부서</label>
+            <select id="admin-f-dept" onchange="renderAdminToday()">
+              <option value="">전체 부서</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>상태</label>
+            <select id="admin-f-status" onchange="renderAdminToday()">
+              <option value="">전체</option>
+              <option value="working">봉사 중</option>
+              <option value="done">종료</option>
+              <option value="none">미시작</option>
+            </select>
+          </div>
+          <button class="admin-refresh-btn" onclick="loadAdminToday()" title="새로고침">
+            ↻ 새로고침
+          </button>
+        </div>
+
+        <!-- 오늘 현황 표 -->
+        <div class="admin-table-card">
+          <div class="admin-table-head">
+            <h3>오늘 현황</h3>
+            <span class="admin-table-meta" id="admin-table-meta">—</span>
+          </div>
+          <div id="admin-today-list">
+            <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ━━ 서브 탭 2: 사명자 관리 ━━ -->
+      <div id="admin-sub-members" class="admin-sub-panel">
+        <!-- 사명자 추가 폼 -->
+        <div class="admin-add-card">
+          <div class="admin-add-title">사명자 추가</div>
+          <div class="admin-add-row">
+            <select id="add-mem-dept" class="add-input">
+              <option value="">부서 선택…</option>
+            </select>
+            <input id="add-mem-name" class="add-input" placeholder="이름" maxlength="20">
+            <select id="add-mem-role" class="add-input">
+              <option value="부장">부장</option>
+              <option value="과장">과장</option>
+              <option value="서무">서무</option>
+              <option value="총무">총무</option>
+              <option value="회원">회원</option>
+              <option value="기타">기타</option>
+            </select>
+            <input id="add-mem-phone" class="add-input" placeholder="연락처 (선택)" maxlength="20">
+            <button class="add-btn" onclick="onAddMember()">+ 추가</button>
+          </div>
+          <div class="admin-add-err" id="add-mem-err"></div>
+        </div>
+
+        <!-- 사명자 필터 -->
+        <div class="admin-filter">
+          <div class="admin-filter-field">
+            <label>부서</label>
+            <select id="mem-f-dept" onchange="renderMembers()">
+              <option value="">전체 부서</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>상태</label>
+            <select id="mem-f-status" onchange="renderMembers()">
+              <option value="active">활성</option>
+              <option value="all">전체 (비활성 포함)</option>
+              <option value="inactive">비활성만</option>
+            </select>
+          </div>
+          <button class="admin-refresh-btn" onclick="loadAllMembersAdmin()" title="새로고침">↻ 새로고침</button>
+        </div>
+
+        <!-- 사명자 표 -->
+        <div class="admin-table-card">
+          <div class="admin-table-head">
+            <h3>사명자 명단</h3>
+            <span class="admin-table-meta" id="members-meta">—</span>
+          </div>
+          <div id="members-list">
+            <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ━━ 서브 탭 3: 봉사 장소 (2-4-C에서 채움) ━━ -->
+      <div id="admin-sub-locations" class="admin-sub-panel">
+        <div class="admin-placeholder">
+          <div class="ph-icon">📍</div>
+          <div class="ph-msg">봉사 장소 관리는 다음 단계에서 추가됩니다</div>
+          <div class="ph-hint">좌표 설정 · 반경 · "현재 위치로 설정"</div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
 </main>
@@ -1592,8 +2166,405 @@ async function loadMyRecords(){
 }
 
 // ────────────────────────────────────────────────────────────
-// 초기화
+// 관리자 모드
 // ────────────────────────────────────────────────────────────
+const ADMIN_PW = 'sjames2024';                  // 자금청구 마스터 비번과 동일
+const LS_KEY_ADMIN = 'sjames_attend_admin';
+let isAdminLoggedIn = false;
+let adminTodayRecords = [];                     // 오늘 전체 기록
+
+// 자동 로그인 복원
+function restoreAdmin(){
+  try {
+    const saved = localStorage.getItem(LS_KEY_ADMIN);
+    if(saved === '1'){
+      isAdminLoggedIn = true;
+      renderAdminMain();
+    }
+  } catch(e){}
+}
+
+function doAdminLogin(){
+  const pw = document.getElementById('admin-pw').value.trim();
+  const remember = document.getElementById('admin-remember').checked;
+  const err = document.getElementById('admin-login-err');
+  
+  if(pw !== ADMIN_PW){
+    err.textContent = '비밀번호가 일치하지 않습니다';
+    return;
+  }
+  err.textContent = '';
+  isAdminLoggedIn = true;
+  if(remember){
+    localStorage.setItem(LS_KEY_ADMIN, '1');
+  } else {
+    localStorage.removeItem(LS_KEY_ADMIN);
+  }
+  renderAdminMain();
+}
+
+function doAdminLogout(){
+  isAdminLoggedIn = false;
+  localStorage.removeItem(LS_KEY_ADMIN);
+  document.getElementById('admin-login').style.display = '';
+  document.getElementById('admin-main').style.display = 'none';
+  document.getElementById('admin-pw').value = '';
+  document.getElementById('admin-remember').checked = false;
+}
+
+function renderAdminMain(){
+  document.getElementById('admin-login').style.display = 'none';
+  document.getElementById('admin-main').style.display = '';
+  populateAdminDeptFilter();
+  populateAdminAddDept();
+  populateMembersDeptFilter();
+  loadAdminToday();
+}
+
+// ────────────────────────────────────────────────────────────
+// 관리자 서브 탭
+// ────────────────────────────────────────────────────────────
+let currentAdminSubtab = 'today';
+
+function switchAdminSubtab(name){
+  currentAdminSubtab = name;
+  document.querySelectorAll('.admin-subtab').forEach(b => {
+    b.classList.toggle('active', b.dataset.subtab === name);
+  });
+  document.querySelectorAll('.admin-sub-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `admin-sub-${name}`);
+  });
+  // 진입 시 데이터 로드
+  if(name === 'members'){
+    loadAllMembersAdmin();
+  } else if(name === 'today'){
+    loadAdminToday();
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 관리 — 부서 옵션 채우기 (추가 폼 + 필터)
+// ────────────────────────────────────────────────────────────
+function populateAdminAddDept(){
+  const sel = document.getElementById('add-mem-dept');
+  if(!sel || sel.options.length > 1) return;
+  DEPTS.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
+
+function populateMembersDeptFilter(){
+  const sel = document.getElementById('mem-f-dept');
+  if(!sel || sel.options.length > 1) return;
+  DEPTS.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 추가
+// ────────────────────────────────────────────────────────────
+async function onAddMember(){
+  const deptId = document.getElementById('add-mem-dept').value;
+  const name = document.getElementById('add-mem-name').value.trim();
+  const role = document.getElementById('add-mem-role').value;
+  const phone = document.getElementById('add-mem-phone').value.trim();
+  const err = document.getElementById('add-mem-err');
+  err.textContent = '';
+
+  // 검증
+  if(!deptId){ err.textContent = '부서를 선택해주세요'; return; }
+  if(!name){ err.textContent = '이름을 입력해주세요'; return; }
+  if(name.length < 2){ err.textContent = '이름은 2자 이상'; return; }
+
+  // 같은 부서·이름 중복 체크
+  const dup = allMembers.find(m => m.dept_id === deptId && m.name === name);
+  if(dup){
+    err.textContent = `이미 등록된 사명자입니다 (${dup.is_active ? '활성' : '비활성'})`;
+    return;
+  }
+
+  // sort_order — 부장이면 0, 그 외는 같은 부서 max + 1
+  let sortOrder = 0;
+  if(role !== '부장'){
+    const sameDeptOrders = allMembers
+      .filter(m => m.dept_id === deptId)
+      .map(m => m.sort_order || 0);
+    sortOrder = sameDeptOrders.length > 0 ? Math.max(...sameDeptOrders) + 1 : 1;
+  }
+
+  const row = {
+    dept_id:    deptId,
+    name:       name,
+    role:       role,
+    phone:      phone || null,
+    is_active:  true,
+    sort_order: sortOrder,
+  };
+
+  const { data, error } = await sb
+    .from('attend_members')
+    .insert(row)
+    .select()
+    .single();
+
+  if(error){
+    console.error('[onAddMember]', error);
+    err.textContent = '추가 실패: ' + (error.message || '서버 오류');
+    return;
+  }
+
+  // 폼 초기화
+  document.getElementById('add-mem-name').value = '';
+  document.getElementById('add-mem-phone').value = '';
+  // 부서·역할은 그대로 (연속 등록 편의)
+  
+  showToast(`✅ ${data.name} 추가됨`);
+  await loadAllMembersAdmin();
+  // 메인 사명자 목록도 갱신
+  await loadAllMembers();
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 목록 로드 (관리자용 — is_active 무시)
+// ────────────────────────────────────────────────────────────
+let adminAllMembers = [];   // 비활성 포함 전체
+
+async function loadAllMembersAdmin(){
+  const { data, error } = await sb
+    .from('attend_members')
+    .select('*')
+    .order('dept_id', { ascending: true })
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true });
+  if(error){
+    console.error('[loadAllMembersAdmin]', error);
+    showToast('사명자 명단을 불러오지 못했어요');
+    return;
+  }
+  adminAllMembers = data || [];
+  renderMembers();
+}
+
+// ────────────────────────────────────────────────────────────
+// 사명자 표 렌더
+// ────────────────────────────────────────────────────────────
+function renderMembers(){
+  const deptFilter   = document.getElementById('mem-f-dept').value;
+  const statusFilter = document.getElementById('mem-f-status').value;
+  
+  let rows = adminAllMembers.slice();
+  if(deptFilter) rows = rows.filter(m => m.dept_id === deptFilter);
+  if(statusFilter === 'active')   rows = rows.filter(m => m.is_active === true);
+  else if(statusFilter === 'inactive') rows = rows.filter(m => m.is_active === false);
+  
+  document.getElementById('members-meta').textContent =
+    `${rows.length}명 / 전체 ${adminAllMembers.length}명`;
+  
+  const container = document.getElementById('members-list');
+  if(rows.length === 0){
+    container.innerHTML = `<div class="empty"><div class="msg">조건에 맞는 사명자가 없어요</div></div>`;
+    return;
+  }
+  
+  const head = `
+    <div class="members-row head">
+      <span>이름 · 역할</span>
+      <span>부서</span>
+      <span>연락처</span>
+      <span class="col-edit">수정</span>
+      <span class="col-toggle">활성/비활성</span>
+    </div>`;
+  
+  const body = rows.map(m => {
+    const dept = DEPTS.find(d => d.id === m.dept_id);
+    const deptName = dept ? dept.name : m.dept_id;
+    const inactiveClass = m.is_active ? '' : 'inactive';
+    return `
+      <div class="members-row ${inactiveClass}">
+        <span><span class="col-name">${escapeHtml(m.name)}</span> · <span style="color:var(--text-3);font-size:12px">${escapeHtml(m.role || '—')}</span></span>
+        <span style="color:var(--text-3)">${escapeHtml(deptName)}</span>
+        <span class="col-phone">${escapeHtml(m.phone || '—')}</span>
+        <span class="col-edit"><button class="row-action" disabled title="2-4-B 2차에서 추가">수정</button></span>
+        <span class="col-toggle">
+          ${m.is_active 
+            ? `<button class="row-action danger" disabled title="2-4-B 2차에서 추가">비활성화</button>`
+            : `<button class="row-action ok" disabled title="2-4-B 2차에서 추가">활성화</button>`}
+        </span>
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = head + body;
+}
+
+// 부서 필터 옵션
+function populateAdminDeptFilter(){
+  const sel = document.getElementById('admin-f-dept');
+  if(!sel || sel.options.length > 1) return;  // 한 번만
+  const deptsWithMembers = new Set(allMembers.map(m => m.dept_id));
+  DEPTS.forEach(d => {
+    if(!deptsWithMembers.has(d.id)) return;
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
+
+// 오늘 전체 기록 로드
+async function loadAdminToday(){
+  const today = fmtYMD(new Date());
+  const { data, error } = await sb
+    .from('attend_records')
+    .select('*, attend_locations(name)')
+    .eq('record_date', today);
+  
+  if(error){
+    console.error('[loadAdminToday]', error);
+    showToast('오늘 기록을 불러오지 못했어요');
+    return;
+  }
+  adminTodayRecords = data || [];
+  renderAdminKPI();
+  renderAdminToday();
+}
+
+// KPI 카드
+function renderAdminKPI(){
+  const total = allMembers.length;
+  const present = adminTodayRecords.length;
+  const working = adminTodayRecords.filter(r => r.check_in_at && !r.check_out_at).length;
+  const absent = total - present;
+  
+  const grid = document.getElementById('admin-kpi');
+  grid.innerHTML = `
+    <div class="admin-kpi-card">
+      <div class="k-label">전체 사명자</div>
+      <div class="k-value">${total}</div>
+      <div class="k-meta">활성 등록</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="k-label">오늘 봉사</div>
+      <div class="k-value">${present}</div>
+      <div class="k-meta">시작 기준</div>
+    </div>
+    <div class="admin-kpi-card working">
+      <div class="k-label">봉사 중</div>
+      <div class="k-value">${working}</div>
+      <div class="k-meta">종료 안 함</div>
+    </div>
+    <div class="admin-kpi-card absent">
+      <div class="k-label">미시작</div>
+      <div class="k-value">${absent}</div>
+      <div class="k-meta">아직 시작 전</div>
+    </div>
+  `;
+}
+
+// 오늘 현황 표
+function renderAdminToday(){
+  const deptFilter = document.getElementById('admin-f-dept').value;
+  const statusFilter = document.getElementById('admin-f-status').value;
+  
+  // 전체 사명자에 오늘 기록 매핑
+  const recordByMember = {};
+  adminTodayRecords.forEach(r => { recordByMember[r.member_id] = r; });
+  
+  // 행 만들기
+  let rows = allMembers.map(m => {
+    const rec = recordByMember[m.id] || null;
+    let status;
+    if(!rec) status = 'none';
+    else if(rec.check_in_at && !rec.check_out_at) status = 'working';
+    else if(rec.check_in_at && rec.check_out_at) status = 'done';
+    else status = 'none';
+    return { member: m, record: rec, status };
+  });
+  
+  // 필터
+  if(deptFilter) rows = rows.filter(r => r.member.dept_id === deptFilter);
+  if(statusFilter) rows = rows.filter(r => r.status === statusFilter);
+  
+  // 정렬: 부서 → 역할(부장 위) → 이름
+  rows.sort((a, b) => {
+    const aDept = DEPTS.findIndex(d => d.id === a.member.dept_id);
+    const bDept = DEPTS.findIndex(d => d.id === b.member.dept_id);
+    if(aDept !== bDept) return aDept - bDept;
+    if(a.member.sort_order !== b.member.sort_order) return a.member.sort_order - b.member.sort_order;
+    return a.member.name.localeCompare(b.member.name);
+  });
+  
+  document.getElementById('admin-table-meta').textContent =
+    `${rows.length}명 / 전체 ${allMembers.length}명`;
+  
+  const container = document.getElementById('admin-today-list');
+  if(rows.length === 0){
+    container.innerHTML = `<div class="empty"><div class="msg">조건에 맞는 사명자가 없어요</div></div>`;
+    return;
+  }
+  
+  const head = `
+    <div class="admin-table-row head">
+      <span>이름 · 역할</span>
+      <span>부서</span>
+      <span>시작</span>
+      <span>종료</span>
+      <span>봉사 시간</span>
+      <span>GPS</span>
+      <span>상태</span>
+    </div>`;
+  
+  const body = rows.map(({ member, record, status }) => {
+    const dept = DEPTS.find(d => d.id === member.dept_id);
+    const deptName = dept ? dept.name : member.dept_id;
+    
+    const inTime  = record?.check_in_at  ? fmtHM(new Date(record.check_in_at))  : '—';
+    const outTime = record?.check_out_at ? fmtHM(new Date(record.check_out_at)) : (record?.check_in_at ? '—' : '—');
+    const duration = (record?.check_in_at && record?.check_out_at)
+      ? fmtDuration(new Date(record.check_out_at) - new Date(record.check_in_at))
+      : '—';
+    
+    // GPS 인증 — 시작·종료 둘 다 확인
+    let gpsHtml = '—';
+    if(record){
+      const inOk  = record.gps_verified === true;
+      const outOk = record.gps_verified_out === true;
+      const inAny = record.check_in_at != null;
+      const outAny = record.check_out_at != null;
+      const marks = [];
+      if(inAny)  marks.push(inOk  ? '<span class="gps-chip ok">시</span>' : '<span class="gps-chip miss">시</span>');
+      if(outAny) marks.push(outOk ? '<span class="gps-chip ok">종</span>' : '<span class="gps-chip miss">종</span>');
+      if(marks.length > 0) gpsHtml = marks.join(' ');
+    }
+    
+    // 상태 태그
+    let tagHtml = '';
+    if(status === 'working') tagHtml = '<span class="tag working">봉사 중</span>';
+    else if(status === 'done') tagHtml = '<span class="tag done">종료</span>';
+    else tagHtml = '<span class="tag" style="background:var(--absent-soft);color:var(--text-3)">미시작</span>';
+    
+    return `
+      <div class="admin-table-row">
+        <span><span class="col-name">${escapeHtml(member.name)}</span> <span class="col-role">${escapeHtml(member.role || '')}</span></span>
+        <span class="col-dept">${escapeHtml(deptName)}</span>
+        <span class="col-time">${inTime}</span>
+        <span class="col-time">${outTime}</span>
+        <span class="col-dur">${duration}</span>
+        <span>${gpsHtml}</span>
+        <span>${tagHtml}</span>
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = head + body;
+}
+
+
 async function init(){
   setPageDate();
   startClock();
@@ -1603,6 +2574,15 @@ async function init(){
   const restored = await restoreSavedMember();
   if(!restored){
     renderUnlockedPicker();
+  }
+  // 관리자 자동 로그인 복원
+  restoreAdmin();
+  // 비번 Enter 키
+  const pwInput = document.getElementById('admin-pw');
+  if(pwInput){
+    pwInput.addEventListener('keydown', e => {
+      if(e.key === 'Enter') doAdminLogin();
+    });
   }
 }
 
