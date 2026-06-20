@@ -346,6 +346,38 @@
   .tag.late    { background: var(--late-soft); color: var(--late); }
   .tag.ok      { background: var(--ok-soft); color: var(--ok); }
 
+  /* GPS 인증 칩 */
+  .gps-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .gps-chip.ok   { background: var(--ok-soft); color: var(--ok); }
+  .gps-chip.miss { background: var(--absent-soft); color: var(--text-3); }
+
+  /* 사유 (기록 행 아래 두 번째 줄) */
+  .history-row-wrap {
+    border-bottom: 1px solid var(--bg-subtle);
+    padding: 10px 0;
+  }
+  .history-row-wrap:last-child { border-bottom: none; }
+  .history-row-wrap .history-row {
+    padding: 0;
+    border-bottom: none;
+  }
+  .history-reason {
+    margin-top: 5px;
+    margin-left: 98px;
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.4;
+  }
+
   /* 빈 상태 */
   .empty {
     text-align: center;
@@ -442,6 +474,7 @@
     font-size: 13px;
     color: var(--text-3);
     margin: 0;
+    line-height: 1.55;
   }
   .reason-modal-body {
     padding: 20px 24px;
@@ -572,6 +605,12 @@
     cursor: pointer;
   }
   .loc-row select:focus { outline: none; border-color: #7280A0; }
+  .loc-gps-hint {
+    font-size: 11.5px;
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+  .loc-gps-hint.on { color: var(--action); }
 
   /* 관리자 탭 placeholder */
   .admin-placeholder {
@@ -669,6 +708,7 @@
       <div class="loc-row" id="loc-row" style="display:none">
         <span>봉사 장소</span>
         <select id="sel-location" onchange="onLocationChange()"></select>
+        <span class="loc-gps-hint" id="loc-gps-hint"></span>
       </div>
       <div class="actions" id="actions">
         <button class="btn-start" id="btn-start" onclick="onStartClick()" disabled>
@@ -821,6 +861,93 @@ function escapeHtml(s){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
 }
+
+// ────────────────────────────────────────────────────────────
+// GPS 유틸
+// ────────────────────────────────────────────────────────────
+function haversineDistance(lat1, lng1, lat2, lng2){
+  const R = 6371000;  // 지구 반지름 (m)
+  const toRad = x => (x * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat/2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function fmtDistance(m){
+  if(m == null) return '—';
+  if(m < 1000) return `${Math.round(m)}m`;
+  return `${(m/1000).toFixed(2)}km`;
+}
+
+function getCurrentPosition(){
+  return new Promise((resolve, reject) => {
+    if(!('geolocation' in navigator)){
+      reject({ code: -1, message: '이 브라우저는 위치 기능을 지원하지 않습니다' });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+      }),
+      err => reject(err),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
+function gpsErrorText(err){
+  if(!err) return '위치를 확인할 수 없습니다';
+  if(err.code === 1) return '위치 권한이 거부되었습니다';
+  if(err.code === 2) return '위치 정보를 가져올 수 없습니다';
+  if(err.code === 3) return '위치 확인 시간 초과';
+  return err.message || '위치를 확인할 수 없습니다';
+}
+
+// 봉사 장소에 대한 GPS 검증
+// 결과: { tried, success, distance, accuracy, lat, lng, message }
+async function verifyGPS(location){
+  if(!location || !location.gps_enabled){
+    return { tried: false, success: null, distance: null, accuracy: null,
+             lat: null, lng: null, message: '이 장소는 위치 확인을 사용하지 않습니다' };
+  }
+  if(location.lat == null || location.lng == null){
+    return { tried: false, success: false, distance: null, accuracy: null,
+             lat: null, lng: null, message: '봉사 장소에 기준 좌표가 없습니다 (관리자에 문의)' };
+  }
+  try {
+    const fix = await getCurrentPosition();
+    const distance = haversineDistance(fix.lat, fix.lng, location.lat, location.lng);
+    const radius = Number(location.radius || 100);
+    const within = distance <= radius;
+    return {
+      tried: true,
+      success: within,
+      distance: Math.round(distance),
+      accuracy: Math.round(fix.accuracy),
+      lat: fix.lat,
+      lng: fix.lng,
+      message: within
+        ? `위치 확인됨 · ${fmtDistance(distance)} (허용 ${radius}m)`
+        : `봉사 장소에서 ${fmtDistance(distance)} 떨어져 있음 (허용 ${radius}m)`,
+    };
+  } catch(err) {
+    return {
+      tried: true,
+      success: false,
+      distance: null,
+      accuracy: null,
+      lat: null,
+      lng: null,
+      message: gpsErrorText(err),
+    };
+  }
+}
+
 function isLate(iso, workStart=9){
   const d = new Date(iso);
   return d.getHours() > workStart || (d.getHours() === workStart && d.getMinutes() > 0);
@@ -911,6 +1038,7 @@ function populateLocationOptions(){
     currentLocationId = allLocations[0].id;
     sel.value = String(currentLocationId);
   }
+  updateLocationGpsHint();
 }
 
 function onLocationChange(){
@@ -918,6 +1046,20 @@ function onLocationChange(){
   currentLocationId = val ? Number(val) : null;
   if(currentLocationId){
     localStorage.setItem(LS_KEY_LOC, String(currentLocationId));
+  }
+  updateLocationGpsHint();
+}
+
+function updateLocationGpsHint(){
+  const hint = document.getElementById('loc-gps-hint');
+  if(!hint) return;
+  const loc = allLocations.find(l => l.id === currentLocationId);
+  if(loc?.gps_enabled){
+    hint.textContent = `📍 GPS · ${loc.radius || 100}m`;
+    hint.classList.add('on');
+  } else {
+    hint.textContent = 'GPS 미사용';
+    hint.classList.remove('on');
   }
 }
 
@@ -1049,19 +1191,52 @@ async function onStartClick(){
     showToast('사명자와 봉사 장소를 선택해주세요');
     return;
   }
-  const now = new Date();
-  if(needStartReason(now)){
-    // 사유 모달 띄움
-    openReasonModal('start', `봉사 시작 사유 입력`,
-      `봉사 시작 기준 시각(${pad(WORK_START_HM.h)}:${pad(WORK_START_HM.m)}) 이후입니다. 사유를 적어주세요.`);
-  } else {
-    // 즉시 시작
-    await doStart(null);
+  const location = allLocations.find(l => l.id === currentLocationId);
+  if(!location){
+    showToast('봉사 장소를 찾을 수 없어요');
+    return;
   }
+  
+  // 시작 버튼을 "위치 확인 중..."으로
+  const actions = document.getElementById('actions');
+  actions.innerHTML = `<button class="btn-start" disabled>📡 위치 확인 중…</button>`;
+  
+  // GPS 측정
+  const gps = await verifyGPS(location);
+  
+  // 시간 체크
+  const now = new Date();
+  const lateStart = needStartReason(now);
+  
+  // 사유 필요 여부 결정
+  // (가) 늦은 시작 → 무조건 사유
+  // (나) GPS 미인증(권한 거부·거리 초과·좌표 없음) → 사유
+  const needReason = lateStart || (gps.tried && gps.success === false) || (gps.tried === false && gps.success === false);
+  
+  if(needReason){
+    // 사유 모달 (GPS 결과 + 시간 정보 함께 표시)
+    let title = '봉사 시작 사유 입력';
+    let subLines = [];
+    if(lateStart){
+      subLines.push(`⏰ 기준 시각(${pad(WORK_START_HM.h)}:${pad(WORK_START_HM.m)}) 이후 시작`);
+    }
+    if(gps.tried && gps.success === false){
+      subLines.push(`📍 ${gps.message}`);
+    } else if(gps.tried === false && gps.success === false){
+      subLines.push(`📍 ${gps.message}`);
+    } else if(gps.tried && gps.success === true){
+      subLines.push(`📍 ${gps.message}`);
+    }
+    openReasonModal('start', title, subLines.join('\n'), gps);
+    return;
+  }
+  
+  // 정상 — 즉시 시작
+  await doStart(null, gps);
 }
 
 // 실제 시작 처리
-async function doStart(reason){
+async function doStart(reason, gps){
   if(!currentMember || !currentLocationId){
     showToast('사명자와 봉사 장소를 선택해주세요');
     return;
@@ -1075,6 +1250,12 @@ async function doStart(reason){
     record_date:  today,
     check_in_at:  now.toISOString(),
     check_in_reason: reason || null,
+    // GPS 데이터 (있을 때만)
+    check_in_lat:      gps?.lat ?? null,
+    check_in_lng:      gps?.lng ?? null,
+    check_in_distance: gps?.distance ?? null,
+    check_in_accuracy: gps?.accuracy ?? null,
+    gps_verified:      gps?.success === true,
   };
   
   const { data, error } = await sb
@@ -1084,7 +1265,6 @@ async function doStart(reason){
     .single();
   
   if(error){
-    // 이미 오늘 기록 있는 경우 UNIQUE 위반
     if(error.code === '23505'){
       showToast('오늘 이미 봉사를 시작하셨어요. 새로고침 후 확인해주세요');
       loadTodayRecord();
@@ -1092,10 +1272,11 @@ async function doStart(reason){
       console.error('[doStart]', error);
       showToast('봉사 시작 실패: ' + (error.message || '서버 오류'));
     }
+    updateClockArea();  // 버튼 복원
     return;
   }
   
-  // 사명자 잠금 (한 기기에 한 사람 정책)
+  // 사명자 잠금
   if(!isLocked){
     localStorage.setItem(LS_KEY_MEMBER, String(currentMemberId));
     localStorage.setItem(LS_KEY_DEPT,   currentDeptId);
@@ -1107,7 +1288,12 @@ async function doStart(reason){
   todayRecord = data;
   updateClockArea();
   loadMyRecords();
-  showToast(`✅ 봉사 시작 — ${currentMember.name}`);
+  
+  // 토스트 메시지 (GPS 결과 반영)
+  let toastMsg = `✅ 봉사 시작 — ${currentMember.name}`;
+  if(gps?.success === true) toastMsg += ` · ${fmtDistance(gps.distance)}`;
+  else if(gps?.tried === true && gps?.success === false) toastMsg += ` · GPS 미인증`;
+  showToast(toastMsg);
 }
 
 // 봉사 종료
@@ -1120,22 +1306,61 @@ async function onEndClick(){
     showToast('이미 종료된 봉사입니다');
     return;
   }
+  
+  // 종료 시점에도 같은 봉사 장소로 GPS 검증
+  const location = allLocations.find(l => l.id === todayRecord.location_id);
+  
+  // 버튼 → "위치 확인 중..."
+  const actions = document.getElementById('actions');
+  actions.innerHTML = `<button class="btn-end" disabled>📡 위치 확인 중…</button>`;
+  
+  // GPS 측정
+  const gps = location ? await verifyGPS(location) : 
+    { tried: false, success: null, distance: null, accuracy: null, lat: null, lng: null, message: '봉사 장소 정보 없음' };
+  
+  // 시간 체크
   const now = new Date();
-  if(needEndReason(now)){
-    openReasonModal('end', `봉사 종료 사유 입력`,
-      `봉사 종료 기준 시각(${pad(WORK_END_HM.h)}:${pad(WORK_END_HM.m)}) 이전입니다. 사유를 적어주세요.`);
-  } else {
-    await doEnd(null);
+  const earlyEnd = needEndReason(now);
+  
+  // 사유 필요 여부
+  const needReason = earlyEnd 
+    || (gps.tried && gps.success === false) 
+    || (gps.tried === false && gps.success === false);
+  
+  if(needReason){
+    let title = '봉사 종료 사유 입력';
+    let subLines = [];
+    if(earlyEnd){
+      subLines.push(`⏰ 기준 시각(${pad(WORK_END_HM.h)}:${pad(WORK_END_HM.m)}) 이전 종료`);
+    }
+    if(gps.tried && gps.success === false){
+      subLines.push(`📍 ${gps.message} (수기 종료)`);
+    } else if(gps.tried === false && gps.success === false){
+      subLines.push(`📍 ${gps.message} (수기 종료)`);
+    } else if(gps.tried && gps.success === true){
+      subLines.push(`📍 ${gps.message}`);
+    }
+    openReasonModal('end', title, subLines.join('\n'), gps);
+    return;
   }
+  
+  // 정상 — 즉시 종료
+  await doEnd(null, gps);
 }
 
-async function doEnd(reason){
+async function doEnd(reason, gps){
   if(!todayRecord) return;
   const now = new Date();
   
   const updates = {
     check_out_at: now.toISOString(),
     check_out_reason: reason || null,
+    // GPS 데이터 (있을 때만)
+    check_out_lat:      gps?.lat ?? null,
+    check_out_lng:      gps?.lng ?? null,
+    check_out_distance: gps?.distance ?? null,
+    check_out_accuracy: gps?.accuracy ?? null,
+    gps_verified_out:   gps?.success === true,
   };
   
   const { data, error } = await sb
@@ -1148,22 +1373,29 @@ async function doEnd(reason){
   if(error){
     console.error('[doEnd]', error);
     showToast('봉사 종료 실패: ' + (error.message || '서버 오류'));
+    updateClockArea();  // 버튼 복원
     return;
   }
   
   todayRecord = data;
   updateClockArea();
   loadMyRecords();
-  showToast(`✅ 봉사 종료 — ${currentMember.name}`);
+  
+  let toastMsg = `✅ 봉사 종료 — ${currentMember.name}`;
+  if(gps?.success === true) toastMsg += ` · ${fmtDistance(gps.distance)}`;
+  else if(gps?.tried === true && gps?.success === false) toastMsg += ` · GPS 미인증`;
+  showToast(toastMsg);
 }
 
 // ────────────────────────────────────────────────────────────
 // 사유 모달
 // ────────────────────────────────────────────────────────────
-function openReasonModal(type, title, sub){
-  pendingReasonAction = { type };
+function openReasonModal(type, title, sub, gpsData){
+  pendingReasonAction = { type, gps: gpsData || null };
   document.getElementById('reason-modal-title').textContent = title;
-  document.getElementById('reason-modal-sub').textContent = sub;
+  // sub은 줄바꿈으로 여러 줄 가능
+  const subEl = document.getElementById('reason-modal-sub');
+  subEl.innerHTML = sub.split('\n').map(line => escapeHtml(line)).join('<br>');
   const input = document.getElementById('reason-input');
   input.value = '';
   document.getElementById('reason-confirm').disabled = true;
@@ -1174,6 +1406,8 @@ function openReasonModal(type, title, sub){
 function closeReasonModal(){
   document.getElementById('reason-modal-backdrop').classList.remove('show');
   pendingReasonAction = null;
+  // 모달 닫을 때 시계 영역 복원 (위치 확인 중... 상태였을 수 있음)
+  updateClockArea();
 }
 
 function closeReasonModalIfBackdrop(e){
@@ -1191,10 +1425,11 @@ async function confirmReason(){
     closeReasonModal();
     return;
   }
-  const type = pendingReasonAction.type;
-  closeReasonModal();
-  if(type === 'start') await doStart(reason);
-  else if(type === 'end') await doEnd(reason);
+  const { type, gps } = pendingReasonAction;
+  pendingReasonAction = null;
+  document.getElementById('reason-modal-backdrop').classList.remove('show');
+  if(type === 'start')    await doStart(reason, gps);
+  else if(type === 'end') await doEnd(reason, gps);
 }
 
 // ────────────────────────────────────────────────────────────
@@ -1314,16 +1549,42 @@ async function loadMyRecords(){
       : '—';
     const duration = (inDate && outDate) ? fmtDuration(outDate - inDate) : '';
     
+    // 상태 태그
     let tagHtml = '';
     if(!outDate && inDate) tagHtml = '<span class="tag working">봉사 중</span>';
     else if(outDate)       tagHtml = '<span class="tag done">종료</span>';
     
+    // GPS 인증 칩 (시작·종료 각각)
+    let gpsHtml = '';
+    if(r.gps_verified === true){
+      gpsHtml += `<span class="gps-chip ok" title="시작 GPS 인증${r.check_in_distance != null ? ' · ' + fmtDistance(r.check_in_distance) : ''}">📍시</span>`;
+    } else if(r.check_in_at && r.gps_verified === false){
+      gpsHtml += `<span class="gps-chip miss" title="시작 GPS 미인증">📍시</span>`;
+    }
+    if(r.check_out_at && r.gps_verified_out === true){
+      gpsHtml += `<span class="gps-chip ok" title="종료 GPS 인증${r.check_out_distance != null ? ' · ' + fmtDistance(r.check_out_distance) : ''}">📍종</span>`;
+    } else if(r.check_out_at && r.gps_verified_out === false){
+      gpsHtml += `<span class="gps-chip miss" title="종료 GPS 미인증">📍종</span>`;
+    }
+    
+    // 사유 표시 (있을 때만, 두 번째 줄)
+    const reasons = [];
+    if(r.check_in_reason)  reasons.push(`시작: ${r.check_in_reason}`);
+    if(r.check_out_reason) reasons.push(`종료: ${r.check_out_reason}`);
+    const reasonHtml = reasons.length > 0
+      ? `<div class="history-reason">${escapeHtml(reasons.join(' / '))}</div>`
+      : '';
+    
     return `
-      <div class="history-row">
-        <span class="history-date">${fmtDateKor(r.record_date)}</span>
-        <span class="history-time">${timeText}</span>
-        <span class="history-duration">${duration}</span>
-        ${tagHtml}
+      <div class="history-row-wrap">
+        <div class="history-row">
+          <span class="history-date">${fmtDateKor(r.record_date)}</span>
+          <span class="history-time">${timeText}</span>
+          ${gpsHtml}
+          <span class="history-duration">${duration}</span>
+          ${tagHtml}
+        </div>
+        ${reasonHtml}
       </div>`;
   }).join('');
   
