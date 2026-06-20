@@ -360,6 +360,20 @@
   .gps-chip.ok   { background: var(--ok-soft); color: var(--ok); }
   .gps-chip.miss { background: var(--absent-soft); color: var(--text-3); }
 
+  /* 벌금 칩 */
+  .pen-chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .pen-chip.charged { background: var(--late-soft); color: var(--late); }
+  .pen-chip.pending { background: var(--action-soft); color: var(--action-deep); }
+  .pen-chip.exempt  { background: var(--ok-soft); color: var(--ok); }
+
   /* 사유 (기록 행 아래 두 번째 줄) */
   .history-row-wrap {
     border-bottom: 1px solid var(--bg-subtle);
@@ -1073,6 +1087,282 @@
     flex: 1;
   }
 
+  /* 봉사 장소 폼 안내 */
+  .admin-add-hint {
+    font-size: 11.5px;
+    color: var(--text-3);
+    margin-top: 8px;
+  }
+  .loc-add-row {
+    grid-template-columns: 1.2fr 1.6fr 0.7fr auto;
+  }
+  .holiday-add-row {
+    grid-template-columns: 0.9fr 1.6fr auto;
+  }
+
+  /* ─── 벌금 표 ─── */
+  .pen-row-wrap {
+    border-bottom: 1px solid var(--bg-subtle);
+    padding: 11px 16px;
+  }
+  .pen-row-wrap:last-child { border-bottom: none; }
+  .pen-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 0.7fr 0.9fr 1.6fr;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .pen-row.head {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 0.7fr 0.9fr 1.6fr;
+    gap: 8px;
+  }
+  .pen-date {
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .pen-type {
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+  .pen-type.late   { background: var(--action-soft); color: var(--action-deep); }
+  .pen-type.absent { background: var(--late-soft); color: var(--late); }
+  .pen-amount {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .pen-action-cell {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pen-reason {
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: var(--text-3);
+  }
+
+  /* ─── 공휴일 표 ─── */
+  .hol-row {
+    display: grid;
+    grid-template-columns: 1.3fr 2fr 0.6fr;
+    gap: 8px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--bg-subtle);
+    font-size: 13px;
+    align-items: center;
+  }
+  .hol-row:last-child { border-bottom: none; }
+  .hol-row.head {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+  .hol-date {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  /* ─── 통계 표 ─── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 2fr 0.8fr 0.8fr 0.8fr;
+    gap: 8px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--bg-subtle);
+    font-size: 13px;
+    align-items: center;
+  }
+  .stat-row.member {
+    grid-template-columns: 2fr 0.7fr 0.7fr 0.7fr 1fr;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row.head {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+  .stat-label {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .stat-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .stat-num.late   { color: var(--action-deep); }
+  .stat-num.absent { color: var(--late); }
+
+  /* 기록 수정 힌트 */
+  .rec-modal-hint {
+    font-size: 11.5px;
+    color: var(--text-3);
+    margin-top: 4px;
+    margin-left: 88px;
+  }
+
+  @media (max-width: 720px) {
+    .pen-row, .pen-row.head { grid-template-columns: 0.8fr 1.2fr 0.6fr 0.8fr; }
+    .pen-action-cell .row-action:nth-child(n+2) { display: none; }
+    .stat-row.member { grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr; }
+    .stat-row.member span:nth-child(5) { display: none; }
+    .stat-row.member.head span:nth-child(5) { display: none; }
+  }
+
+  /* 현재 위치로 설정 버튼 */
+  .loc-gps-btn {
+    background: var(--text);
+    color: var(--action);
+    border: none;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .loc-gps-btn:hover { background: #2A3247; }
+  .loc-gps-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .loc-gps-hint-text {
+    margin-left: 10px;
+    font-size: 11.5px;
+    color: var(--text-3);
+  }
+  .loc-gps-hint-text.ok { color: var(--ok); }
+  .loc-gps-hint-text.err { color: var(--late); }
+
+  /* 토글 스위치 라벨 */
+  .switch-label {
+    width: auto !important;
+    display: flex !important;
+    align-items: center;
+    gap: 7px;
+    flex: 1;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-size: 12px !important;
+    color: var(--text-2) !important;
+    cursor: pointer;
+  }
+
+  /* ─── 봉사 장소 표 행 ─── */
+  .loc-row-item {
+    display: grid;
+    grid-template-columns: 1.2fr 2fr 1.2fr 0.7fr 0.7fr 0.7fr;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--bg-subtle);
+    font-size: 13px;
+    align-items: center;
+  }
+  .loc-row-item:last-child { border-bottom: none; }
+  .loc-row-item.head {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 9px 16px;
+  }
+  .loc-row-item.inactive {
+    opacity: 0.5;
+    background: var(--bg-subtle);
+  }
+  .loc-name-text {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .loc-coord-text {
+    font-family: var(--font);
+    font-size: 11.5px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .loc-coord-text.missing { color: var(--late); }
+  .loc-gps-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .loc-gps-pill.on  { background: var(--action-soft); color: var(--action-deep); }
+  .loc-gps-pill.off { background: var(--absent-soft); color: var(--text-3); }
+
+  /* ─── 관리자 오늘 현황 — 시각화 개선 ─── */
+  /* 행 자체에 상태별 색 */
+  .admin-table-row.row-status-working {
+    background: linear-gradient(to right, var(--action-soft) 0%, transparent 100%);
+    border-left: 3px solid var(--action);
+    padding-left: 13px;
+  }
+  .admin-table-row.row-status-done {
+    background: linear-gradient(to right, var(--ok-soft) 0%, transparent 100%);
+    border-left: 3px solid var(--ok);
+    padding-left: 13px;
+  }
+  .admin-table-row.row-status-none {
+    /* 기본 — 색 없음 */
+  }
+
+  /* 시작·종료 시각 강조 */
+  .admin-time-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.15;
+  }
+  .admin-time-cell .t-main {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .admin-time-cell .t-main.none { color: var(--text-4); font-weight: 500; }
+  .admin-time-cell .t-main.late { color: var(--action-deep); }
+  .admin-time-cell .t-main.absent { color: var(--late); }
+  .admin-time-cell .t-sub {
+    font-size: 10.5px;
+    color: var(--text-3);
+    font-weight: 600;
+  }
+  .admin-time-cell .t-sub.late { color: var(--action-deep); }
+  .admin-time-cell .t-sub.absent { color: var(--late); }
+  .admin-time-cell .t-sub.ok { color: var(--ok); }
+
   /* 관리자 탭 placeholder (장소 임시) */
   .admin-placeholder {
     background: #FFFFFF;
@@ -1226,8 +1516,11 @@
       <!-- 서브 탭 -->
       <div class="admin-subtabs">
         <button class="admin-subtab active" data-subtab="today" onclick="switchAdminSubtab('today')">📋 오늘 현황</button>
-        <button class="admin-subtab" data-subtab="members" onclick="switchAdminSubtab('members')">👥 사명자 관리</button>
+        <button class="admin-subtab" data-subtab="members" onclick="switchAdminSubtab('members')">👥 사명자</button>
         <button class="admin-subtab" data-subtab="locations" onclick="switchAdminSubtab('locations')">📍 봉사 장소</button>
+        <button class="admin-subtab" data-subtab="penalty" onclick="switchAdminSubtab('penalty')">💰 벌금</button>
+        <button class="admin-subtab" data-subtab="holidays" onclick="switchAdminSubtab('holidays')">📅 공휴일</button>
+        <button class="admin-subtab" data-subtab="stats" onclick="switchAdminSubtab('stats')">📊 통계</button>
       </div>
 
       <!-- ━━ 서브 탭 1: 오늘 현황 ━━ -->
@@ -1324,12 +1617,149 @@
         </div>
       </div>
 
-      <!-- ━━ 서브 탭 3: 봉사 장소 (2-4-C에서 채움) ━━ -->
+      <!-- ━━ 서브 탭 3: 봉사 장소 ━━ -->
       <div id="admin-sub-locations" class="admin-sub-panel">
-        <div class="admin-placeholder">
-          <div class="ph-icon">📍</div>
-          <div class="ph-msg">봉사 장소 관리는 다음 단계에서 추가됩니다</div>
-          <div class="ph-hint">좌표 설정 · 반경 · "현재 위치로 설정"</div>
+        <!-- 장소 추가 폼 -->
+        <div class="admin-add-card">
+          <div class="admin-add-title">봉사 장소 추가</div>
+          <div class="admin-add-row loc-add-row">
+            <input id="add-loc-name" class="add-input" placeholder="장소 이름 (예: 본부)" maxlength="30">
+            <input id="add-loc-address" class="add-input" placeholder="주소 (선택)" maxlength="100">
+            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="100">
+            <button class="add-btn" onclick="onAddLocation()">+ 추가</button>
+          </div>
+          <div class="admin-add-hint">
+            좌표는 추가 후 "현재 위치로 설정" 버튼으로 정확히 잡으세요. GPS 사용 안 함은 추가 후 토글.
+          </div>
+          <div class="admin-add-err" id="add-loc-err"></div>
+        </div>
+
+        <!-- 장소 표 -->
+        <div class="admin-table-card">
+          <div class="admin-table-head">
+            <h3>봉사 장소 명단</h3>
+            <span class="admin-table-meta" id="loc-meta">—</span>
+          </div>
+          <div id="loc-list">
+            <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ━━ 서브 탭 4: 벌금 ━━ -->
+      <div id="admin-sub-penalty" class="admin-sub-panel">
+        <!-- 기간 선택 -->
+        <div class="admin-filter">
+          <div class="admin-filter-field">
+            <label>기간</label>
+            <select id="pen-f-period" onchange="loadPenalty()">
+              <option value="month">이번 달</option>
+              <option value="all">전체</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>부서</label>
+            <select id="pen-f-dept" onchange="renderPenalty()">
+              <option value="">전체 부서</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>상태</label>
+            <select id="pen-f-status" onchange="renderPenalty()">
+              <option value="">전체</option>
+              <option value="charged">부과</option>
+              <option value="exempt_pending">면제 검토</option>
+              <option value="exempt">면제 확정</option>
+            </select>
+          </div>
+          <button class="admin-refresh-btn" onclick="loadPenalty()">↻</button>
+        </div>
+
+        <!-- 벌금 요약 -->
+        <div class="admin-kpi-grid" id="pen-kpi"></div>
+
+        <!-- 벌금 표 -->
+        <div class="admin-table-card">
+          <div class="admin-table-head">
+            <h3>벌금 내역</h3>
+            <span class="admin-table-meta" id="pen-meta">—</span>
+          </div>
+          <div id="pen-list">
+            <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ━━ 서브 탭 5: 공휴일 ━━ -->
+      <div id="admin-sub-holidays" class="admin-sub-panel">
+        <!-- 공휴일 추가 -->
+        <div class="admin-add-card">
+          <div class="admin-add-title">봉사 안 하는 날 추가</div>
+          <div class="admin-add-row holiday-add-row">
+            <input id="add-hol-date" class="add-input" type="date">
+            <input id="add-hol-note" class="add-input" placeholder="설명 (예: 교회 절기, 특별 기도회)" maxlength="50">
+            <button class="add-btn" onclick="onAddHoliday()">+ 추가</button>
+          </div>
+          <div class="admin-add-hint">
+            지정한 날은 평일이어도 봉사 안 하는 날이 되어 지각·결석 벌금이 부과되지 않습니다.
+          </div>
+          <div class="admin-add-err" id="add-hol-err"></div>
+        </div>
+
+        <!-- 공휴일 표 -->
+        <div class="admin-table-card">
+          <div class="admin-table-head">
+            <h3>봉사 안 하는 날</h3>
+            <span class="admin-table-meta" id="hol-meta">—</span>
+          </div>
+          <div id="hol-list">
+            <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ━━ 서브 탭 6: 통계 ━━ -->
+      <div id="admin-sub-stats" class="admin-sub-panel">
+        <!-- 통계 기간 -->
+        <div class="admin-filter">
+          <div class="admin-filter-field">
+            <label>주 단위</label>
+            <select id="stat-f-week" onchange="renderStats()">
+              <option value="thisweek">이번 주</option>
+              <option value="lastweek">지난 주</option>
+              <option value="month">이번 달</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>요일 범위</label>
+            <select id="stat-f-range" onchange="renderStats()">
+              <option value="weekday">월~금</option>
+              <option value="full">월~일</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>대상</label>
+            <select id="stat-f-scope" onchange="renderStats()">
+              <option value="all">전체</option>
+              <option value="dept">부서별</option>
+              <option value="member">개인별</option>
+            </select>
+          </div>
+          <button class="admin-refresh-btn" onclick="loadStats()">↻</button>
+        </div>
+
+        <!-- 통계 KPI -->
+        <div class="admin-kpi-grid" id="stat-kpi"></div>
+
+        <!-- 통계 표 -->
+        <div class="admin-table-card">
+          <div class="admin-table-head">
+            <h3 id="stat-title">통계</h3>
+            <span class="admin-table-meta" id="stat-meta">—</span>
+          </div>
+          <div id="stat-list">
+            <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+          </div>
         </div>
       </div>
 
@@ -1405,6 +1835,101 @@
   </div>
 </div>
 
+<!-- ━━━ 봉사 장소 수정 모달 ━━━ -->
+<div class="modal-backdrop" id="loc-modal-backdrop" onclick="closeLocModalIfBackdrop(event)">
+  <div class="reason-modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="reason-modal-head">
+      <h3 class="reason-modal-title">봉사 장소 수정</h3>
+      <p class="reason-modal-sub" id="loc-modal-sub">—</p>
+    </div>
+    <div class="reason-modal-body">
+      <div class="member-form-row">
+        <label>이름</label>
+        <input id="edit-loc-name" class="add-input" maxlength="30">
+      </div>
+      <div class="member-form-row">
+        <label>주소</label>
+        <input id="edit-loc-address" class="add-input" maxlength="100" placeholder="선택">
+      </div>
+      <div class="member-form-row">
+        <label>위도</label>
+        <input id="edit-loc-lat" class="add-input" type="number" step="0.0000001" placeholder="예: 37.647144">
+      </div>
+      <div class="member-form-row">
+        <label>경도</label>
+        <input id="edit-loc-lng" class="add-input" type="number" step="0.0000001" placeholder="예: 127.063121">
+      </div>
+      <!-- 현재 위치로 설정 버튼 (시그니처 핵심) -->
+      <div style="margin: 4px 0 10px; margin-left: 88px;">
+        <button class="loc-gps-btn" onclick="setCurrentPositionToLoc()" id="set-current-btn">
+          📍 현재 위치로 좌표 설정
+        </button>
+        <span id="set-current-hint" class="loc-gps-hint-text"></span>
+      </div>
+      <div class="member-form-row">
+        <label>반경(m)</label>
+        <input id="edit-loc-radius" class="add-input" type="number" min="10" max="5000">
+      </div>
+      <div class="member-form-row">
+        <label>GPS 사용</label>
+        <label class="switch-label">
+          <input id="edit-loc-gps" type="checkbox">
+          <span>GPS 검증 사용 (해제 시 위치 확인 없이 시작/종료 가능)</span>
+        </label>
+      </div>
+      <div class="admin-add-err" id="edit-loc-err"></div>
+    </div>
+    <div class="reason-modal-footer">
+      <button class="btn-cancel" onclick="closeLocModal()">취소</button>
+      <button class="btn-confirm" onclick="saveLocEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━ 기록 수정 모달 (관리자) ━━━ -->
+<div class="modal-backdrop" id="rec-modal-backdrop" onclick="closeRecModalIfBackdrop(event)">
+  <div class="reason-modal" onclick="event.stopPropagation()" style="max-width:460px">
+    <div class="reason-modal-head">
+      <h3 class="reason-modal-title">봉사 기록 수정</h3>
+      <p class="reason-modal-sub" id="rec-modal-sub">—</p>
+    </div>
+    <div class="reason-modal-body">
+      <div class="member-form-row">
+        <label>시작 시각</label>
+        <input id="edit-rec-in" class="add-input" type="time" step="60">
+      </div>
+      <div class="member-form-row">
+        <label>종료 시각</label>
+        <input id="edit-rec-out" class="add-input" type="time" step="60">
+      </div>
+      <div class="member-form-row">
+        <label>시작 사유</label>
+        <input id="edit-rec-in-reason" class="add-input" maxlength="100" placeholder="선택">
+      </div>
+      <div class="member-form-row">
+        <label>종료 사유</label>
+        <input id="edit-rec-out-reason" class="add-input" maxlength="100" placeholder="선택">
+      </div>
+      <div class="member-form-row">
+        <label>벌금</label>
+        <select id="edit-rec-penalty" class="add-input">
+          <option value="none:0:none">정상 (벌금 없음)</option>
+          <option value="late:3000:charged">지각 · 3,000원 부과</option>
+          <option value="late:3000:exempt">지각 · 면제</option>
+          <option value="absent:5000:charged">결석 · 5,000원 부과</option>
+          <option value="absent:5000:exempt">결석 · 면제</option>
+        </select>
+      </div>
+      <div class="rec-modal-hint">시각을 바꾸면 벌금은 자동 재계산되지 않습니다. 필요 시 위에서 직접 지정하세요.</div>
+      <div class="admin-add-err" id="edit-rec-err"></div>
+    </div>
+    <div class="reason-modal-footer">
+      <button class="btn-cancel" onclick="closeRecModal()">취소</button>
+      <button class="btn-confirm" onclick="saveRecEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ────────────────────────────────────────────────────────────
 // Supabase 연결 — 자금청구 시스템과 같은 프로젝트
@@ -1463,6 +1988,15 @@ let isLocked = false;       // 사명자 잠금 상태
 // 시간 기준 (사용자 결정)
 const WORK_START_HM = { h: 8, m: 40 };   // 08:40 — 이 시각 이후 시작 → 사유 필요
 const WORK_END_HM   = { h: 20, m: 0 };   // 20:00 — 이 시각 이전 종료 → 사유 필요
+
+// 벌금 기준 (사용자 결정)
+const LATE_HM    = { h: 8, m: 41 };      // 08:41 이후 = 지각
+const ABSENT_HM  = { h: 9, m: 1 };       // 09:01 이후 = 결석
+const PENALTY_LATE   = 3000;             // 지각 벌금
+const PENALTY_ABSENT = 5000;             // 결석 벌금
+
+// 공휴일 목록 (DB에서 로드) — 'YYYY-MM-DD' Set
+let holidaySet = new Set();
 
 // LocalStorage 키
 const LS_KEY_MEMBER  = 'sjames_attend_member_id';
@@ -1824,6 +2358,63 @@ function needEndReason(now){
   return nowMin < endMin;
 }
 
+// ────────────────────────────────────────────────────────────
+// 벌금 + 공휴일 계산
+// ────────────────────────────────────────────────────────────
+// 평일(월~금)인지
+function isWeekday(d){
+  const day = d.getDay();    // 0=일, 6=토
+  return day >= 1 && day <= 5;
+}
+// 공휴일인지
+function isHoliday(d){
+  return holidaySet.has(fmtYMD(d));
+}
+// 벌금 부과 대상 날인지 (평일 + 공휴일 아님)
+function isPenaltyDay(d){
+  return isWeekday(d) && !isHoliday(d);
+}
+
+// 시작 시각 기준 벌금 판정
+// 반환: { type: 'none'|'late'|'absent', amount: int }
+function calcPenalty(checkInDate){
+  // 공휴일·주말이면 벌금 없음
+  if(!isPenaltyDay(checkInDate)){
+    return { type: 'none', amount: 0 };
+  }
+  const mins = checkInDate.getHours() * 60 + checkInDate.getMinutes();
+  const absentMin = ABSENT_HM.h * 60 + ABSENT_HM.m;   // 09:01 → 541
+  const lateMin   = LATE_HM.h * 60 + LATE_HM.m;       // 08:41 → 521
+  if(mins >= absentMin){
+    return { type: 'absent', amount: PENALTY_ABSENT };
+  } else if(mins >= lateMin){
+    return { type: 'late', amount: PENALTY_LATE };
+  }
+  return { type: 'none', amount: 0 };
+}
+
+// 벌금 라벨
+function penaltyLabel(type){
+  if(type === 'late') return '지각';
+  if(type === 'absent') return '결석';
+  return '정상';
+}
+function fmtWon(n){
+  return Number(n || 0).toLocaleString('ko-KR') + '원';
+}
+
+// 공휴일 로드
+async function loadHolidays(){
+  const { data, error } = await sb
+    .from('attend_holidays')
+    .select('holiday_date');
+  if(error){
+    console.error('[loadHolidays]', error);
+    return;
+  }
+  holidaySet = new Set((data || []).map(h => h.holiday_date));
+}
+
 // 봉사 시작
 async function onStartClick(){
   if(!currentMember || !currentLocationId){
@@ -1883,6 +2474,14 @@ async function doStart(reason, gps){
   const now = new Date();
   const today = fmtYMD(now);
   
+  // 벌금 계산
+  const penalty = calcPenalty(now);
+  // 사유가 있으면 (지각·결석이면서 사유 적었으면) 면제 검토 중
+  let penaltyStatus = 'none';
+  if(penalty.type !== 'none'){
+    penaltyStatus = reason ? 'exempt_pending' : 'charged';
+  }
+  
   const row = {
     member_id:    currentMemberId,
     location_id:  currentLocationId,
@@ -1895,6 +2494,10 @@ async function doStart(reason, gps){
     check_in_distance: gps?.distance ?? null,
     check_in_accuracy: gps?.accuracy ?? null,
     gps_verified:      gps?.success === true,
+    // 벌금
+    penalty_type:   penalty.type,
+    penalty_amount: penalty.amount,
+    penalty_status: penaltyStatus,
   };
   
   const { data, error } = await sb
@@ -1928,11 +2531,18 @@ async function doStart(reason, gps){
   updateClockArea();
   loadMyRecords();
   
-  // 토스트 메시지 (GPS 결과 반영)
+  // 토스트 메시지 (GPS + 벌금 결과 반영)
   let toastMsg = `✅ 봉사 시작 — ${currentMember.name}`;
   if(gps?.success === true) toastMsg += ` · ${fmtDistance(gps.distance)}`;
   else if(gps?.tried === true && gps?.success === false) toastMsg += ` · GPS 미인증`;
-  showToast(toastMsg);
+  if(data.penalty_type === 'late'){
+    toastMsg += data.penalty_status === 'exempt_pending'
+      ? ` · 지각(면제 검토)` : ` · 지각 ${fmtWon(PENALTY_LATE)}`;
+  } else if(data.penalty_type === 'absent'){
+    toastMsg += data.penalty_status === 'exempt_pending'
+      ? ` · 결석(면제 검토)` : ` · 결석 ${fmtWon(PENALTY_ABSENT)}`;
+  }
+  showToast(toastMsg, 3500);
 }
 
 // 봉사 종료
@@ -2206,6 +2816,19 @@ async function loadMyRecords(){
       gpsHtml += `<span class="gps-chip miss" title="종료 GPS 미인증">📍종</span>`;
     }
     
+    // 벌금 칩
+    let penaltyHtml = '';
+    if(r.penalty_type === 'late' || r.penalty_type === 'absent'){
+      const label = penaltyLabel(r.penalty_type);
+      if(r.penalty_status === 'exempt'){
+        penaltyHtml = `<span class="pen-chip exempt" title="면제 확정">${label} · 면제</span>`;
+      } else if(r.penalty_status === 'exempt_pending'){
+        penaltyHtml = `<span class="pen-chip pending" title="면제 검토 중">${label} · 검토중</span>`;
+      } else {
+        penaltyHtml = `<span class="pen-chip charged" title="벌금 부과">${label} ${fmtWon(r.penalty_amount)}</span>`;
+      }
+    }
+    
     // 사유 표시 (있을 때만, 두 번째 줄)
     const reasons = [];
     if(r.check_in_reason)  reasons.push(`시작: ${r.check_in_reason}`);
@@ -2220,6 +2843,7 @@ async function loadMyRecords(){
           <span class="history-date">${fmtDateKor(r.record_date)}</span>
           <span class="history-time">${timeText}</span>
           ${gpsHtml}
+          ${penaltyHtml}
           <span class="history-duration">${duration}</span>
           ${tagHtml}
         </div>
@@ -2283,7 +2907,23 @@ function renderAdminMain(){
   populateAdminDeptFilter();
   populateAdminAddDept();
   populateMembersDeptFilter();
+  populatePenaltyDeptFilter();
+  loadHolidays();   // 공휴일 Set 갱신 (벌금 계산용)
   loadAdminToday();
+}
+
+// 벌금 탭 부서 필터
+function populatePenaltyDeptFilter(){
+  const sel = document.getElementById('pen-f-dept');
+  if(!sel || sel.options.length > 1) return;
+  const deptsWithMembers = new Set(allMembers.map(m => m.dept_id));
+  DEPTS.forEach(d => {
+    if(!deptsWithMembers.has(d.id)) return;
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
 }
 
 // ────────────────────────────────────────────────────────────
@@ -2304,6 +2944,14 @@ function switchAdminSubtab(name){
     loadAllMembersAdmin();
   } else if(name === 'today'){
     loadAdminToday();
+  } else if(name === 'locations'){
+    loadAllLocationsAdmin();
+  } else if(name === 'penalty'){
+    loadPenalty();
+  } else if(name === 'holidays'){
+    loadHolidaysAdmin();
+  } else if(name === 'stats'){
+    loadStats();
   }
 }
 
@@ -2586,6 +3234,858 @@ async function toggleMemberActive(memberId, makeActive){
   await loadAllMembers();  // 메인 사명자 드롭다운도 갱신
 }
 
+// ────────────────────────────────────────────────────────────
+// 봉사 장소 관리
+// ────────────────────────────────────────────────────────────
+let adminAllLocations = [];   // 비활성 포함 전체
+
+async function loadAllLocationsAdmin(){
+  const { data, error } = await sb
+    .from('attend_locations')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('id', { ascending: true });
+  if(error){
+    console.error('[loadAllLocationsAdmin]', error);
+    showToast('봉사 장소를 불러오지 못했어요');
+    return;
+  }
+  adminAllLocations = data || [];
+  renderLocations();
+}
+
+function renderLocations(){
+  const container = document.getElementById('loc-list');
+  const meta = document.getElementById('loc-meta');
+  const rows = adminAllLocations;
+  
+  meta.textContent = `${rows.filter(l => l.is_active).length}개 활성 / 전체 ${rows.length}개`;
+  
+  if(rows.length === 0){
+    container.innerHTML = `<div class="empty"><div class="msg">등록된 봉사 장소가 없어요</div><div class="hint">위에서 새 장소를 추가하세요</div></div>`;
+    return;
+  }
+  
+  const head = `
+    <div class="loc-row-item head">
+      <span>이름</span>
+      <span>주소 · 좌표</span>
+      <span>반경 · GPS</span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>`;
+  
+  const body = rows.map(l => {
+    const inactiveClass = l.is_active ? '' : 'inactive';
+    const hasCoord = l.lat != null && l.lng != null;
+    const coordText = hasCoord
+      ? `${Number(l.lat).toFixed(6)}, ${Number(l.lng).toFixed(6)}`
+      : '좌표 미설정';
+    const coordClass = hasCoord ? '' : 'missing';
+    
+    return `
+      <div class="loc-row-item ${inactiveClass}">
+        <span class="loc-name-text">${escapeHtml(l.name)}</span>
+        <span>
+          <div style="color:var(--text-2);font-size:12.5px">${escapeHtml(l.address || '주소 없음')}</div>
+          <div class="loc-coord-text ${coordClass}">${coordText}</div>
+        </span>
+        <span>
+          <span class="loc-gps-pill ${l.gps_enabled ? 'on' : 'off'}">
+            ${l.gps_enabled ? '📍 GPS' : '없음'} · ${l.radius || 100}m
+          </span>
+        </span>
+        <span><button class="row-action" onclick="openLocModal(${l.id})">수정</button></span>
+        <span><button class="row-action" onclick="setCurrentPositionFromList(${l.id})" title="이 장소의 좌표를 현재 위치로">📍 현재위치</button></span>
+        <span>
+          ${l.is_active 
+            ? `<button class="row-action danger" onclick="toggleLocationActive(${l.id}, false)">비활성</button>`
+            : `<button class="row-action ok" onclick="toggleLocationActive(${l.id}, true)">활성</button>`}
+        </span>
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = head + body;
+}
+
+// 장소 추가
+async function onAddLocation(){
+  const name = document.getElementById('add-loc-name').value.trim();
+  const address = document.getElementById('add-loc-address').value.trim();
+  const radius = parseInt(document.getElementById('add-loc-radius').value) || 100;
+  const err = document.getElementById('add-loc-err');
+  err.textContent = '';
+  
+  if(!name){ err.textContent = '장소 이름을 입력해주세요'; return; }
+  if(name.length < 2){ err.textContent = '이름은 2자 이상'; return; }
+  
+  // 중복 체크
+  const dup = adminAllLocations.find(l => l.name === name);
+  if(dup){ err.textContent = '같은 이름의 장소가 이미 있습니다'; return; }
+  
+  if(radius < 10 || radius > 5000){
+    err.textContent = '반경은 10m ~ 5000m 사이';
+    return;
+  }
+  
+  // sort_order — max + 1
+  const maxOrder = adminAllLocations.length > 0
+    ? Math.max(...adminAllLocations.map(l => l.sort_order || 0))
+    : -1;
+  
+  const row = {
+    name:        name,
+    address:     address || null,
+    lat:         null,
+    lng:         null,
+    radius:      radius,
+    gps_enabled: true,
+    is_active:   true,
+    sort_order:  maxOrder + 1,
+  };
+  
+  const { data, error } = await sb
+    .from('attend_locations')
+    .insert(row)
+    .select()
+    .single();
+  
+  if(error){
+    console.error('[onAddLocation]', error);
+    err.textContent = '추가 실패: ' + (error.message || '서버 오류');
+    return;
+  }
+  
+  // 폼 초기화
+  document.getElementById('add-loc-name').value = '';
+  document.getElementById('add-loc-address').value = '';
+  document.getElementById('add-loc-radius').value = '100';
+  
+  showToast(`✅ ${data.name} 추가됨 (좌표는 수정에서 설정)`);
+  await loadAllLocationsAdmin();
+  await loadAllLocations();  // 메인 드롭다운 갱신
+}
+
+// 장소 수정 모달
+let editingLocationId = null;
+
+function openLocModal(locId){
+  const l = adminAllLocations.find(x => x.id === locId);
+  if(!l){ showToast('장소를 찾을 수 없어요'); return; }
+  editingLocationId = locId;
+  
+  document.getElementById('edit-loc-name').value    = l.name || '';
+  document.getElementById('edit-loc-address').value = l.address || '';
+  document.getElementById('edit-loc-lat').value     = l.lat ?? '';
+  document.getElementById('edit-loc-lng').value     = l.lng ?? '';
+  document.getElementById('edit-loc-radius').value  = l.radius || 100;
+  document.getElementById('edit-loc-gps').checked   = l.gps_enabled !== false;
+  document.getElementById('edit-loc-err').textContent = '';
+  document.getElementById('set-current-hint').textContent = '';
+  document.getElementById('set-current-hint').className = 'loc-gps-hint-text';
+  document.getElementById('loc-modal-sub').textContent = 
+    `${l.name} · ${l.is_active ? '활성' : '비활성'}`;
+  
+  document.getElementById('loc-modal-backdrop').classList.add('show');
+}
+
+function closeLocModal(){
+  document.getElementById('loc-modal-backdrop').classList.remove('show');
+  editingLocationId = null;
+}
+
+function closeLocModalIfBackdrop(e){
+  if(e.target.id === 'loc-modal-backdrop') closeLocModal();
+}
+
+// "현재 위치로 좌표 설정" 버튼 (모달 안)
+async function setCurrentPositionToLoc(){
+  const btn = document.getElementById('set-current-btn');
+  const hint = document.getElementById('set-current-hint');
+  
+  btn.disabled = true;
+  btn.textContent = '📡 측정 중…';
+  hint.textContent = '';
+  hint.className = 'loc-gps-hint-text';
+  
+  try {
+    const fix = await getCurrentPosition();
+    document.getElementById('edit-loc-lat').value = fix.lat.toFixed(6);
+    document.getElementById('edit-loc-lng').value = fix.lng.toFixed(6);
+    hint.textContent = `✓ 측정됨 · 정확도 ${Math.round(fix.accuracy)}m`;
+    hint.className = 'loc-gps-hint-text ok';
+  } catch(err) {
+    hint.textContent = '✗ ' + gpsErrorText(err);
+    hint.className = 'loc-gps-hint-text err';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📍 현재 위치로 좌표 설정';
+  }
+}
+
+// 장소 표 행에서 직접 "현재 위치" — 빠른 설정
+async function setCurrentPositionFromList(locId){
+  const l = adminAllLocations.find(x => x.id === locId);
+  if(!l) return;
+  
+  if(!confirm(`"${l.name}" 장소의 좌표를 현재 위치로 설정하시겠습니까?\n\n현재 위치에서 봉사 장소 좌표를 정확히 잡습니다.\n실내에서는 정확도가 낮을 수 있어요.`)){
+    return;
+  }
+  
+  showToast('📡 위치 측정 중...');
+  try {
+    const fix = await getCurrentPosition();
+    const { error } = await sb
+      .from('attend_locations')
+      .update({ lat: fix.lat, lng: fix.lng })
+      .eq('id', locId);
+    
+    if(error){
+      console.error('[setCurrentPositionFromList]', error);
+      showToast('저장 실패: ' + (error.message || '서버 오류'));
+      return;
+    }
+    
+    showToast(`✅ ${l.name} 좌표 설정됨 · 정확도 ${Math.round(fix.accuracy)}m`);
+    await loadAllLocationsAdmin();
+    await loadAllLocations();  // 메인 드롭다운 갱신
+  } catch(err) {
+    showToast('✗ ' + gpsErrorText(err));
+  }
+}
+
+// 장소 저장
+async function saveLocEdit(){
+  if(!editingLocationId) return;
+  
+  const name    = document.getElementById('edit-loc-name').value.trim();
+  const address = document.getElementById('edit-loc-address').value.trim();
+  const lat     = document.getElementById('edit-loc-lat').value;
+  const lng     = document.getElementById('edit-loc-lng').value;
+  const radius  = parseInt(document.getElementById('edit-loc-radius').value) || 100;
+  const gpsEnabled = document.getElementById('edit-loc-gps').checked;
+  const err     = document.getElementById('edit-loc-err');
+  err.textContent = '';
+  
+  if(!name || name.length < 2){
+    err.textContent = '이름은 2자 이상'; return;
+  }
+  
+  // 같은 이름 중복 (본인 제외)
+  const dup = adminAllLocations.find(l => 
+    l.id !== editingLocationId && l.name === name
+  );
+  if(dup){ err.textContent = '같은 이름의 장소가 이미 있습니다'; return; }
+  
+  if(radius < 10 || radius > 5000){
+    err.textContent = '반경은 10m ~ 5000m 사이'; return;
+  }
+  
+  // 좌표 검증
+  const latN = lat === '' ? null : parseFloat(lat);
+  const lngN = lng === '' ? null : parseFloat(lng);
+  if(latN != null && (isNaN(latN) || latN < -90 || latN > 90)){
+    err.textContent = '위도 값이 잘못됨 (-90 ~ 90)'; return;
+  }
+  if(lngN != null && (isNaN(lngN) || lngN < -180 || lngN > 180)){
+    err.textContent = '경도 값이 잘못됨 (-180 ~ 180)'; return;
+  }
+  
+  // GPS 사용인데 좌표 없으면 경고
+  if(gpsEnabled && (latN == null || lngN == null)){
+    if(!confirm('GPS 사용이 켜져 있는데 좌표가 없습니다.\nGPS 검증이 작동하지 않습니다. 그래도 저장하시겠습니까?')){
+      return;
+    }
+  }
+  
+  const updates = {
+    name:        name,
+    address:     address || null,
+    lat:         latN,
+    lng:         lngN,
+    radius:      radius,
+    gps_enabled: gpsEnabled,
+  };
+  
+  const { error: dbErr } = await sb
+    .from('attend_locations')
+    .update(updates)
+    .eq('id', editingLocationId);
+  
+  if(dbErr){
+    console.error('[saveLocEdit]', dbErr);
+    err.textContent = '저장 실패: ' + (dbErr.message || '서버 오류');
+    return;
+  }
+  
+  closeLocModal();
+  showToast(`✅ ${name} 정보 수정됨`);
+  await loadAllLocationsAdmin();
+  await loadAllLocations();
+}
+
+// 활성/비활성 토글
+async function toggleLocationActive(locId, makeActive){
+  const l = adminAllLocations.find(x => x.id === locId);
+  if(!l) return;
+  
+  if(!makeActive){
+    if(!confirm(`"${l.name}" 장소를 비활성화하시겠습니까?\n\n비활성화된 장소는 봉사 시작 화면에 나타나지 않습니다.\n(기존 기록은 그대로 유지됩니다)`)){
+      return;
+    }
+  }
+  
+  const { error } = await sb
+    .from('attend_locations')
+    .update({ is_active: makeActive })
+    .eq('id', locId);
+  
+  if(error){
+    console.error('[toggleLocationActive]', error);
+    showToast('변경 실패: ' + (error.message || '서버 오류'));
+    return;
+  }
+  
+  showToast(`✅ ${l.name} ${makeActive ? '활성화' : '비활성화'}됨`);
+  await loadAllLocationsAdmin();
+  await loadAllLocations();  // 메인 드롭다운 갱신
+}
+
+// ════════════════════════════════════════════════════════════
+// 벌금 관리
+// ════════════════════════════════════════════════════════════
+let penaltyRecords = [];
+
+async function loadPenalty(){
+  const period = document.getElementById('pen-f-period').value;
+  let query = sb.from('attend_records')
+    .select('*, attend_members(name, dept_id, role)')
+    .in('penalty_type', ['late', 'absent']);
+  
+  if(period === 'month'){
+    const now = new Date();
+    const first = `${now.getFullYear()}-${pad(now.getMonth()+1)}-01`;
+    query = query.gte('record_date', first);
+  }
+  
+  const { data, error } = await query.order('record_date', { ascending: false });
+  if(error){
+    console.error('[loadPenalty]', error);
+    showToast('벌금 내역을 불러오지 못했어요');
+    return;
+  }
+  penaltyRecords = data || [];
+  renderPenaltyKPI();
+  renderPenalty();
+}
+
+function renderPenaltyKPI(){
+  const charged = penaltyRecords.filter(r => r.penalty_status === 'charged');
+  const pending = penaltyRecords.filter(r => r.penalty_status === 'exempt_pending');
+  const exempt  = penaltyRecords.filter(r => r.penalty_status === 'exempt');
+  const totalAmount = charged.reduce((s, r) => s + (r.penalty_amount || 0), 0);
+  
+  document.getElementById('pen-kpi').innerHTML = `
+    <div class="admin-kpi-card">
+      <div class="k-label">부과 벌금</div>
+      <div class="k-value">${fmtWon(totalAmount)}</div>
+      <div class="k-meta">${charged.length}건</div>
+    </div>
+    <div class="admin-kpi-card working">
+      <div class="k-label">면제 검토</div>
+      <div class="k-value">${pending.length}</div>
+      <div class="k-meta">확인 필요</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="k-label">면제 확정</div>
+      <div class="k-value">${exempt.length}</div>
+      <div class="k-meta">승인됨</div>
+    </div>
+    <div class="admin-kpi-card absent">
+      <div class="k-label">전체 건수</div>
+      <div class="k-value">${penaltyRecords.length}</div>
+      <div class="k-meta">지각+결석</div>
+    </div>
+  `;
+}
+
+function renderPenalty(){
+  const deptF = document.getElementById('pen-f-dept').value;
+  const statusF = document.getElementById('pen-f-status').value;
+  
+  let rows = penaltyRecords.slice();
+  if(deptF)   rows = rows.filter(r => r.attend_members?.dept_id === deptF);
+  if(statusF) rows = rows.filter(r => r.penalty_status === statusF);
+  
+  document.getElementById('pen-meta').textContent = `${rows.length}건`;
+  
+  const container = document.getElementById('pen-list');
+  if(rows.length === 0){
+    container.innerHTML = `<div class="empty"><div class="msg">해당하는 벌금 내역이 없어요</div></div>`;
+    return;
+  }
+  
+  const head = `
+    <div class="pen-row head">
+      <span>날짜</span>
+      <span>이름 · 부서</span>
+      <span>유형</span>
+      <span>금액</span>
+      <span>상태 · 처리</span>
+    </div>`;
+  
+  const body = rows.map(r => {
+    const m = r.attend_members || {};
+    const dept = DEPTS.find(d => d.id === m.dept_id);
+    const deptName = dept ? dept.name : (m.dept_id || '—');
+    const label = penaltyLabel(r.penalty_type);
+    const typeCls = r.penalty_type === 'absent' ? 'absent' : 'late';
+    
+    // 상태 + 처리 버튼
+    let statusHtml = '';
+    if(r.penalty_status === 'charged'){
+      statusHtml = `<span class="pen-chip charged">부과</span>
+        <button class="row-action ok" onclick="setPenaltyStatus(${r.id}, 'exempt')" title="면제 처리">면제</button>`;
+    } else if(r.penalty_status === 'exempt_pending'){
+      statusHtml = `<span class="pen-chip pending">검토중</span>
+        <button class="row-action ok" onclick="setPenaltyStatus(${r.id}, 'exempt')">면제</button>
+        <button class="row-action danger" onclick="setPenaltyStatus(${r.id}, 'charged')">부과</button>`;
+    } else if(r.penalty_status === 'exempt'){
+      statusHtml = `<span class="pen-chip exempt">면제</span>
+        <button class="row-action danger" onclick="setPenaltyStatus(${r.id}, 'charged')" title="부과로 되돌림">부과</button>`;
+    }
+    
+    const reasonHint = r.check_in_reason 
+      ? `<div class="pen-reason">사유: ${escapeHtml(r.check_in_reason)}</div>` : '';
+    
+    return `
+      <div class="pen-row-wrap">
+        <div class="pen-row">
+          <span class="pen-date">${fmtDateKor(r.record_date)}</span>
+          <span><span class="col-name">${escapeHtml(m.name || '—')}</span><br><span style="color:var(--text-3);font-size:11.5px">${escapeHtml(deptName)}</span></span>
+          <span><span class="pen-type ${typeCls}">${label}</span></span>
+          <span class="pen-amount">${r.penalty_status === 'exempt' ? '<s style="color:var(--text-4)">'+fmtWon(r.penalty_amount)+'</s>' : fmtWon(r.penalty_amount)}</span>
+          <span class="pen-action-cell">${statusHtml}</span>
+        </div>
+        ${reasonHint}
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = head + body;
+}
+
+// 벌금 상태 변경 (면제/부과)
+async function setPenaltyStatus(recordId, newStatus){
+  const labels = { exempt: '면제', charged: '부과' };
+  const { error } = await sb
+    .from('attend_records')
+    .update({ penalty_status: newStatus })
+    .eq('id', recordId);
+  if(error){
+    console.error('[setPenaltyStatus]', error);
+    showToast('변경 실패: ' + (error.message || '서버 오류'));
+    return;
+  }
+  showToast(`✅ ${labels[newStatus]} 처리됨`);
+  await loadPenalty();
+}
+
+// ════════════════════════════════════════════════════════════
+// 공휴일 관리
+// ════════════════════════════════════════════════════════════
+let adminHolidays = [];
+
+async function loadHolidaysAdmin(){
+  const { data, error } = await sb
+    .from('attend_holidays')
+    .select('*')
+    .order('holiday_date', { ascending: false });
+  if(error){
+    console.error('[loadHolidaysAdmin]', error);
+    showToast('공휴일을 불러오지 못했어요');
+    return;
+  }
+  adminHolidays = data || [];
+  holidaySet = new Set(adminHolidays.map(h => h.holiday_date));  // 벌금 계산용도 갱신
+  renderHolidays();
+}
+
+function renderHolidays(){
+  const container = document.getElementById('hol-list');
+  document.getElementById('hol-meta').textContent = `${adminHolidays.length}일`;
+  
+  if(adminHolidays.length === 0){
+    container.innerHTML = `<div class="empty"><div class="msg">지정된 공휴일이 없어요</div><div class="hint">위에서 봉사 안 하는 날을 추가하세요</div></div>`;
+    return;
+  }
+  
+  const head = `
+    <div class="hol-row head">
+      <span>날짜</span>
+      <span>설명</span>
+      <span></span>
+    </div>`;
+  
+  const body = adminHolidays.map(h => {
+    const d = new Date(h.holiday_date);
+    const weekday = ['일','월','화','수','목','금','토'][d.getDay()];
+    const isWknd = (d.getDay() === 0 || d.getDay() === 6);
+    return `
+      <div class="hol-row">
+        <span class="hol-date">${h.holiday_date} <span style="color:var(--text-3)">(${weekday})</span> ${isWknd ? '<span style="font-size:10px;color:var(--text-4)">주말</span>' : ''}</span>
+        <span style="color:var(--text-2)">${escapeHtml(h.note || '—')}</span>
+        <span><button class="row-action danger" onclick="deleteHoliday(${h.id})">삭제</button></span>
+      </div>`;
+  }).join('');
+  
+  container.innerHTML = head + body;
+}
+
+async function onAddHoliday(){
+  const date = document.getElementById('add-hol-date').value;
+  const note = document.getElementById('add-hol-note').value.trim();
+  const err = document.getElementById('add-hol-err');
+  err.textContent = '';
+  
+  if(!date){ err.textContent = '날짜를 선택해주세요'; return; }
+  
+  const dup = adminHolidays.find(h => h.holiday_date === date);
+  if(dup){ err.textContent = '이미 등록된 날짜입니다'; return; }
+  
+  const { error } = await sb
+    .from('attend_holidays')
+    .insert({ holiday_date: date, note: note || null });
+  
+  if(error){
+    console.error('[onAddHoliday]', error);
+    err.textContent = '추가 실패: ' + (error.message || '서버 오류');
+    return;
+  }
+  
+  document.getElementById('add-hol-date').value = '';
+  document.getElementById('add-hol-note').value = '';
+  showToast(`✅ ${date} 추가됨`);
+  await loadHolidaysAdmin();
+}
+
+async function deleteHoliday(holId){
+  const h = adminHolidays.find(x => x.id === holId);
+  if(!h) return;
+  if(!confirm(`${h.holiday_date} 공휴일을 삭제하시겠습니까?`)) return;
+  
+  const { error } = await sb
+    .from('attend_holidays')
+    .delete()
+    .eq('id', holId);
+  if(error){
+    console.error('[deleteHoliday]', error);
+    showToast('삭제 실패: ' + (error.message || '서버 오류'));
+    return;
+  }
+  showToast(`✅ ${h.holiday_date} 삭제됨`);
+  await loadHolidaysAdmin();
+}
+
+// ════════════════════════════════════════════════════════════
+// 통계
+// ════════════════════════════════════════════════════════════
+let statsRecords = [];
+
+// 주의 시작(월요일) 구하기
+function getMonday(d){
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);  // 일요일이면 지난 월요일
+  return new Date(date.setDate(diff));
+}
+
+function getStatsPeriod(){
+  const weekSel = document.getElementById('stat-f-week').value;
+  const rangeSel = document.getElementById('stat-f-range').value;
+  const now = new Date();
+  let start, end, label;
+  
+  if(weekSel === 'thisweek' || weekSel === 'lastweek'){
+    let monday = getMonday(now);
+    if(weekSel === 'lastweek') monday.setDate(monday.getDate() - 7);
+    monday.setHours(0,0,0,0);
+    start = new Date(monday);
+    end = new Date(monday);
+    end.setDate(end.getDate() + (rangeSel === 'weekday' ? 4 : 6));  // 금 or 일
+    label = `${fmtYMD(start)} ~ ${fmtYMD(end)} (${rangeSel === 'weekday' ? '월~금' : '월~일'})`;
+  } else {  // month
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    label = `${now.getFullYear()}년 ${now.getMonth()+1}월`;
+  }
+  return { start, end, label };
+}
+
+async function loadStats(){
+  const { start, end } = getStatsPeriod();
+  const { data, error } = await sb
+    .from('attend_records')
+    .select('*, attend_members(name, dept_id, role)')
+    .gte('record_date', fmtYMD(start))
+    .lte('record_date', fmtYMD(end));
+  if(error){
+    console.error('[loadStats]', error);
+    showToast('통계를 불러오지 못했어요');
+    return;
+  }
+  statsRecords = data || [];
+  renderStats();
+}
+
+function renderStats(){
+  const { start, end, label } = getStatsPeriod();
+  const rangeSel = document.getElementById('stat-f-range').value;
+  const scope = document.getElementById('stat-f-scope').value;
+  
+  // 기간 내 records 필터 (요일 범위)
+  let records = statsRecords.filter(r => {
+    const d = new Date(r.record_date);
+    if(rangeSel === 'weekday'){
+      const day = d.getDay();
+      return day >= 1 && day <= 5;
+    }
+    return true;
+  });
+  
+  document.getElementById('stat-title').textContent = `통계 · ${label}`;
+  
+  // KPI
+  const totalRecords = records.length;
+  const lateCnt = records.filter(r => r.penalty_type === 'late').length;
+  const absentCnt = records.filter(r => r.penalty_type === 'absent').length;
+  const chargedAmount = records
+    .filter(r => r.penalty_status === 'charged')
+    .reduce((s, r) => s + (r.penalty_amount || 0), 0);
+  
+  document.getElementById('stat-kpi').innerHTML = `
+    <div class="admin-kpi-card">
+      <div class="k-label">총 봉사 횟수</div>
+      <div class="k-value">${totalRecords}</div>
+      <div class="k-meta">시작 기준</div>
+    </div>
+    <div class="admin-kpi-card working">
+      <div class="k-label">지각</div>
+      <div class="k-value">${lateCnt}</div>
+      <div class="k-meta">${fmtWon(lateCnt * PENALTY_LATE)}</div>
+    </div>
+    <div class="admin-kpi-card absent">
+      <div class="k-label">결석</div>
+      <div class="k-value">${absentCnt}</div>
+      <div class="k-meta">${fmtWon(absentCnt * PENALTY_ABSENT)}</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="k-label">부과 벌금</div>
+      <div class="k-value">${fmtWon(chargedAmount)}</div>
+      <div class="k-meta">실제 부과</div>
+    </div>
+  `;
+  
+  // 대상별 집계
+  const container = document.getElementById('stat-list');
+  
+  if(scope === 'all'){
+    // 전체 — 날짜별 요약
+    const byDate = {};
+    records.forEach(r => {
+      if(!byDate[r.record_date]) byDate[r.record_date] = { total: 0, late: 0, absent: 0 };
+      byDate[r.record_date].total++;
+      if(r.penalty_type === 'late') byDate[r.record_date].late++;
+      if(r.penalty_type === 'absent') byDate[r.record_date].absent++;
+    });
+    const dates = Object.keys(byDate).sort().reverse();
+    if(dates.length === 0){
+      container.innerHTML = `<div class="empty"><div class="msg">기간 내 기록이 없어요</div></div>`;
+      return;
+    }
+    document.getElementById('stat-meta').textContent = `${dates.length}일`;
+    const head = `<div class="stat-row head"><span>날짜</span><span>봉사</span><span>지각</span><span>결석</span></div>`;
+    const body = dates.map(dt => {
+      const s = byDate[dt];
+      return `<div class="stat-row">
+        <span class="stat-label">${fmtDateKor(dt)}</span>
+        <span class="stat-num">${s.total}</span>
+        <span class="stat-num ${s.late ? 'late' : ''}">${s.late || '—'}</span>
+        <span class="stat-num ${s.absent ? 'absent' : ''}">${s.absent || '—'}</span>
+      </div>`;
+    }).join('');
+    container.innerHTML = head + body;
+    
+  } else if(scope === 'dept'){
+    // 부서별
+    const byDept = {};
+    records.forEach(r => {
+      const deptId = r.attend_members?.dept_id || '?';
+      if(!byDept[deptId]) byDept[deptId] = { total: 0, late: 0, absent: 0 };
+      byDept[deptId].total++;
+      if(r.penalty_type === 'late') byDept[deptId].late++;
+      if(r.penalty_type === 'absent') byDept[deptId].absent++;
+    });
+    const deptIds = Object.keys(byDept).sort((a,b) => {
+      const ai = DEPTS.findIndex(d => d.id === a);
+      const bi = DEPTS.findIndex(d => d.id === b);
+      return ai - bi;
+    });
+    if(deptIds.length === 0){
+      container.innerHTML = `<div class="empty"><div class="msg">기간 내 기록이 없어요</div></div>`;
+      return;
+    }
+    document.getElementById('stat-meta').textContent = `${deptIds.length}개 부서`;
+    const head = `<div class="stat-row head"><span>부서</span><span>봉사</span><span>지각</span><span>결석</span></div>`;
+    const body = deptIds.map(did => {
+      const s = byDept[did];
+      const dept = DEPTS.find(d => d.id === did);
+      return `<div class="stat-row">
+        <span class="stat-label">${dept ? dept.name : did}</span>
+        <span class="stat-num">${s.total}</span>
+        <span class="stat-num ${s.late ? 'late' : ''}">${s.late || '—'}</span>
+        <span class="stat-num ${s.absent ? 'absent' : ''}">${s.absent || '—'}</span>
+      </div>`;
+    }).join('');
+    container.innerHTML = head + body;
+    
+  } else {  // member
+    // 개인별
+    const byMember = {};
+    records.forEach(r => {
+      const mid = r.member_id;
+      if(!byMember[mid]){
+        byMember[mid] = { 
+          name: r.attend_members?.name || '?', 
+          deptId: r.attend_members?.dept_id || '?',
+          total: 0, late: 0, absent: 0, amount: 0 
+        };
+      }
+      byMember[mid].total++;
+      if(r.penalty_type === 'late') byMember[mid].late++;
+      if(r.penalty_type === 'absent') byMember[mid].absent++;
+      if(r.penalty_status === 'charged') byMember[mid].amount += (r.penalty_amount || 0);
+    });
+    const mids = Object.keys(byMember).sort((a,b) => 
+      (byMember[b].late + byMember[b].absent) - (byMember[a].late + byMember[a].absent));
+    if(mids.length === 0){
+      container.innerHTML = `<div class="empty"><div class="msg">기간 내 기록이 없어요</div></div>`;
+      return;
+    }
+    document.getElementById('stat-meta').textContent = `${mids.length}명`;
+    const head = `<div class="stat-row head member"><span>이름 · 부서</span><span>봉사</span><span>지각</span><span>결석</span><span>벌금</span></div>`;
+    const body = mids.map(mid => {
+      const s = byMember[mid];
+      const dept = DEPTS.find(d => d.id === s.deptId);
+      return `<div class="stat-row member">
+        <span class="stat-label">${escapeHtml(s.name)} <span style="color:var(--text-4);font-size:11px">${dept ? dept.name.split(' ')[1] || '' : ''}</span></span>
+        <span class="stat-num">${s.total}</span>
+        <span class="stat-num ${s.late ? 'late' : ''}">${s.late || '—'}</span>
+        <span class="stat-num ${s.absent ? 'absent' : ''}">${s.absent || '—'}</span>
+        <span class="stat-num">${s.amount > 0 ? fmtWon(s.amount) : '—'}</span>
+      </div>`;
+    }).join('');
+    container.innerHTML = head + body;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 기록 수정 (관리자) — 오늘 현황에서 행 클릭
+// ════════════════════════════════════════════════════════════
+let editingRecordId = null;
+let editingRecordDate = null;
+
+function openRecModal(recordId){
+  const rec = adminTodayRecords.find(r => r.id === recordId);
+  if(!rec){ showToast('기록을 찾을 수 없어요'); return; }
+  editingRecordId = recordId;
+  editingRecordDate = rec.record_date;
+  
+  const member = allMembers.find(m => m.id === rec.member_id);
+  const memberName = member ? member.name : '사명자';
+  
+  const inHM  = rec.check_in_at  ? fmtHM(new Date(rec.check_in_at))  : '';
+  const outHM = rec.check_out_at ? fmtHM(new Date(rec.check_out_at)) : '';
+  document.getElementById('edit-rec-in').value  = inHM;
+  document.getElementById('edit-rec-out').value = outHM;
+  document.getElementById('edit-rec-in-reason').value  = rec.check_in_reason || '';
+  document.getElementById('edit-rec-out-reason').value = rec.check_out_reason || '';
+  
+  const penKey = `${rec.penalty_type || 'none'}:${rec.penalty_amount || 0}:${rec.penalty_status || 'none'}`;
+  const penSel = document.getElementById('edit-rec-penalty');
+  penSel.value = [...penSel.options].some(o => o.value === penKey) ? penKey : 'none:0:none';
+  
+  document.getElementById('edit-rec-err').textContent = '';
+  document.getElementById('rec-modal-sub').textContent = `${memberName} · ${fmtDateKor(rec.record_date)}`;
+  document.getElementById('rec-modal-backdrop').classList.add('show');
+}
+
+function closeRecModal(){
+  document.getElementById('rec-modal-backdrop').classList.remove('show');
+  editingRecordId = null;
+}
+
+function closeRecModalIfBackdrop(e){
+  if(e.target.id === 'rec-modal-backdrop') closeRecModal();
+}
+
+async function saveRecEdit(){
+  if(!editingRecordId) return;
+  const inHM  = document.getElementById('edit-rec-in').value;
+  const outHM = document.getElementById('edit-rec-out').value;
+  const inReason  = document.getElementById('edit-rec-in-reason').value.trim();
+  const outReason = document.getElementById('edit-rec-out-reason').value.trim();
+  const penVal = document.getElementById('edit-rec-penalty').value;
+  const err = document.getElementById('edit-rec-err');
+  err.textContent = '';
+  
+  if(!inHM){ err.textContent = '시작 시각은 필수입니다'; return; }
+  
+  function hmToISO(hm){
+    if(!hm) return null;
+    const [h, m] = hm.split(':').map(Number);
+    const d = new Date(editingRecordDate + 'T00:00:00');
+    d.setHours(h, m, 0, 0);
+    return d.toISOString();
+  }
+  
+  const checkInISO = hmToISO(inHM);
+  const checkOutISO = hmToISO(outHM);
+  
+  if(checkOutISO && checkInISO && new Date(checkOutISO) < new Date(checkInISO)){
+    err.textContent = '종료 시각이 시작보다 빠릅니다';
+    return;
+  }
+  
+  const [pType, pAmount, pStatus] = penVal.split(':');
+  
+  const updates = {
+    check_in_at:  checkInISO,
+    check_out_at: checkOutISO,
+    check_in_reason:  inReason || null,
+    check_out_reason: outReason || null,
+    penalty_type:   pType,
+    penalty_amount: parseInt(pAmount) || 0,
+    penalty_status: pStatus,
+    updated_at: new Date().toISOString(),
+  };
+  
+  const { error } = await sb
+    .from('attend_records')
+    .update(updates)
+    .eq('id', editingRecordId);
+  
+  if(error){
+    console.error('[saveRecEdit]', error);
+    err.textContent = '저장 실패: ' + (error.message || '서버 오류');
+    return;
+  }
+  
+  closeRecModal();
+  showToast('✅ 기록이 수정되었습니다');
+  await loadAdminToday();
+}
+
 // 부서 필터 옵션
 function populateAdminDeptFilter(){
   const sel = document.getElementById('admin-f-dept');
@@ -2707,14 +4207,54 @@ function renderAdminToday(){
     const dept = DEPTS.find(d => d.id === member.dept_id);
     const deptName = dept ? dept.name : member.dept_id;
     
-    const inTime  = record?.check_in_at  ? fmtHM(new Date(record.check_in_at))  : '—';
-    const outTime = record?.check_out_at ? fmtHM(new Date(record.check_out_at)) : (record?.check_in_at ? '—' : '—');
+    // 시작 시각 + 상태 (시각화 개선)
+    let inMain = '—', inSub = '', inMainCls = 'none', inSubCls = '';
+    if(record?.check_in_at){
+      const inD = new Date(record.check_in_at);
+      inMain = fmtHM(inD);
+      // 시간 상태 판정 (8:40 / 9:01 기준)
+      const mins = inD.getHours() * 60 + inD.getMinutes();
+      if(mins > 9 * 60){              // 09:01 이후 = 결석
+        inSub = '결석';
+        inMainCls = 'absent';
+        inSubCls = 'absent';
+      } else if(mins > 8 * 60 + 40){  // 08:41 ~ 09:00 = 지각
+        inSub = '지각';
+        inMainCls = 'late';
+        inSubCls = 'late';
+      } else {                        // 08:40 이전 = 정상
+        inSub = '정시';
+        inSubCls = 'ok';
+      }
+    } else {
+      inSub = '미시작';
+    }
+    
+    // 종료 시각
+    let outMain = '—', outSub = '', outMainCls = 'none', outSubCls = '';
+    if(record?.check_out_at){
+      const outD = new Date(record.check_out_at);
+      outMain = fmtHM(outD);
+      const mins = outD.getHours() * 60 + outD.getMinutes();
+      if(mins < 20 * 60){     // 20:00 이전 = 조퇴
+        outSub = '조퇴';
+        outSubCls = 'late';
+      } else {
+        outSub = '정상';
+        outSubCls = 'ok';
+      }
+    } else if(record?.check_in_at){
+      outSub = '봉사 중';
+    } else {
+      outSub = '—';
+    }
+    
     const duration = (record?.check_in_at && record?.check_out_at)
       ? fmtDuration(new Date(record.check_out_at) - new Date(record.check_in_at))
-      : '—';
+      : (record?.check_in_at ? '진행 중' : '—');
     
-    // GPS 인증 — 시작·종료 둘 다 확인
-    let gpsHtml = '—';
+    // GPS 인증 — 시작·종료 둘 다
+    let gpsHtml = '<span style="color:var(--text-4)">—</span>';
     if(record){
       const inOk  = record.gps_verified === true;
       const outOk = record.gps_verified_out === true;
@@ -2732,12 +4272,22 @@ function renderAdminToday(){
     else if(status === 'done') tagHtml = '<span class="tag done">종료</span>';
     else tagHtml = '<span class="tag" style="background:var(--absent-soft);color:var(--text-3)">미시작</span>';
     
+    // 행 상태 클래스 (배경 그라데이션 + 좌측 경계)
+    const rowStatusCls = `row-status-${status}`;
+    const clickAttr = record ? `onclick="openRecModal(${record.id})" style="cursor:pointer"` : '';
+    
     return `
-      <div class="admin-table-row">
+      <div class="admin-table-row ${rowStatusCls}" ${clickAttr}>
         <span><span class="col-name">${escapeHtml(member.name)}</span> <span class="col-role">${escapeHtml(member.role || '')}</span></span>
         <span class="col-dept">${escapeHtml(deptName)}</span>
-        <span class="col-time">${inTime}</span>
-        <span class="col-time">${outTime}</span>
+        <span class="admin-time-cell">
+          <span class="t-main ${inMainCls}">${inMain}</span>
+          <span class="t-sub ${inSubCls}">${inSub}</span>
+        </span>
+        <span class="admin-time-cell">
+          <span class="t-main ${outMainCls}">${outMain}</span>
+          <span class="t-sub ${outSubCls}">${outSub}</span>
+        </span>
         <span class="col-dur">${duration}</span>
         <span>${gpsHtml}</span>
         <span>${tagHtml}</span>
@@ -2753,6 +4303,7 @@ async function init(){
   startClock();
   await loadAllMembers();
   await loadAllLocations();
+  await loadHolidays();   // 벌금 계산용 공휴일 Set
   // 저장된 사명자 자동 복원 (잠금 모드)
   const restored = await restoreSavedMember();
   if(!restored){
