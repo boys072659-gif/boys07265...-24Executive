@@ -4137,7 +4137,7 @@ const DEPTS = [
     {title:'연간 월별 계획', type:'event', items:[]},
   ]},
 
-  {id:'d18', name:'02 행정서무부', group:'admin', color:'#E8A04F', leader:'', sections:[
+  {id:'d02', name:'02 행정서무부', group:'admin', color:'#E8A04F', leader:'', sections:[
     {title:'핵심전략', type:'strategy', items:[]},
     {title:'중점 추진과제', type:'task', items:[]},
     {title:'연간 월별 계획', type:'event', items:[]},
@@ -4421,7 +4421,7 @@ const DEFAULT_DEPT_PASSWORDS = {
   // 나중에 추가된 부서 — 기본 비밀번호 (관리자 패널 🔐 부서 비밀번호 관리에서 변경 가능)
   'd01':  'chongmu24',     // 01 총무부 (카드 로그인용 — 관리자 전체권한은 마스터 로그인)
   'd17':  'beopmu24',      // 17 법무부
-  'd18':  'haengseo24',    // 02 행정서무부
+  'd02':  'haengseo24',    // 02 행정서무부
 };
 
 // 마스터 (총무부) 전용 비밀번호 - 따로 관리
@@ -4996,8 +4996,8 @@ const MASTER_DEPT = '총무부';
 function isMaster(u){ return u && u.name === MASTER_NAME && u.dept === MASTER_DEPT; }
 
 // 전체 열람 + 다운로드만 허용하는 '열람 전용' 부서 (편집·관리 권한은 없음)
-//   예: 행정서무부(d18) 정혜원 — chat_id 없이도 24개 부서 열람·다운로드 가능
-const VIEWER_DEPT_IDS = ['d18'];
+//   예: 행정서무부(d02) 정혜원 — chat_id 없이도 24개 부서 열람·다운로드 가능
+const VIEWER_DEPT_IDS = ['d02'];
 function isViewer(u){ return !!u && !isMaster(u) && VIEWER_DEPT_IDS.includes(u && u.deptId); }
 function canViewAll(u){ return isMaster(u) || isViewer(u); }   // 24개 부서 전체 보기
 function canDownload(u){ return isMaster(u) || isViewer(u); }  // 일괄 다운로드
