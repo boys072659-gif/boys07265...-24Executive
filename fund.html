@@ -1787,6 +1787,7 @@ const DEPTS = [
   {id:'d14', name:'14 섭외부',     group:'admin'},
   {id:'d15', name:'15 국내선교부', group:'admin'},
   {id:'d17', name:'17 법무부',     group:'admin'},
+  {id:'d18', name:'18 행정서무부', group:'admin'},
   {id:'d10', name:'10 문화부',     group:'culture'},
   {id:'d11', name:'11 출판부',     group:'culture'},
   {id:'d12', name:'12 정보통신부', group:'culture'},
@@ -1797,6 +1798,58 @@ const DEPTS = [
   {id:'d22', name:'22 보건후생복지부', group:'culture'},
   {id:'d23', name:'23 봉사교통부', group:'culture'},
 ];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 업무 대시보드(연간계획)와 부서 동기화
+//   index.html이 exec_checklist_overrides(kind:'dept')에 저장하는
+//   부서 추가/수정/삭제를 자금청구도 그대로 읽어 반영한다.
+//   → 대시보드 관리에서 부서·부서장을 한 번만 바꾸면 양쪽이 같이 움직인다.
+//   실패하면 기본 DEPTS만 사용(로그인·조회는 항상 동작).
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let EFF_DEPTS = DEPTS.slice();
+
+function _deptSortKey(d){
+  if(!d || !d.name) return 9999;
+  const m = d.name.match(/^(\d+)(?:[-.](\d+))?/);
+  if(!m) return 9999;
+  return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) / 10 : 0);
+}
+
+async function loadDeptOverrides(){
+  try {
+    const { data, error } = await sb
+      .from('exec_checklist_overrides')
+      .select('id,kind,action,target_id,payload');
+    if(error || !data){ EFF_DEPTS = DEPTS.slice(); return; }
+
+    // 올해 prefix(Y2026_…) 우선, 옛 키(접두어 없는 dept_…)도 호환
+    const yp = 'Y' + new Date().getFullYear() + '_';
+    const ovs = data.filter(r =>
+      r && r.kind === 'dept' &&
+      (r.id.startsWith(yp) || /^dept_(add|update|delete)_/.test(r.id))
+    );
+
+    let depts = DEPTS.map(d => ({ ...d }));
+    // 추가 → 수정 → 삭제 순서로 적용 (대시보드 getEffectiveDepts와 동일 결과)
+    ovs.filter(o => o.action === 'add' && o.payload).forEach(o => {
+      if(!depts.find(d => d.id === o.payload.id)) depts.push({ ...o.payload });
+    });
+    ovs.filter(o => o.action === 'update' && o.payload).forEach(o => {
+      const i = depts.findIndex(d => d.id === o.target_id);
+      if(i >= 0) depts[i] = { ...depts[i], ...o.payload };
+    });
+    ovs.filter(o => o.action === 'delete').forEach(o => {
+      const i = depts.findIndex(d => d.id === o.target_id);
+      if(i >= 0) depts.splice(i, 1);
+    });
+
+    depts.sort((a, b) => _deptSortKey(a) - _deptSortKey(b));
+    EFF_DEPTS = depts;
+  } catch(e){
+    console.warn('[fund] 부서 동기화 실패 — 기본 부서만 사용', e);
+    EFF_DEPTS = DEPTS.slice();
+  }
+}
 
 const STATUS_LABEL = {
   pending:       '승인 대기',
@@ -1854,7 +1907,7 @@ function fmtDateTime(s){
   });
 }
 function findDept(deptId){
-  return DEPTS.find(d => d.id === deptId);
+  return EFF_DEPTS.find(d => d.id === deptId);
 }
 function deptDisplayName(deptId){
   const d = findDept(deptId);
@@ -1886,7 +1939,7 @@ function initLoginScreen(){
   optMaster.textContent = `🔑 ${MASTER_DEPT} (관리자 — 전체 조회)`;
   sel.appendChild(optMaster);
   // 부서들
-  DEPTS.forEach(d => {
+  EFF_DEPTS.forEach(d => {
     const o = document.createElement('option');
     o.value = d.name;
     o.textContent = d.name;
@@ -1899,7 +1952,7 @@ function initLoginScreen(){
     const params = new URLSearchParams(window.location.search);
     const deptParam = params.get('dept');
     if(deptParam){
-      const deptObj = DEPTS.find(d => d.id === deptParam);
+      const deptObj = EFF_DEPTS.find(d => d.id === deptParam);
       if(deptObj){
         // 비번 없이 자동 로그인 (사용자 요청)
         currentUser = {
@@ -1964,7 +2017,7 @@ async function doLogin(){
     };
   } else {
     // 일반 부서 — exec_dept_passwords에서 dept_id로 검증
-    const deptObj = DEPTS.find(d => d.name === dept);
+    const deptObj = EFF_DEPTS.find(d => d.name === dept);
     if(!deptObj) return loginErr('알 수 없는 부서입니다');
     const ok = await verifyDeptPassword(deptObj.id, pw);
     if(ok !== true) return loginErr('비밀번호가 일치하지 않습니다');
@@ -2044,7 +2097,7 @@ function enterApp(){
   if(currentUser.isMaster){
     const sel = document.getElementById('f-dept');
     sel.innerHTML = '<option value="">전체</option>';
-    DEPTS.forEach(d => {
+    EFF_DEPTS.forEach(d => {
       const o = document.createElement('option');
       o.value = d.id;
       o.textContent = d.name;
@@ -2098,8 +2151,8 @@ function applyURLParamsOnce(){
     if(currentUser && currentUser.isMaster){
       const deptSel = document.getElementById('f-dept');
       if(deptSel){
-        // DEPTS에 있는 ID인지 확인
-        const exists = DEPTS.find(d => d.id === deptParam);
+        // 부서 목록(기본+대시보드 추가분)에 있는 ID인지 확인
+        const exists = EFF_DEPTS.find(d => d.id === deptParam);
         if(exists){
           deptSel.value = deptParam;
           renderList();
@@ -3067,7 +3120,15 @@ document.addEventListener('keydown', e => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 부팅
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-initLoginScreen();
+(async () => {
+  // 대시보드(연간계획)에서 추가/수정된 부서를 먼저 동기화한 뒤 로그인 화면 구성.
+  // 네트워크가 느려도 2.5초 안에는 기본 부서로 진행(로그인 막힘 방지).
+  await Promise.race([
+    loadDeptOverrides(),
+    new Promise(res => setTimeout(res, 2500))
+  ]);
+  initLoginScreen();
+})();
 </script>
 
 </body>
