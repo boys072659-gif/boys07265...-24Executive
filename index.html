@@ -4666,15 +4666,23 @@ async function forceUncompleteAllUI(){
 
   for(const t of targets){
     try {
-      // 1) 이 항목의 detail 오버라이드 행을 모두 제거 (옛/새 키 모두)
       const idNew = yearPrefix() + 'detail_' + t.itemId;
       const idOld = 'detail_' + t.itemId;
+
+      // 1) 체크리스트 항목(체크박스)도 함께 해제 — 잔재 제거
+      const itemKey = yearPrefix() + 'item_' + t.itemId;
+      try {
+        await sb.from('exec_checklist_items').delete().eq('item_key', itemKey);
+        delete cloudState[itemKey];
+      } catch(_){}
+
+      // 2) 이 항목의 detail 오버라이드 행을 모두 제거 (옛/새 키 모두)
       await sb.from('exec_checklist_overrides').delete().eq('id', idNew);
       await sb.from('exec_checklist_overrides').delete().eq('id', idOld);
       delete cloudOverrides[idNew];
       delete cloudOverrides[idOld];
 
-      // 2) 새 키로 completed=false detail 1개만 다시 저장
+      // 3) 새 키로 completed=false detail 1개만 다시 저장 (직접 upsert → 자동완료 우회)
       const updated = {
         ...t.detail,
         completed: false,
@@ -4705,7 +4713,22 @@ async function forceUncompleteAllUI(){
     }
   }
 
-  showToast(`✅ 정리 완료: ${success}건 미완료 처리${fail?` · 실패 ${fail}건`:''}`, 'success');
+  // 4) 적용 검증 — 메모리상 아직 줄 그어진(completed===true) 항목이 남았는지 재확인
+  let stillDone = 0;
+  getEffectiveDepts().forEach(dept => {
+    dept.sections.forEach(sec => {
+      if(sec.type !== 'event') return;
+      sec.items.forEach(item => {
+        if(item.detail && item.detail.completed === true) stillDone++;
+      });
+    });
+  });
+
+  if(stillDone > 0){
+    showToast(`⚠️ ${success}건 처리했지만 ${stillDone}건이 아직 완료로 읽힙니다 — 새로고침(↻) 후 한 번 더 눌러주세요`, 'error');
+  } else {
+    showToast(`✅ 정리 완료: ${success}건 미완료 처리${fail?` · 실패 ${fail}건`:''}`, 'success');
+  }
   setTimeout(() => render(), 400);
 }
 
