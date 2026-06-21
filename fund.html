@@ -1511,6 +1511,10 @@
     .topbar .user-info { font-size: 11.5px; }
   }
 </style>
+<style>
+@keyframes sj-spin { to { transform: rotate(360deg); } }
+#refresh-btn.is-spinning svg, .sj-refresh-btn.is-spinning svg { animation: sj-spin .8s linear infinite; }
+</style>
 </head>
 <body>
 
@@ -1597,6 +1601,14 @@
       <button class="tab-btn" data-tab="stats" role="tab" aria-selected="false" onclick="switchTab('stats')">
         <span class="tab-icon">📊</span>
         <span class="tab-label">통계 <span class="tab-sub">Statistics</span></span>
+      </button>
+      <button id="refresh-btn" class="sj-refresh-btn" onclick="refreshNow()" title="새로고침 (최신 데이터 다시 불러오기)" aria-label="새로고침"
+        style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #d8cdbf;background:#fff;border-radius:10px;cursor:pointer;color:#7a5a2a;font-size:13px;font-weight:600">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        새로고침
       </button>
     </div>
 
@@ -1822,11 +1834,13 @@ async function loadDeptOverrides(){
       .select('id,kind,action,target_id,payload');
     if(error || !data){ EFF_DEPTS = DEPTS.slice(); return; }
 
-    // 올해 prefix(Y2026_…) 우선, 옛 키(접두어 없는 dept_…)도 호환
-    const yp = 'Y' + new Date().getFullYear() + '_';
+    // 부서 오버라이드는 '연도와 무관하게' 인식한다.
+    //   대시보드(연간계획)는 activeYear별로 부서를 나눠 보지만,
+    //   자금청구는 부서가 '존재하는지'만 알면 되므로 모든 연도 prefix를 허용.
+    //   (예: Y2026_dept_add_…, Y2025_dept_add_…, 옛 키 dept_add_… 모두 인정)
     const ovs = data.filter(r =>
       r && r.kind === 'dept' &&
-      (r.id.startsWith(yp) || /^dept_(add|update|delete)_/.test(r.id))
+      /^(Y\d+_)?dept_(add|update|delete)_/.test(r.id)
     );
 
     let depts = DEPTS.map(d => ({ ...d }));
@@ -1917,6 +1931,35 @@ function deptDisplayName(deptId){
     return `미등록 (${deptId.slice(0, 8)}…)`;
   }
   return deptId || '—';
+}
+
+// 수동 새로고침 — 부서 동기화 + 청구 내역을 DB에서 다시 불러와 즉시 반영
+async function refreshNow(){
+  const btn = document.getElementById('refresh-btn');
+  if(btn) btn.classList.add('is-spinning');
+  showToast('🔄 새로고침 중…');
+  try {
+    await loadDeptOverrides();
+    if(currentUser && currentUser.isMaster){
+      const sel = document.getElementById('f-dept');
+      if(sel){
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">전체</option>';
+        EFF_DEPTS.forEach(d => {
+          const o = document.createElement('option');
+          o.value = d.id; o.textContent = d.name; sel.appendChild(o);
+        });
+        sel.value = cur;
+      }
+    }
+    await loadRequests();
+    showToast('✅ 새로고침됨 · ' + new Date().toLocaleTimeString('ko-KR', {hour12:false}));
+  } catch(e){
+    console.error('[refreshNow]', e);
+    showToast('새로고침 실패: ' + (e.message || ''));
+  } finally {
+    if(btn) btn.classList.remove('is-spinning');
+  }
 }
 
 function showToast(msg){

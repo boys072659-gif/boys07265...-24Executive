@@ -3390,6 +3390,10 @@
   body.edit-mode .add-section-btn { display: block; }
   .add-section-btn:hover { background: var(--bg-muted); color: var(--text); }
 </style>
+<style>
+@keyframes sj-spin { to { transform: rotate(360deg); } }
+#refresh-btn.is-spinning svg, .sj-refresh-btn.is-spinning svg { animation: sj-spin .8s linear infinite; }
+</style>
 </head>
 <body>
 
@@ -3474,6 +3478,13 @@
         <span class="conn-text-full" id="conn-text">연결 중</span>
       </div>
     </div>
+    <button id="refresh-btn" onclick="refreshNow()" title="새로고침 (최신 데이터 다시 불러오기)" aria-label="새로고침"
+      style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--border);background:var(--bg-elevated);border-radius:10px;cursor:pointer;color:var(--text-secondary);flex-shrink:0;margin-left:4px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+    </button>
     <!-- 연도 선택 (마스터 전용) -->
     <select class="year-select master-only" id="year-select" onchange="changeYear(this.value)" style="display:none">
       <!-- JS에서 옵션 채움 -->
@@ -9471,6 +9482,23 @@ function fmtTime(ts){
   if(diff < 3600) return Math.floor(diff/60)+'분 전';
   if(diff < 86400) return Math.floor(diff/3600)+'시간 전';
   return d.toLocaleDateString('ko-KR', {month:'numeric', day:'numeric'});
+}
+
+// 수동 새로고침 — DB에서 최신 데이터를 다시 불러와 즉시 반영 (전체 리로드 아님)
+async function refreshNow(){
+  if(!window._sbReady){ showToast('연결 대기 중', 'error'); return; }
+  const btn = document.getElementById('refresh-btn');
+  if(btn) btn.classList.add('is-spinning');
+  showToast('🔄 새로고침 중…', 'info');
+  try {
+    await startListening();  // checklist·overrides·passwords·telegram 재로딩 + render
+    showToast('✅ 최신 데이터로 새로고침됨 · ' + new Date().toLocaleTimeString('ko-KR', {hour12:false}), 'success');
+  } catch(e){
+    console.error('[refreshNow]', e);
+    showToast('새로고침 실패: ' + (e.message || ''), 'error');
+  } finally {
+    if(btn) btn.classList.remove('is-spinning');
+  }
 }
 
 function showToast(msg, type){

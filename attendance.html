@@ -1395,6 +1395,10 @@
     .history-duration { font-size: 12.5px; min-width: 62px; }
   }
 </style>
+<style>
+@keyframes sj-spin { to { transform: rotate(360deg); } }
+#refresh-btn.is-spinning svg, .sj-refresh-btn.is-spinning svg { animation: sj-spin .8s linear infinite; }
+</style>
 </head>
 <body>
 
@@ -1412,6 +1416,13 @@
   <nav class="tabs">
     <button class="tab active" data-tab="member" onclick="switchTab('member')">내 봉사</button>
     <button class="tab" data-tab="admin" onclick="switchTab('admin')">관리자</button>
+    <button id="refresh-btn" class="sj-refresh-btn" onclick="refreshNow()" title="새로고침 (최신 데이터 다시 불러오기)" aria-label="새로고침"
+      style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:32px;margin-left:6px;border:1px solid rgba(0,0,0,0.12);background:#fff;border-radius:9px;cursor:pointer;color:#1C2333">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+    </button>
   </nav>
 </header>
 
@@ -2180,6 +2191,29 @@ function isLate(iso, workStart=9){
   const d = new Date(iso);
   return d.getHours() > workStart || (d.getHours() === workStart && d.getMinutes() > 0);
 }
+// 수동 새로고침 — 현재 화면에 맞춰 DB에서 데이터를 다시 불러와 즉시 반영
+async function refreshNow(){
+  const btn = document.getElementById('refresh-btn');
+  if(btn) btn.classList.add('is-spinning');
+  showToast('🔄 새로고침 중…');
+  let ok = true;
+  const tasks = [ () => loadAllLocations() ];
+  if(currentMemberId){
+    tasks.push(() => loadTodayRecord());
+    tasks.push(() => loadMyRecords());
+  }
+  if(isAdminLoggedIn){
+    tasks.push(() => loadAdminToday());
+  }
+  for(const t of tasks){
+    try { await t(); } catch(e){ ok = false; console.warn('[refreshNow]', e); }
+  }
+  if(btn) btn.classList.remove('is-spinning');
+  showToast(ok
+    ? ('✅ 새로고침됨 · ' + new Date().toLocaleTimeString('ko-KR', {hour12:false}))
+    : '일부 항목 새로고침 실패 (콘솔 확인)');
+}
+
 function showToast(msg, duration=2500){
   const t = document.getElementById('toast');
   t.textContent = msg;
