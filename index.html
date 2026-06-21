@@ -4997,16 +4997,26 @@ function isMaster(u){ return u && u.name === MASTER_NAME && u.dept === MASTER_DE
 
 // 전체 열람 + 다운로드만 허용하는 '열람 전용' 부서 (편집·관리 권한은 없음)
 //   예: 행정서무부(d02) 정혜원 — chat_id 없이도 24개 부서 열람·다운로드 가능
-const VIEWER_DEPT_IDS = ['d02'];
+const VIEWER_DEPT_IDS = ['d02', 'd18'];  // d18은 옛 id 안전망 — 마이그 전이라도 권한 정상 동작
 function isViewer(u){ return !!u && !isMaster(u) && VIEWER_DEPT_IDS.includes(u && u.deptId); }
 function canViewAll(u){ return isMaster(u) || isViewer(u); }   // 24개 부서 전체 보기
 function canDownload(u){ return isMaster(u) || isViewer(u); }  // 일괄 다운로드
 
+// 행정서무부: 옛 id(d18) ↔ 새 id(d02) 둘 다 인식한다.
+//   DB 마이그레이션이 끝나기 전이나, exec_checklist_overrides가 옛 id로 부서를
+//   다시 끌고 오는 경우에도 비밀번호가 막히지 않도록 안전망.
+const HAENGSEO_ID_ALIASES = { 'd02': 'd18', 'd18': 'd02' };
+
 // === 부서별 비밀번호 관리 ===
 function getDeptPassword(deptId){
-  // 클라우드에 저장된 게 우선, 없으면 기본값
+  // 1) DB에 저장된 비번 (해당 id 또는 별칭 id로 저장돼 있을 수 있음)
   if(cloudPasswords[deptId]) return cloudPasswords[deptId];
-  return DEFAULT_DEPT_PASSWORDS[deptId] || null;
+  const alias = HAENGSEO_ID_ALIASES[deptId];
+  if(alias && cloudPasswords[alias]) return cloudPasswords[alias];
+  // 2) 기본 비번 (해당 id 또는 별칭 id)
+  if(DEFAULT_DEPT_PASSWORDS[deptId]) return DEFAULT_DEPT_PASSWORDS[deptId];
+  if(alias && DEFAULT_DEPT_PASSWORDS[alias]) return DEFAULT_DEPT_PASSWORDS[alias];
+  return null;
 }
 
 function getMasterPassword(){
