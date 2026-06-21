@@ -2073,6 +2073,46 @@ function getCurrentPosition(){
   });
 }
 
+// 여러 번 측정해 가장 정확한(accuracy가 작은) 위치를 채택한다.
+// 5층 실내처럼 첫 신호가 수백 m 튀는 환경에서 오차를 크게 줄인다.
+//  - 충분히 정확한 값(<= goodEnough)이 들어오면 즉시 종료
+//  - 아니면 표본을 모으거나(maxWait) 시간이 차면 그때까지의 최선값으로 종료
+function getBestPosition({ samples = 6, goodEnough = 35, maxWait = 9000 } = {}){
+  return new Promise((resolve, reject) => {
+    if(!('geolocation' in navigator)){
+      reject({ code: -1, message: '이 브라우저는 위치 기능을 지원하지 않습니다' });
+      return;
+    }
+    let best = null, count = 0, settled = false, watchId = null;
+    const stop = () => {
+      if(settled) return;
+      settled = true;
+      if(watchId != null){ try { navigator.geolocation.clearWatch(watchId); } catch(_){} }
+      clearTimeout(timer);
+      if(best){
+        resolve({ lat: best.coords.latitude, lng: best.coords.longitude, accuracy: best.coords.accuracy });
+      } else {
+        reject({ code: 2, message: '위치 정보를 가져올 수 없습니다' });
+      }
+    };
+    const onPos = pos => {
+      count++;
+      if(!best || pos.coords.accuracy < best.coords.accuracy) best = pos;
+      if((best && best.coords.accuracy <= goodEnough) || count >= samples) stop();
+    };
+    const onErr = err => { if(!best) reject(err); };  // 이미 표본이 있으면 에러는 무시
+    const timer = setTimeout(stop, maxWait);          // 최대 대기 후 최선값으로 종료
+    try {
+      watchId = navigator.geolocation.watchPosition(
+        onPos, onErr,
+        { enableHighAccuracy: true, timeout: maxWait, maximumAge: 0 }
+      );
+    } catch(e){
+      reject({ code: 2, message: '위치 측정을 시작할 수 없습니다' });
+    }
+  });
+}
+
 function gpsErrorText(err){
   if(!err) return '위치를 확인할 수 없습니다';
   if(err.code === 1) return '위치 권한이 거부되었습니다';
@@ -2093,20 +2133,33 @@ async function verifyGPS(location){
              lat: null, lng: null, message: '봉사 장소에 기준 좌표가 없습니다 (관리자에 문의)' };
   }
   try {
-    const fix = await getCurrentPosition();
+    const fix = await getBestPosition();
     const distance = haversineDistance(fix.lat, fix.lng, location.lat, location.lng);
     const radius = Number(location.radius || 100);
-    const within = distance <= radius;
+    const acc = Math.round(fix.accuracy || 0);
+    // GPS 자체 오차(±accuracy)를 허용 범위에 반영 — 실내 보정 (상한 ACC_CAP).
+    // 예: 반경 300m, GPS 오차 ±900m → 1200m까지 "범위 안"으로 인정.
+    const ACC_CAP = 1500;
+    const accUsed = Math.min(acc, ACC_CAP);
+    const tolerance = radius + accUsed;
+    const withinStrict = distance <= radius;
+    const within = distance <= tolerance;
+    let message;
+    if(withinStrict){
+      message = `위치 확인됨 · 거리 ${fmtDistance(distance)} (허용 ${radius}m)`;
+    } else if(within){
+      message = `위치 확인됨 · 거리 ${fmtDistance(distance)} · GPS 오차 ±${accUsed}m 감안 (허용 ${radius}m)`;
+    } else {
+      message = `봉사 장소에서 ${fmtDistance(distance)} 떨어짐 · GPS 오차 ±${acc}m (허용 ${radius}m)`;
+    }
     return {
       tried: true,
       success: within,
       distance: Math.round(distance),
-      accuracy: Math.round(fix.accuracy),
+      accuracy: acc,
       lat: fix.lat,
       lng: fix.lng,
-      message: within
-        ? `위치 확인됨 · ${fmtDistance(distance)} (허용 ${radius}m)`
-        : `봉사 장소에서 ${fmtDistance(distance)} 떨어져 있음 (허용 ${radius}m)`,
+      message,
     };
   } catch(err) {
     return {
@@ -3410,7 +3463,7 @@ async function setCurrentPositionToLoc(){
   hint.className = 'loc-gps-hint-text';
   
   try {
-    const fix = await getCurrentPosition();
+    const fix = await getBestPosition();
     document.getElementById('edit-loc-lat').value = fix.lat.toFixed(6);
     document.getElementById('edit-loc-lng').value = fix.lng.toFixed(6);
     hint.textContent = `✓ 측정됨 · 정확도 ${Math.round(fix.accuracy)}m`;
@@ -3435,7 +3488,7 @@ async function setCurrentPositionFromList(locId){
   
   showToast('📡 위치 측정 중...');
   try {
-    const fix = await getCurrentPosition();
+    const fix = await getBestPosition();
     const { error } = await sb
       .from('attend_locations')
       .update({ lat: fix.lat, lng: fix.lng })
