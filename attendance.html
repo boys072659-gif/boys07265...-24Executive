@@ -1625,11 +1625,13 @@
           <div class="admin-add-row loc-add-row">
             <input id="add-loc-name" class="add-input" placeholder="장소 이름 (예: 본부)" maxlength="30">
             <input id="add-loc-address" class="add-input" placeholder="주소 (선택)" maxlength="100">
-            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="100">
+            <input id="add-loc-lat" class="add-input" type="text" inputmode="decimal" placeholder="위도 (예: 37.647144)" oninput="onAddLatInput()">
+            <input id="add-loc-lng" class="add-input" type="text" inputmode="decimal" placeholder="경도 (예: 127.063121)">
+            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="1000">
             <button class="add-btn" onclick="onAddLocation()">+ 추가</button>
           </div>
           <div class="admin-add-hint">
-            좌표는 추가 후 "현재 위치로 설정" 버튼으로 정확히 잡으세요. GPS 사용 안 함은 추가 후 토글.
+            위도·경도는 지도(구글/카카오맵)에서 복사해 붙여넣으세요. "37.647144, 127.063121"처럼 한 번에 붙여넣어도 자동으로 나뉩니다. 비워두면 추가 후 "현재 위치로 설정"으로 잡을 수 있어요.
           </div>
           <div class="admin-add-err" id="add-loc-err"></div>
         </div>
@@ -3366,7 +3368,7 @@ function renderLocations(){
 async function onAddLocation(){
   const name = document.getElementById('add-loc-name').value.trim();
   const address = document.getElementById('add-loc-address').value.trim();
-  const radius = parseInt(document.getElementById('add-loc-radius').value) || 100;
+  const radius = parseInt(document.getElementById('add-loc-radius').value) || 1000;
   const err = document.getElementById('add-loc-err');
   err.textContent = '';
   
@@ -3381,6 +3383,25 @@ async function onAddLocation(){
     err.textContent = '반경은 10m ~ 5000m 사이';
     return;
   }
+
+  // 좌표 (선택) — "위도, 경도" 통째 붙여넣기도 허용
+  let latRaw = document.getElementById('add-loc-lat').value.trim();
+  let lngRaw = document.getElementById('add-loc-lng').value.trim();
+  if(latRaw.includes(',') && !lngRaw){
+    const p = latRaw.split(',').map(s => s.trim());
+    latRaw = p[0] || ''; lngRaw = p[1] || '';
+  }
+  const latN = latRaw === '' ? null : parseFloat(latRaw);
+  const lngN = lngRaw === '' ? null : parseFloat(lngRaw);
+  if(latN != null && (isNaN(latN) || latN < -90 || latN > 90)){
+    err.textContent = '위도 값이 잘못됨 (-90 ~ 90)'; return;
+  }
+  if(lngN != null && (isNaN(lngN) || lngN < -180 || lngN > 180)){
+    err.textContent = '경도 값이 잘못됨 (-180 ~ 180)'; return;
+  }
+  if((latN == null) !== (lngN == null)){
+    err.textContent = '위도·경도는 둘 다 입력하거나 둘 다 비워주세요'; return;
+  }
   
   // sort_order — max + 1
   const maxOrder = adminAllLocations.length > 0
@@ -3390,8 +3411,8 @@ async function onAddLocation(){
   const row = {
     name:        name,
     address:     address || null,
-    lat:         null,
-    lng:         null,
+    lat:         latN,
+    lng:         lngN,
     radius:      radius,
     gps_enabled: true,
     is_active:   true,
@@ -3413,11 +3434,29 @@ async function onAddLocation(){
   // 폼 초기화
   document.getElementById('add-loc-name').value = '';
   document.getElementById('add-loc-address').value = '';
-  document.getElementById('add-loc-radius').value = '100';
+  document.getElementById('add-loc-lat').value = '';
+  document.getElementById('add-loc-lng').value = '';
+  document.getElementById('add-loc-radius').value = '1000';
   
-  showToast(`✅ ${data.name} 추가됨 (좌표는 수정에서 설정)`);
+  showToast(latN != null
+    ? `✅ ${data.name} 추가됨 · 좌표 설정됨 (반경 ${radius}m)`
+    : `✅ ${data.name} 추가됨 (좌표는 수정에서 설정)`);
   await loadAllLocationsAdmin();
   await loadAllLocations();  // 메인 드롭다운 갱신
+}
+
+// 위도 칸에 "위도, 경도"를 통째로 붙여넣으면 경도 칸으로 자동 분리
+function onAddLatInput(){
+  const latEl = document.getElementById('add-loc-lat');
+  const lngEl = document.getElementById('add-loc-lng');
+  if(!latEl) return;
+  if(latEl.value.includes(',')){
+    const parts = latEl.value.split(',').map(s => s.trim());
+    if(parts.length >= 2){
+      latEl.value = parts[0];
+      if(lngEl && !lngEl.value) lngEl.value = parts[1];
+    }
+  }
 }
 
 // 장소 수정 모달

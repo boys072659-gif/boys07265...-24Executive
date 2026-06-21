@@ -8905,6 +8905,7 @@ function openTelegramPanel(){
             ? `<div class="tg-chat-id">${escapeHtml(tg.chat_id)}${tg.topic_id?`<span style="color:var(--accent);font-weight:600"> · 토픽 ${escapeHtml(tg.topic_id)}</span>`:''}${tg.note?` <span style="color:var(--text-tertiary)">· ${escapeHtml(tg.note)}</span>`:''}</div>`
             : ''
           }
+          <button class="btn" onclick="deleteDeptFromTelegram('${d.id}','${escapeHtml(d.name).replace(/'/g,"\\\\'")}')" style="padding:5px 9px;font-size:12px;background:#fff0f0;border-color:#e7a3a3;color:#b53b3b" title="이 부서 항목 삭제 (중복 정리용)">🗑</button>
           <button class="btn btn-primary" onclick="openTelegramEdit('${d.id}','${escapeHtml(d.name).replace(/'/g,"\\\\'")}')" style="padding:5px 11px;font-size:12px">${hasChat?'수정':'등록'}</button>
         </div>
       `;
@@ -9356,6 +9357,27 @@ async function deleteDept(deptId){
   showToast('부서 삭제됨', 'success');
   closeModal();
   render();
+}
+
+// 텔레그램 패널에서 중복/불필요 부서 항목 삭제 (관리자 전용)
+//  - 기본 부서면 dept_delete 오버라이드 등록, 커스텀(추가)부서면 add/update 오버라이드 제거
+//  - 목록에서만 제거됨. exec_dept_telegram의 등록 정보 행 자체는 건드리지 않음.
+async function deleteDeptFromTelegram(deptId, deptName){
+  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+  if(!confirm(`"${deptName}" 부서 항목을 목록에서 삭제할까요?\n\n중복으로 잘못 추가된 부서를 정리할 때 사용하세요.\n("미등록"으로 뜨는 중복 항목을 지우면 됩니다.)`)) return;
+  await deleteOverride(yearPrefix() + 'dept_update_' + deptId);
+  await deleteOverride(yearPrefix() + 'dept_add_' + deptId);
+  await deleteOverride('dept_update_' + deptId);
+  await deleteOverride('dept_add_' + deptId);
+  if(DEPTS.find(d => d.id === deptId)){
+    await writeOverride({
+      id: yearPrefix() + 'dept_delete_' + deptId,
+      kind: 'dept', action: 'delete', target_id: deptId, payload: null
+    });
+  }
+  showToast('부서 항목 삭제됨', 'success');
+  render();
+  openTelegramPanel();
 }
 
 // === 그룹/필터 ===
