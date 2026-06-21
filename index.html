@@ -4991,6 +4991,13 @@ const MASTER_NAME = '서울야고보';
 const MASTER_DEPT = '총무부';
 function isMaster(u){ return u && u.name === MASTER_NAME && u.dept === MASTER_DEPT; }
 
+// 전체 열람 + 다운로드만 허용하는 '열람 전용' 부서 (편집·관리 권한은 없음)
+//   예: 행정서무부(d18) 정혜원 — chat_id 없이도 24개 부서 열람·다운로드 가능
+const VIEWER_DEPT_IDS = ['d18'];
+function isViewer(u){ return !!u && !isMaster(u) && VIEWER_DEPT_IDS.includes(u && u.deptId); }
+function canViewAll(u){ return isMaster(u) || isViewer(u); }   // 24개 부서 전체 보기
+function canDownload(u){ return isMaster(u) || isViewer(u); }  // 일괄 다운로드
+
 // === 부서별 비밀번호 관리 ===
 function getDeptPassword(deptId){
   // 클라우드에 저장된 게 우선, 없으면 기본값
@@ -5201,7 +5208,8 @@ function logout(){
 
 function updateUserDisplay(){
   if(!user) return;
-  const masterBadge = isMaster(user) ? ' <span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px">관리자</span>' : '';
+  const masterBadge = isMaster(user) ? ' <span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px">관리자</span>'
+    : (isViewer(user) ? ' <span style="background:#2160c4;color:#fff;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px">전체열람</span>' : '');
   // 일반 부서장: 부서명을 크게 (이름 입력 안 받으므로)
   // 마스터: '서울야고보' 표시
   const isUserMaster = isMaster(user);
@@ -7107,7 +7115,7 @@ function buildDeptSummaryText(deptName, items, monthLabel){
 }
 
 async function downloadAllByMonth(monthFilter){
-  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+  if(!canDownload(user)){ showToast('전체 열람·다운로드 권한이 없습니다', 'error'); return; }
   const depts = getEffectiveDepts();
 
   // 각 부서별로 해당 월 항목 수집 (텍스트+파일)
@@ -7298,7 +7306,7 @@ function openDeptDownloadModal(deptId){
 
 // === 마스터(총무부) 전체 부서 다운로드 모달 ===
 function openMasterDownloadModal(){
-  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다'); return; }
+  if(!canDownload(user)){ showToast('전체 열람·다운로드 권한이 없습니다'); return; }
   closeSheet();
 
   const depts = getEffectiveDepts();
@@ -9013,7 +9021,7 @@ async function saveTelegramEdit(deptId, deptName){
 }
 
 function openMonthlyOverview(){
-  if(!isMaster(user)){ showToast('관리자만 사용할 수 있습니다', 'error'); return; }
+  if(!canViewAll(user)){ showToast('전체 열람 권한이 없습니다', 'error'); return; }
   closeSheet();
 
   const depts = getEffectiveDepts();
@@ -9583,7 +9591,7 @@ function openSheet(type){
         // 모바일에서 표시할 부서 목록
         // - 마스터: 24개 부서 전부
         // - 일반 부서장: 본인 부서만
-        const visibleDepts = isMaster(user)
+        const visibleDepts = canViewAll(user)
           ? getEffectiveDepts()
           : getEffectiveDepts().filter(d => user.deptId ? d.id === user.deptId : (d.name === user.dept || d.name.includes(user.dept)));
 
@@ -9596,7 +9604,7 @@ function openSheet(type){
           else { if(!byGroup.other) byGroup.other = []; byGroup.other.push(d); }
         });
         const groupOrder = ['inner', 'admin', 'culture', 'other'];
-        const showGroupHeaders = isMaster(user) && visibleDepts.length > 1;
+        const showGroupHeaders = canViewAll(user) && visibleDepts.length > 1;
 
         let html = `
           <div class="sheet-section">
@@ -10223,7 +10231,7 @@ function render(){
   const allDepts = getEffectiveDepts();
   // 일반 사용자는 자기 부서만 통계에 포함
   let visibleDepts;
-  if(user && !isMaster(user)){
+  if(user && !canViewAll(user)){
     // deptId가 있으면 정확히 매칭, 없으면 이름으로 매칭(폴백)
     if(user.deptId){
       visibleDepts = allDepts.filter(d => d.id === user.deptId);
@@ -10302,10 +10310,10 @@ function render(){
   });
 
   // 일반 사용자는 그룹 사이드바 숨김 (의미 없음)
-  if(user && !isMaster(user)){
+  if(user && !canViewAll(user)){
     document.body.classList.add('single-dept-mode');
     document.body.classList.remove('master-mode');
-  } else if(user && isMaster(user)){
+  } else if(user && canViewAll(user)){
     document.body.classList.add('master-mode');
     document.body.classList.remove('single-dept-mode');
   } else {
@@ -10313,10 +10321,17 @@ function render(){
     document.body.classList.remove('master-mode');
   }
 
-  // 마스터 전용 메뉴 표시
+  // 마스터 전용 메뉴 표시 (관리 기능은 마스터에게만)
   document.querySelectorAll('.master-only').forEach(el=>{
     el.style.display = isMaster(user) ? '' : 'none';
   });
+  // 열람 전용(행정서무부 등): 보기·다운로드 관련 항목만 추가로 노출 (관리 기능은 계속 숨김)
+  if(isViewer(user)){
+    ['nav-master-download','nav-monthly-overview','sidebar-dept-list','monthly-stats-card','cs-divider-month','cs-current-month'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.style.display = '';
+    });
+  }
 
   const q = (document.getElementById('search-input')||{}).value?.toLowerCase()||'';
   const list = document.getElementById('dept-list');
@@ -10336,8 +10351,8 @@ function render(){
 
   let shown = 0;
   depts.forEach(dept=>{
-    // 일반 사용자는 자기 부서만 보이게 (마스터/관리자는 전체)
-    if(user && !isMaster(user)){
+    // 일반 사용자는 자기 부서만 보이게 (마스터/열람전용은 전체)
+    if(user && !canViewAll(user)){
       // deptId가 있으면 정확히 매칭, 없으면 이름으로
       if(user.deptId){
         if(dept.id !== user.deptId) return;
