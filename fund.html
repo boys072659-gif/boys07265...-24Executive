@@ -1514,6 +1514,167 @@
 <style>
 @keyframes sj-spin { to { transform: rotate(360deg); } }
 #refresh-btn.is-spinning svg, .sj-refresh-btn.is-spinning svg { animation: sj-spin .8s linear infinite; }
+
+/* ━━━ 발송 탭 — 업무 대시보드와 동일한 풍부한 UI ━━━ */
+.send-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.send-label {
+  display: block;
+  font-family: var(--font-num);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 8px;
+}
+.send-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+.send-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.bcast-textarea {
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 160px;
+}
+
+/* 서식 도구바 */
+.bcast-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.bcast-toolbar + .emoji-panel + .bcast-textarea,
+.bcast-toolbar + .bcast-textarea {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.bcast-tool {
+  width: 32px; height: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+  padding: 0;
+}
+.bcast-tool:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 이모지 패널 */
+.emoji-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 10px 12px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.emoji-category {
+  margin-bottom: 8px;
+}
+.emoji-cat-label {
+  font-family: var(--font-num);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.emoji-item {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.1s;
+  user-select: none;
+}
+.emoji-item:hover { background: var(--bg-hover); }
+
+/* 미리보기 */
+.bcast-preview {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f0f7ff;
+  border: 1px solid #c8dbf5;
+  border-radius: 8px;
+}
+.bcast-preview-label {
+  font-family: var(--font-num);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--grp-inner);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.bcast-preview-bubble {
+  background: #ffffff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.bcast-preview-bubble b { font-weight: 700; }
+.bcast-preview-bubble i { font-style: italic; }
+.bcast-preview-bubble u { text-decoration: underline; }
+.bcast-preview-bubble code { background:#f4f1ea; padding:1px 5px; border-radius:3px; font-family: var(--font-num); font-size: 12.5px; }
+.bcast-preview-bubble blockquote { border-left: 3px solid var(--accent); padding-left: 10px; margin: 6px 0; color: var(--text-secondary); }
+.bcast-preview-bubble a { color: var(--grp-inner); text-decoration: underline; }
+
+/* 이미지 첨부 영역 */
+.bcast-image-zone {
+  background: var(--bg-subtle);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.bcast-image-zone:has(#bcast-image-preview[style*="flex"]) {
+  border-style: solid;
+  background: var(--bg-card);
+}
 </style>
 </head>
 <body>
@@ -1752,85 +1913,177 @@
 
     <!-- ━━━ 탭 3: 발송 (마스터 전용) ━━━ -->
     <div id="tab-send" class="tab-panel">
-      <div style="max-width:760px">
+      <div style="max-width:780px">
+
+        <!-- ⚠️ 경고 배너 -->
+        <div style="margin-bottom:14px;padding:12px 14px;background:#fff8e1;border:1px solid #f0c674;border-radius:8px;font-size:12.5px;color:#8a5a16;line-height:1.6">
+          ⚠️ <b>중요:</b> 이 기능은 즉시 메시지를 발송합니다. 신중히 사용하세요.
+        </div>
 
         <!-- 봇 토큰 -->
-        <div class="filter-bar" style="grid-template-columns:1fr auto;margin-bottom:18px">
-          <div class="field">
-            <label for="send-token">텔레그램 봇 토큰</label>
-            <input type="password" id="send-token" placeholder="123456:ABC-DEF... (업무 대시보드와 동일 봇)" oninput="saveSendToken()">
+        <div class="send-block">
+          <label class="send-label">봇 토큰 <span style="color:var(--cancelled)">*</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="password" class="send-input" id="bcast-token" placeholder="1234567890:AAH-abc..." autocomplete="off" style="flex:1">
+            <button class="btn btn-sm" type="button" onclick="_toggleTokenVisibility()" id="bcast-token-eye" title="토큰 보기/숨기기" style="padding:8px 12px">👁</button>
+            <button class="btn btn-sm" type="button" onclick="_clearSavedToken()" id="bcast-token-clear" title="저장된 토큰 삭제" style="padding:8px 10px;color:var(--cancelled);display:none">🗑</button>
           </div>
-          <div class="field">
-            <label>&nbsp;</label>
-            <button class="btn btn-sm" onclick="toggleSendToken()" id="send-token-eye">표시</button>
-          </div>
-        </div>
-
-        <!-- 발송 폼 -->
-        <div class="table-wrap" style="margin-bottom:18px">
-          <div class="table-meta">
-            <span class="count">📤 부서 자금청구 토픽으로 메시지 보내기</span>
-          </div>
-          <div style="padding:18px 20px">
-            <div class="field" style="margin-bottom:14px">
-              <label for="send-dept" style="font-family:var(--font-num);font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">대상 부서</label>
-              <select id="send-dept" onchange="onSendDeptChange()" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;background:var(--bg-card);color:var(--text);font-family:var(--font-body)">
-                <option value="">— 부서 선택 —</option>
-              </select>
-              <div id="send-dept-info" style="margin-top:7px;font-size:12px;color:var(--text-tertiary);font-family:var(--font-num)"></div>
-            </div>
-
-            <div class="field" style="margin-bottom:14px">
-              <label for="send-message" style="font-family:var(--font-num);font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">메시지 내용</label>
-              <textarea id="send-message" rows="6" placeholder="보낼 내용을 입력하세요. (HTML 일부 지원: &lt;b&gt;굵게&lt;/b&gt;, &lt;i&gt;기울임&lt;/i&gt;)" style="width:100%;padding:12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;background:var(--bg-card);color:var(--text);font-family:var(--font-body);line-height:1.6;resize:vertical"></textarea>
-              <div style="margin-top:6px;font-size:11.5px;color:var(--text-tertiary);font-family:var(--font-num)">
-                <span id="send-char-count">0자</span>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:8px;align-items:center">
-              <button class="btn btn-primary" onclick="executeFundSend()" id="send-btn" style="padding:11px 20px">
-                📤 발송
-              </button>
-              <span id="send-status" style="font-size:13px;color:var(--text-tertiary)"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 부서 토픽 관리 -->
-        <div class="table-wrap" style="margin-bottom:18px">
-          <div class="table-meta">
-            <span class="count">⚙️ 부서 자금청구 토픽 등록/수정</span>
-            <span class="right">
-              <button class="btn-csv" onclick="loadFundTopics()" title="새로고침">↻ 새로고침</button>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;background:var(--bg-subtle);border-radius:8px;border:1px solid var(--border);margin-top:10px;user-select:none">
+            <input type="checkbox" id="bcast-remember" style="width:16px;height:16px;cursor:pointer">
+            <span style="flex:1">
+              <span style="font-size:13px;font-weight:600;color:var(--text)">💾 이 기기에 토큰 저장</span>
+              <span style="display:block;font-size:11.5px;color:var(--text-tertiary);margin-top:2px">다음 방문 시 자동으로 채워집니다 (이 브라우저에만 저장 · 업무 대시보드와 공유)</span>
             </span>
+          </label>
+        </div>
+
+        <!-- 대상 부서 (chat_id 자동 승계) + 토픽 ID -->
+        <div class="send-block">
+          <label class="send-label">대상 부서 <span style="color:var(--cancelled)">*</span></label>
+          <select class="send-input" id="bcast-dept" onchange="onSendDeptChange()">
+            <option value="">— 부서 선택 —</option>
+          </select>
+          <div id="bcast-dept-info" style="margin-top:8px;font-size:12px;color:var(--text-tertiary);font-family:var(--font-num);line-height:1.6"></div>
+
+          <div id="bcast-topic-row" style="display:none;margin-top:12px;padding:12px;background:var(--bg-subtle);border-radius:8px;border:1px solid var(--border)">
+            <label style="display:block;font-family:var(--font-num);font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">자금청구 토픽 ID <span style="color:var(--cancelled)">*</span></label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" class="send-input" id="bcast-topic-id" placeholder="예: 839 (없으면 일반 채팅)" style="flex:1;font-family:var(--font-num)">
+              <button class="btn btn-sm btn-primary" type="button" onclick="saveTopicIdForDept()" style="padding:9px 14px;white-space:nowrap">💾 저장</button>
+            </div>
+            <div style="margin-top:6px;font-size:11.5px;color:var(--text-tertiary);line-height:1.5">
+              · 텔레그램 그룹의 자금청구 토픽 번호. 저장하면 다음부터 자동 입력됩니다.<br>
+              · 토픽 번호 찾기: 텔레그램에서 토픽 우클릭 → 링크 복사 → URL 끝 숫자
+            </div>
           </div>
-          <div style="padding:14px 20px">
-            <div style="display:grid;grid-template-columns:1.3fr 1.4fr 0.9fr auto;gap:8px;align-items:end;margin-bottom:12px">
-              <div class="field">
-                <label style="font-family:var(--font-num);font-size:9.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px">부서</label>
-                <select id="topic-dept" style="width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-card);color:var(--text);font-family:var(--font-body)">
-                  <option value="">— 선택 —</option>
-                </select>
-              </div>
-              <div class="field">
-                <label style="font-family:var(--font-num);font-size:9.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px">Chat ID (그룹)</label>
-                <input type="text" id="topic-chatid" placeholder="-1003733751502" style="width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-card);color:var(--text);font-family:var(--font-num)">
-              </div>
-              <div class="field">
-                <label style="font-family:var(--font-num);font-size:9.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px">토픽 ID</label>
-                <input type="text" id="topic-topicid" placeholder="839" style="width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:13px;background:var(--bg-card);color:var(--text);font-family:var(--font-num)">
-              </div>
-              <div class="field">
-                <label style="display:block;margin-bottom:5px">&nbsp;</label>
-                <button class="btn btn-sm btn-primary" onclick="saveFundTopic()" style="white-space:nowrap">저장</button>
+        </div>
+
+        <!-- 메시지 + 서식 도구바 + 이모지 -->
+        <div class="send-block">
+          <label class="send-label">메시지 내용 <span style="color:var(--cancelled)">*</span></label>
+
+          <div class="bcast-toolbar">
+            <button type="button" class="bcast-tool" onclick="_insertFormat('bold')" title="굵게 (Ctrl+B)"><b>B</b></button>
+            <button type="button" class="bcast-tool" onclick="_insertFormat('italic')" title="기울임 (Ctrl+I)"><i>I</i></button>
+            <button type="button" class="bcast-tool" onclick="_insertFormat('underline')" title="밑줄 (Ctrl+U)"><u>U</u></button>
+            <button type="button" class="bcast-tool" onclick="_insertFormat('strike')" title="취소선"><s>S</s></button>
+            <button type="button" class="bcast-tool" onclick="_insertFormat('code')" title="코드"><code style="font-family:var(--font-num);font-size:12px">&lt;/&gt;</code></button>
+            <button type="button" class="bcast-tool" onclick="_insertFormat('link')" title="링크">🔗</button>
+            <button type="button" class="bcast-tool" onclick="_insertFormat('quote')" title="인용">❝</button>
+            <span style="flex:1"></span>
+            <button type="button" class="bcast-tool" onclick="_toggleEmojiPanel()" title="이모지" id="emoji-toggle">😊</button>
+            <button type="button" class="bcast-tool" onclick="_togglePreview()" title="미리보기" id="preview-toggle">👁</button>
+          </div>
+
+          <!-- 이모지 패널 (토글) -->
+          <div class="emoji-panel" id="emoji-panel" style="display:none">
+            <div class="emoji-category">
+              <div class="emoji-cat-label">📢 알림·강조</div>
+              <div class="emoji-grid">
+                <span class="emoji-item" onclick="_insertEmoji('📢')">📢</span>
+                <span class="emoji-item" onclick="_insertEmoji('📣')">📣</span>
+                <span class="emoji-item" onclick="_insertEmoji('🔔')">🔔</span>
+                <span class="emoji-item" onclick="_insertEmoji('🚨')">🚨</span>
+                <span class="emoji-item" onclick="_insertEmoji('⚠️')">⚠️</span>
+                <span class="emoji-item" onclick="_insertEmoji('❗')">❗</span>
+                <span class="emoji-item" onclick="_insertEmoji('💡')">💡</span>
+                <span class="emoji-item" onclick="_insertEmoji('⭐')">⭐</span>
               </div>
             </div>
-            <div style="font-size:11.5px;color:var(--text-tertiary);line-height:1.55;margin-bottom:12px">
-              · Chat ID는 그룹 채팅방 id (예: <code style="background:var(--bg-subtle);padding:1px 4px;border-radius:3px">-1003733751502</code>). 토픽 ID는 그 그룹 안 자금청구 토픽 번호 (없으면 비워두면 일반 채팅으로 전송).
+            <div class="emoji-category">
+              <div class="emoji-cat-label">💰 자금·청구</div>
+              <div class="emoji-grid">
+                <span class="emoji-item" onclick="_insertEmoji('💰')">💰</span>
+                <span class="emoji-item" onclick="_insertEmoji('💵')">💵</span>
+                <span class="emoji-item" onclick="_insertEmoji('💳')">💳</span>
+                <span class="emoji-item" onclick="_insertEmoji('🧾')">🧾</span>
+                <span class="emoji-item" onclick="_insertEmoji('📊')">📊</span>
+                <span class="emoji-item" onclick="_insertEmoji('📈')">📈</span>
+                <span class="emoji-item" onclick="_insertEmoji('📒')">📒</span>
+                <span class="emoji-item" onclick="_insertEmoji('🏦')">🏦</span>
+              </div>
             </div>
-            <div id="topic-list"></div>
+            <div class="emoji-category">
+              <div class="emoji-cat-label">✅ 상태·확인</div>
+              <div class="emoji-grid">
+                <span class="emoji-item" onclick="_insertEmoji('✅')">✅</span>
+                <span class="emoji-item" onclick="_insertEmoji('☑️')">☑️</span>
+                <span class="emoji-item" onclick="_insertEmoji('❌')">❌</span>
+                <span class="emoji-item" onclick="_insertEmoji('🚫')">🚫</span>
+                <span class="emoji-item" onclick="_insertEmoji('🔴')">🔴</span>
+                <span class="emoji-item" onclick="_insertEmoji('🟢')">🟢</span>
+                <span class="emoji-item" onclick="_insertEmoji('🟡')">🟡</span>
+                <span class="emoji-item" onclick="_insertEmoji('🔵')">🔵</span>
+              </div>
+            </div>
+            <div class="emoji-category">
+              <div class="emoji-cat-label">📅 일정·업무</div>
+              <div class="emoji-grid">
+                <span class="emoji-item" onclick="_insertEmoji('📅')">📅</span>
+                <span class="emoji-item" onclick="_insertEmoji('📆')">📆</span>
+                <span class="emoji-item" onclick="_insertEmoji('⏰')">⏰</span>
+                <span class="emoji-item" onclick="_insertEmoji('⏳')">⏳</span>
+                <span class="emoji-item" onclick="_insertEmoji('📋')">📋</span>
+                <span class="emoji-item" onclick="_insertEmoji('📝')">📝</span>
+                <span class="emoji-item" onclick="_insertEmoji('📌')">📌</span>
+                <span class="emoji-item" onclick="_insertEmoji('📎')">📎</span>
+              </div>
+            </div>
+            <div class="emoji-category">
+              <div class="emoji-cat-label">🙏 표정·인사</div>
+              <div class="emoji-grid">
+                <span class="emoji-item" onclick="_insertEmoji('🙏')">🙏</span>
+                <span class="emoji-item" onclick="_insertEmoji('🤝')">🤝</span>
+                <span class="emoji-item" onclick="_insertEmoji('👍')">👍</span>
+                <span class="emoji-item" onclick="_insertEmoji('👏')">👏</span>
+                <span class="emoji-item" onclick="_insertEmoji('💪')">💪</span>
+                <span class="emoji-item" onclick="_insertEmoji('❤️')">❤️</span>
+                <span class="emoji-item" onclick="_insertEmoji('🎉')">🎉</span>
+                <span class="emoji-item" onclick="_insertEmoji('✨')">✨</span>
+              </div>
+            </div>
           </div>
+
+          <textarea class="send-input bcast-textarea" id="bcast-message" rows="8" placeholder="발송할 메시지를 입력하세요&#10;&#10;HTML 서식 지원:&#10;<b>굵게</b>  <i>기울임</i>  <u>밑줄</u>  <s>취소선</s>&#10;<code>코드</code>  <a href='URL'>링크</a>&#10;<blockquote>인용</blockquote>"></textarea>
+
+          <div class="bcast-preview" id="bcast-preview" style="display:none">
+            <div class="bcast-preview-label">📱 텔레그램 미리보기</div>
+            <div class="bcast-preview-bubble" id="bcast-preview-bubble"></div>
+          </div>
+
+          <div style="margin-top:6px;font-size:11.5px;color:var(--text-tertiary);font-family:var(--font-num);display:flex;justify-content:space-between">
+            <span><span id="bcast-char-count">0</span>자</span>
+            <span>💡 텍스트를 선택 후 서식 버튼을 누르면 적용됩니다</span>
+          </div>
+        </div>
+
+        <!-- 이미지 첨부 -->
+        <div class="send-block">
+          <label class="send-label">📷 이미지 첨부 <span style="color:var(--text-tertiary);font-weight:500;font-size:11px;margin-left:6px">(선택)</span></label>
+          <div class="bcast-image-zone" id="bcast-image-zone">
+            <input type="file" id="bcast-image-input" accept="image/*" style="display:none" onchange="_handleBcastImage(event)">
+            <div id="bcast-image-empty" style="text-align:center;padding:18px">
+              <button type="button" class="btn btn-sm" onclick="document.getElementById('bcast-image-input').click()">
+                🖼️ 이미지 선택
+              </button>
+              <div style="font-size:11px;color:var(--text-tertiary);margin-top:8px">JPG·PNG·GIF (텔레그램 캡션은 1024자 제한)</div>
+            </div>
+            <div id="bcast-image-preview" style="display:none;padding:14px;display:flex;align-items:center;gap:12px">
+              <img id="bcast-image-thumb" src="" style="max-width:140px;max-height:100px;border-radius:6px;border:1px solid var(--border)">
+              <div style="flex:1">
+                <div id="bcast-image-info" style="font-size:12px;color:var(--text-secondary);margin-bottom:8px"></div>
+                <button type="button" class="btn btn-sm" onclick="_removeBcastImage()" style="color:var(--cancelled)">🗑️ 제거</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 발송 버튼 -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:24px">
+          <button class="btn btn-primary" onclick="executeFundSend()" id="send-btn" style="padding:13px 24px;font-size:14px">
+            📤 발송하기
+          </button>
+          <span id="send-status" style="font-size:13px;color:var(--text-tertiary);font-family:var(--font-num)"></span>
         </div>
 
         <!-- 발송 기록 -->
@@ -3266,210 +3519,342 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeModal();
 });
 
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 발송 탭 — 부서 자금청구 토픽으로 텔레그램 메시지 전송 + DB 기록
-//   (마스터 전용. 봇은 업무 대시보드와 동일 봇 토큰 사용)
+// 발송 탭 — 부서 자금청구 토픽으로 텔레그램 메시지 전송 + DB 기록 (마스터 전용)
+//   설계:
+//     · chat_id는 exec_dept_telegram(업무 대시보드와 동일)에서 자동 승계
+//     · 토픽 ID만 fund_dept_topics에 저장 (chat_id는 저장 안 함)
+//     · 봇 토큰은 localStorage의 'sjames_bot_token' 키로 업무 대시보드와 공유
+//     · 발송 내역은 fund_send_log에 기록
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let fundTopics = {};       // { dept_id: {dept_id, dept_name, chat_id, topic_id, note} }
+
+// 상태
+let deptChatMap = {};      // { dept_id: {chat_id, note, enabled} }  — 업무 대시보드 텔레그램 매핑
+let deptTopicMap = {};     // { dept_id: topic_id }                  — 자금청구 토픽 ID (이 화면에서 등록)
+let _bcastImageFile = null;
 let _sendTabInited = false;
+let _bcastPreviewOn = false;
+let _bcastEmojiOn = false;
 
-function initSendTab(){
-  // 봇 토큰 복원 (업무 대시보드와 같은 키 공유 → 한 번만 입력하면 양쪽에서 사용)
-  try {
-    const t = localStorage.getItem('sjames_bot_token') || '';
-    const inp = document.getElementById('send-token');
-    if(inp && !inp.value) inp.value = t;
-  } catch(e){}
-
-  // 글자 수 카운터
-  const msg = document.getElementById('send-message');
-  if(msg && !msg._bound){
-    msg.addEventListener('input', () => {
-      document.getElementById('send-char-count').textContent = `${msg.value.length}자`;
-    });
-    msg._bound = true;
-  }
-
+// ─── 초기화 ────────────────────────────────────────────────────────────────
+async function initSendTab(){
+  // 부서 선택 드롭다운 채우기 (한 번만)
   if(!_sendTabInited){
     _sendTabInited = true;
-    // 대상 부서 드롭다운 + 토픽 관리 부서 드롭다운 채우기
-    fillSendDeptSelects();
+    const sel = document.getElementById('bcast-dept');
+    if(sel){
+      const first = sel.querySelector('option');
+      sel.innerHTML = '';
+      sel.appendChild(first);
+      EFF_DEPTS.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d.id;
+        o.textContent = d.name;
+        sel.appendChild(o);
+      });
+    }
+
+    // 글자 수 + 미리보기 동시 업데이트
+    const ta = document.getElementById('bcast-message');
+    if(ta){
+      ta.addEventListener('input', () => {
+        document.getElementById('bcast-char-count').textContent = ta.value.length;
+        if(_bcastPreviewOn) _updatePreview();
+      });
+      // 단축키 Ctrl+B / I / U
+      ta.addEventListener('keydown', e => {
+        if(!(e.ctrlKey || e.metaKey)) return;
+        const k = e.key.toLowerCase();
+        if(k==='b'){ e.preventDefault(); _insertFormat('bold'); }
+        else if(k==='i'){ e.preventDefault(); _insertFormat('italic'); }
+        else if(k==='u'){ e.preventDefault(); _insertFormat('underline'); }
+      });
+    }
+
+    // 토큰 입력 변화 — 저장 옵션 켜져 있으면 저장
+    const tokenInp = document.getElementById('bcast-token');
+    if(tokenInp){
+      tokenInp.addEventListener('input', () => {
+        if(document.getElementById('bcast-remember').checked){
+          try { localStorage.setItem('sjames_bot_token', tokenInp.value.trim()); } catch(e){}
+        }
+      });
+    }
+    const rememberBox = document.getElementById('bcast-remember');
+    if(rememberBox){
+      rememberBox.addEventListener('change', () => {
+        if(rememberBox.checked){
+          const t = document.getElementById('bcast-token').value.trim();
+          if(t) try { localStorage.setItem('sjames_bot_token', t); } catch(e){}
+        } else {
+          try { localStorage.removeItem('sjames_bot_token'); } catch(e){}
+        }
+      });
+    }
   }
-  loadFundTopics();
+
+  // 저장된 봇 토큰 복원 (업무 대시보드와 공유)
+  try {
+    const saved = localStorage.getItem('sjames_bot_token') || '';
+    const inp = document.getElementById('bcast-token');
+    if(inp){
+      inp.value = saved;
+      document.getElementById('bcast-remember').checked = !!saved;
+      document.getElementById('bcast-token-clear').style.display = saved ? '' : 'none';
+    }
+  } catch(e){}
+
+  // chat_id 매핑 + 토픽 매핑 + 발송 로그 로드
+  await loadDeptChatMap();
+  await loadDeptTopicMap();
   loadFundSendLog();
 }
 
-function fillSendDeptSelects(){
-  ['send-dept','topic-dept'].forEach(id => {
-    const sel = document.getElementById(id);
-    if(!sel) return;
-    const first = sel.querySelector('option');
-    sel.innerHTML = '';
-    sel.appendChild(first);
-    EFF_DEPTS.forEach(d => {
-      const o = document.createElement('option');
-      o.value = d.id;
-      o.textContent = d.name;
-      sel.appendChild(o);
-    });
-  });
-}
-
-function saveSendToken(){
+// ─── chat_id 자동 승계 (업무 대시보드와 동일) ─────────────────────────────
+async function loadDeptChatMap(){
   try {
-    const t = document.getElementById('send-token').value.trim();
-    if(t) localStorage.setItem('sjames_bot_token', t);
-  } catch(e){}
-}
-function toggleSendToken(){
-  const inp = document.getElementById('send-token');
-  const btn = document.getElementById('send-token-eye');
-  if(inp.type === 'password'){ inp.type = 'text'; btn.textContent = '숨김'; }
-  else { inp.type = 'password'; btn.textContent = '표시'; }
-}
-
-function onSendDeptChange(){
-  const deptId = document.getElementById('send-dept').value;
-  const info = document.getElementById('send-dept-info');
-  if(!deptId){ info.textContent = ''; return; }
-  const t = fundTopics[deptId];
-  if(t && t.chat_id){
-    info.innerHTML = `✅ 등록됨 · Chat ID <b>${escapeHtml(t.chat_id)}</b>${t.topic_id ? ` · 토픽 <b>${t.topic_id}</b>` : ' · (토픽 없음, 일반 채팅)'}`;
-    info.style.color = 'var(--approved)';
-  } else {
-    info.innerHTML = `⚠️ 이 부서는 자금청구 토픽이 등록되지 않았습니다. 아래 "부서 토픽 등록"에서 먼저 등록하세요.`;
-    info.style.color = 'var(--pending)';
+    const { data, error } = await sb.from('exec_dept_telegram').select('dept_id, chat_id, note, enabled');
+    if(error) throw error;
+    deptChatMap = {};
+    (data || []).forEach(r => {
+      deptChatMap[r.dept_id] = { chat_id: r.chat_id, note: r.note, enabled: r.enabled !== false };
+    });
+  } catch(e){
+    console.warn('[deptChatMap]', e);
   }
 }
 
-// ─── 부서 토픽 로드 / 저장 ────────────────────────────────────────────────
-async function loadFundTopics(){
+// ─── 부서별 토픽 ID 로드/저장 ──────────────────────────────────────────────
+async function loadDeptTopicMap(){
   try {
-    const { data, error } = await sb.from('fund_dept_topics').select('*');
-    if(error){ console.warn('[fundTopics]', error.message); }
-    fundTopics = {};
-    (data || []).forEach(r => { fundTopics[r.dept_id] = r; });
-    renderTopicList();
-    onSendDeptChange();  // 현재 선택 부서 정보 갱신
-  } catch(e){ console.error('[loadFundTopics]', e); }
+    const { data, error } = await sb.from('fund_dept_topics').select('dept_id, topic_id');
+    if(error) throw error;
+    deptTopicMap = {};
+    (data || []).forEach(r => {
+      if(r.topic_id != null) deptTopicMap[r.dept_id] = r.topic_id;
+    });
+    onSendDeptChange();  // 현재 선택된 부서 정보 갱신
+  } catch(e){ console.warn('[deptTopicMap]', e); }
 }
 
-function renderTopicList(){
-  const box = document.getElementById('topic-list');
-  if(!box) return;
-  const rows = Object.values(fundTopics);
-  if(rows.length === 0){
-    box.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-tertiary);font-size:12.5px">아직 등록된 부서 토픽이 없습니다.</div>`;
+// 부서 선택 시 — chat_id는 자동 표시, 토픽 ID 입력란 활성화
+function onSendDeptChange(){
+  const deptId = document.getElementById('bcast-dept').value;
+  const info = document.getElementById('bcast-dept-info');
+  const topicRow = document.getElementById('bcast-topic-row');
+  const topicInp = document.getElementById('bcast-topic-id');
+  if(!deptId){
+    info.innerHTML = '';
+    topicRow.style.display = 'none';
     return;
   }
-  // 부서 순서대로 정렬
-  rows.sort((a,b) => {
-    const ai = EFF_DEPTS.findIndex(d => d.id === a.dept_id);
-    const bi = EFF_DEPTS.findIndex(d => d.id === b.dept_id);
-    return ai - bi;
-  });
-  box.innerHTML = rows.map(r => {
-    const dept = EFF_DEPTS.find(d => d.id === r.dept_id);
-    const name = dept ? dept.name : (r.dept_name || r.dept_id);
-    return `
-      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-        <span style="flex:1;font-weight:600;font-size:13px">${escapeHtml(name)}</span>
-        <span style="font-family:var(--font-num);font-size:11.5px;color:var(--text-secondary)">${escapeHtml(r.chat_id||'—')}</span>
-        <span style="font-family:var(--font-num);font-size:11.5px;color:var(--text-tertiary)">${r.topic_id ? '토픽 '+r.topic_id : '일반'}</span>
-        <button class="btn btn-sm" onclick="editFundTopic('${r.dept_id}')" style="padding:4px 9px">수정</button>
-        <button class="btn btn-sm" onclick="deleteFundTopic('${r.dept_id}')" style="padding:4px 9px;color:var(--cancelled)">삭제</button>
-      </div>
-    `;
-  }).join('');
+  const chatInfo = deptChatMap[deptId];
+  if(!chatInfo || !chatInfo.chat_id){
+    info.innerHTML = `⚠️ <b>이 부서는 텔레그램 그룹이 등록되지 않았습니다.</b><br>업무 대시보드의 "텔레그램 관리"에서 먼저 등록하세요.`;
+    info.style.color = 'var(--cancelled)';
+    topicRow.style.display = 'none';
+    return;
+  }
+  // chat_id 표시 + 토픽 입력 열기
+  const savedTopic = deptTopicMap[deptId];
+  info.innerHTML = `✅ Chat ID 자동 승계: <b>${escapeHtml(chatInfo.chat_id)}</b>` +
+    (chatInfo.note ? ` <span style="color:var(--text-tertiary)">· ${escapeHtml(chatInfo.note)}</span>` : '');
+  info.style.color = 'var(--approved)';
+  topicRow.style.display = '';
+  topicInp.value = savedTopic != null ? savedTopic : '';
 }
 
-function editFundTopic(deptId){
-  const t = fundTopics[deptId];
-  if(!t) return;
-  document.getElementById('topic-dept').value = deptId;
-  document.getElementById('topic-chatid').value = t.chat_id || '';
-  document.getElementById('topic-topicid').value = t.topic_id != null ? t.topic_id : '';
-  document.getElementById('topic-dept').scrollIntoView({behavior:'smooth', block:'center'});
-}
-
-async function saveFundTopic(){
-  const deptId = document.getElementById('topic-dept').value;
-  const chatId = document.getElementById('topic-chatid').value.trim();
-  const topicRaw = document.getElementById('topic-topicid').value.trim();
-
-  if(!deptId){ showToast('부서를 선택하세요'); return; }
-  if(!chatId){ showToast('Chat ID를 입력하세요'); return; }
+// 토픽 ID만 저장 (chat_id는 exec_dept_telegram에서 가져오므로 저장 X)
+async function saveTopicIdForDept(){
+  const deptId = document.getElementById('bcast-dept').value;
+  const topicRaw = document.getElementById('bcast-topic-id').value.trim();
+  if(!deptId){ showToast('부서를 먼저 선택하세요'); return; }
   const topicId = topicRaw ? parseInt(topicRaw) : null;
   if(topicRaw && isNaN(topicId)){ showToast('토픽 ID는 숫자여야 합니다'); return; }
 
   const dept = EFF_DEPTS.find(d => d.id === deptId);
+  const chatInfo = deptChatMap[deptId] || {};
   try {
     const { error } = await sb.from('fund_dept_topics').upsert({
       dept_id: deptId,
       dept_name: dept ? dept.name : deptId,
-      chat_id: chatId,
+      chat_id: chatInfo.chat_id || '',  // 참조용으로만 같이 저장 (실 발송은 deptChatMap에서 읽음)
       topic_id: topicId,
       updated_at: new Date().toISOString()
     }, { onConflict: 'dept_id' });
     if(error) throw error;
-    showToast('✅ 부서 토픽 저장됨');
-    document.getElementById('topic-chatid').value = '';
-    document.getElementById('topic-topicid').value = '';
-    document.getElementById('topic-dept').value = '';
-    await loadFundTopics();
+    deptTopicMap[deptId] = topicId;
+    showToast(topicId != null ? `✅ 토픽 ID ${topicId} 저장됨` : '✅ 토픽 없이 일반 채팅으로 설정됨');
   } catch(e){
-    console.error('[saveFundTopic]', e);
+    console.error('[saveTopic]', e);
     showToast('저장 실패: ' + (e.message||''));
   }
 }
 
-async function deleteFundTopic(deptId){
-  if(!confirm('이 부서 토픽 등록을 삭제할까요?')) return;
-  try {
-    const { error } = await sb.from('fund_dept_topics').delete().eq('dept_id', deptId);
-    if(error) throw error;
-    showToast('삭제됨');
-    await loadFundTopics();
-  } catch(e){
-    showToast('삭제 실패: ' + (e.message||''));
+// ─── 토큰 토글 ────────────────────────────────────────────────────────────
+function _toggleTokenVisibility(){
+  const inp = document.getElementById('bcast-token');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function _clearSavedToken(){
+  if(!confirm('이 기기에 저장된 봇 토큰을 삭제할까요?\n(업무 대시보드의 토큰도 함께 사라집니다.)')) return;
+  try { localStorage.removeItem('sjames_bot_token'); } catch(e){}
+  document.getElementById('bcast-token').value = '';
+  document.getElementById('bcast-remember').checked = false;
+  document.getElementById('bcast-token-clear').style.display = 'none';
+  showToast('저장된 토큰 삭제됨');
+}
+
+// ─── 서식 도구바 ──────────────────────────────────────────────────────────
+function _insertFormat(kind){
+  const ta = document.getElementById('bcast-message');
+  if(!ta) return;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const sel = ta.value.slice(start, end);
+  const wrap = {
+    bold:      ['<b>',          '</b>'],
+    italic:    ['<i>',          '</i>'],
+    underline: ['<u>',          '</u>'],
+    strike:    ['<s>',          '</s>'],
+    code:      ['<code>',       '</code>'],
+    quote:     ['<blockquote>', '</blockquote>'],
+  };
+  if(wrap[kind]){
+    const [o,c] = wrap[kind];
+    ta.value = ta.value.slice(0,start) + o + (sel || '내용') + c + ta.value.slice(end);
+    const newPos = start + o.length + (sel ? sel.length : 2) + c.length;
+    ta.setSelectionRange(start + o.length, start + o.length + (sel ? sel.length : 2));
+  } else if(kind === 'link'){
+    const url = prompt('링크 URL:', 'https://');
+    if(!url) return;
+    const text = sel || '링크 텍스트';
+    ta.value = ta.value.slice(0,start) + `<a href="${url}">${text}</a>` + ta.value.slice(end);
   }
+  ta.focus();
+  document.getElementById('bcast-char-count').textContent = ta.value.length;
+  if(_bcastPreviewOn) _updatePreview();
+}
+
+function _insertEmoji(emoji){
+  const ta = document.getElementById('bcast-message');
+  if(!ta) return;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  ta.value = ta.value.slice(0,start) + emoji + ta.value.slice(end);
+  ta.setSelectionRange(start + emoji.length, start + emoji.length);
+  ta.focus();
+  document.getElementById('bcast-char-count').textContent = ta.value.length;
+  if(_bcastPreviewOn) _updatePreview();
+}
+
+function _toggleEmojiPanel(){
+  _bcastEmojiOn = !_bcastEmojiOn;
+  document.getElementById('emoji-panel').style.display = _bcastEmojiOn ? '' : 'none';
+  const btn = document.getElementById('emoji-toggle');
+  if(btn) btn.style.background = _bcastEmojiOn ? 'var(--accent-soft)' : '';
+}
+
+function _togglePreview(){
+  _bcastPreviewOn = !_bcastPreviewOn;
+  document.getElementById('bcast-preview').style.display = _bcastPreviewOn ? '' : 'none';
+  const btn = document.getElementById('preview-toggle');
+  if(btn) btn.style.background = _bcastPreviewOn ? 'var(--accent-soft)' : '';
+  if(_bcastPreviewOn) _updatePreview();
+}
+
+function _updatePreview(){
+  const ta = document.getElementById('bcast-message');
+  const bubble = document.getElementById('bcast-preview-bubble');
+  if(!ta || !bubble) return;
+  // 텔레그램 HTML 서식만 일부 렌더링 — script 등은 안전을 위해 차단
+  let html = ta.value
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // 허용 태그 복원
+  ['b','i','u','s','code','blockquote'].forEach(tag => {
+    html = html.replace(new RegExp(`&lt;${tag}&gt;`,'gi'), `<${tag}>`)
+               .replace(new RegExp(`&lt;\\/${tag}&gt;`,'gi'), `</${tag}>`);
+  });
+  // <a href="..."> 도 허용 (간단 패턴)
+  html = html.replace(/&lt;a href=&quot;([^&]*)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/gi, '<a href="$1" target="_blank">$2</a>');
+  bubble.innerHTML = html || '<span style="color:var(--text-tertiary)">(메시지를 입력하면 미리보기가 표시됩니다)</span>';
+}
+
+// ─── 이미지 첨부 ──────────────────────────────────────────────────────────
+function _handleBcastImage(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('이미지 파일만 가능합니다'); return; }
+  _bcastImageFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('bcast-image-thumb').src = ev.target.result;
+    document.getElementById('bcast-image-info').textContent = `${file.name} · ${(file.size/1024).toFixed(0)}KB`;
+    document.getElementById('bcast-image-empty').style.display = 'none';
+    document.getElementById('bcast-image-preview').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+function _removeBcastImage(){
+  _bcastImageFile = null;
+  document.getElementById('bcast-image-input').value = '';
+  document.getElementById('bcast-image-empty').style.display = '';
+  document.getElementById('bcast-image-preview').style.display = 'none';
 }
 
 // ─── 발송 실행 ────────────────────────────────────────────────────────────
 async function executeFundSend(){
-  const token = (document.getElementById('send-token').value || '').trim();
-  const deptId = document.getElementById('send-dept').value;
-  const message = (document.getElementById('send-message').value || '').trim();
+  const token = (document.getElementById('bcast-token').value || '').trim();
+  const deptId = document.getElementById('bcast-dept').value;
+  const message = (document.getElementById('bcast-message').value || '').trim();
+  const topicRaw = (document.getElementById('bcast-topic-id').value || '').trim();
   const btn = document.getElementById('send-btn');
   const status = document.getElementById('send-status');
 
   if(!token){ showToast('봇 토큰을 입력하세요'); return; }
   if(!deptId){ showToast('대상 부서를 선택하세요'); return; }
-  if(!message){ showToast('메시지를 입력하세요'); return; }
+  if(!message && !_bcastImageFile){ showToast('메시지나 이미지를 입력하세요'); return; }
 
-  const t = fundTopics[deptId];
-  if(!t || !t.chat_id){
-    showToast('이 부서는 토픽이 등록되지 않았습니다. 먼저 등록하세요.');
+  const chatInfo = deptChatMap[deptId];
+  if(!chatInfo || !chatInfo.chat_id){
+    showToast('이 부서의 chat_id가 없습니다');
     return;
   }
+  const topicId = topicRaw ? parseInt(topicRaw) : null;
+  if(topicRaw && isNaN(topicId)){ showToast('토픽 ID는 숫자여야 합니다'); return; }
+
   const dept = EFF_DEPTS.find(d => d.id === deptId);
   const deptName = dept ? dept.name : deptId;
+
+  if(!confirm(`📤 ${deptName}에 발송합니다.\n\nChat ID: ${chatInfo.chat_id}\n토픽 ID: ${topicId != null ? topicId : '(일반 채팅)'}\n\n계속하시겠습니까?`)){
+    return;
+  }
 
   btn.disabled = true;
   status.textContent = '발송 중…';
   status.style.color = 'var(--text-tertiary)';
 
-  // 텔레그램 sendMessage (브라우저 직접 호출 — 업무 대시보드와 동일 방식)
-  const result = await _fundTelegramSend(token, t.chat_id, t.topic_id, message);
+  // 봇 토큰 저장 (체크되어 있으면)
+  if(document.getElementById('bcast-remember').checked){
+    try { localStorage.setItem('sjames_bot_token', token); } catch(e){}
+  }
+  // 토픽 ID 자동 저장 (입력했으면 다음에도 자동 채워지게)
+  if(topicRaw && deptTopicMap[deptId] !== topicId){
+    saveTopicIdForDept().catch(_=>{});
+  }
 
-  // DB 기록 (성공/실패 모두 남김)
+  // 발송
+  const result = _bcastImageFile
+    ? await _fundTelegramSendPhoto(token, chatInfo.chat_id, topicId, message, _bcastImageFile)
+    : await _fundTelegramSendMessage(token, chatInfo.chat_id, topicId, message);
+
+  // DB 기록
   try {
     await sb.from('fund_send_log').insert({
       dept_id: deptId,
       dept_name: deptName,
-      chat_id: t.chat_id,
-      topic_id: t.topic_id,
-      message: message,
+      chat_id: chatInfo.chat_id,
+      topic_id: topicId,
+      message: message + (_bcastImageFile ? '\n[이미지 첨부됨]' : ''),
       sent_by: currentUser ? currentUser.dept : '',
       ok: result.ok,
       error: result.ok ? null : (result.error || '')
@@ -3480,8 +3865,10 @@ async function executeFundSend(){
   if(result.ok){
     status.textContent = `✅ ${deptName}로 발송 완료`;
     status.style.color = 'var(--approved)';
-    document.getElementById('send-message').value = '';
-    document.getElementById('send-char-count').textContent = '0자';
+    document.getElementById('bcast-message').value = '';
+    document.getElementById('bcast-char-count').textContent = '0';
+    _removeBcastImage();
+    if(_bcastPreviewOn) _updatePreview();
     showToast(`📤 ${deptName} 발송 완료`);
     loadFundSendLog();
   } else {
@@ -3491,7 +3878,7 @@ async function executeFundSend(){
   }
 }
 
-async function _fundTelegramSend(token, chatId, topicId, text){
+async function _fundTelegramSendMessage(token, chatId, topicId, text){
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   const payload = {
     chat_id: chatId,
@@ -3499,16 +3886,33 @@ async function _fundTelegramSend(token, chatId, topicId, text){
     parse_mode: 'HTML',
     disable_web_page_preview: false,
   };
-  if(topicId != null && topicId !== ''){
-    const tid = parseInt(topicId);
-    if(!isNaN(tid)) payload.message_thread_id = tid;
-  }
+  if(topicId != null && !isNaN(topicId)) payload.message_thread_id = topicId;
   try {
     const resp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    const data = await resp.json();
+    if(data.ok) return { ok: true };
+    return { ok: false, error: data.description || `HTTP ${resp.status}` };
+  } catch(e){
+    return { ok: false, error: e.message || '네트워크 오류' };
+  }
+}
+
+async function _fundTelegramSendPhoto(token, chatId, topicId, caption, imageFile){
+  const url = `https://api.telegram.org/bot${token}/sendPhoto`;
+  const fd = new FormData();
+  fd.append('chat_id', chatId);
+  fd.append('photo', imageFile);
+  if(caption){
+    fd.append('caption', caption.length > 1024 ? caption.slice(0, 1020) + '…' : caption);
+    fd.append('parse_mode', 'HTML');
+  }
+  if(topicId != null && !isNaN(topicId)) fd.append('message_thread_id', String(topicId));
+  try {
+    const resp = await fetch(url, { method: 'POST', body: fd });
     const data = await resp.json();
     if(data.ok) return { ok: true };
     return { ok: false, error: data.description || `HTTP ${resp.status}` };
@@ -3536,7 +3940,7 @@ async function loadFundSendLog(){
       const okBadge = r.ok
         ? `<span class="status approved" style="font-size:10.5px">성공</span>`
         : `<span class="status cancelled" style="font-size:10.5px">실패</span>`;
-      const preview = (r.message||'').replace(/\s+/g,' ').slice(0, 60);
+      const preview = (r.message||'').replace(/\s+/g,' ').slice(0, 80);
       return `
         <div style="padding:11px 20px;border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -3544,7 +3948,7 @@ async function loadFundSendLog(){
             ${okBadge}
             <span style="margin-left:auto;font-family:var(--font-num);font-size:11px;color:var(--text-tertiary)">${when}</span>
           </div>
-          <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.5">${escapeHtml(preview)}${(r.message||'').length>60?'…':''}</div>
+          <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.5">${escapeHtml(preview)}${(r.message||'').length>80?'…':''}</div>
           ${!r.ok && r.error ? `<div style="font-size:11px;color:var(--cancelled);margin-top:3px;font-family:var(--font-num)">${escapeHtml(r.error)}</div>` : ''}
           <div style="font-size:10.5px;color:var(--text-tertiary);margin-top:3px;font-family:var(--font-num)">보낸이: ${escapeHtml(r.sent_by||'—')} · ${escapeHtml(r.chat_id||'')}${r.topic_id?(' · 토픽 '+r.topic_id):''}</div>
         </div>
