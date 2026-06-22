@@ -146,7 +146,10 @@
     max-width: 720px;
     margin: 0 auto;
     padding: 28px 20px 60px;
+    transition: max-width 0.2s;
   }
+  /* 관리자 탭일 때 더 넓게 (표·KPI 가독성) */
+  body.admin-wide .main { max-width: 1080px; }
 
   /* 탭 패널 */
   .tab-panel { display: none; }
@@ -1624,6 +1627,126 @@
   .pen-btn { flex: 1; min-width: 90px; text-align: center; padding: 10px 12px; }
 }
 
+/* ── 이전 누적 벌금 영역 ── */
+.prior-fines-card { border: 1px solid #e6dcc8; }
+.prior-fines-head {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.prior-fines-head:hover { background: #faf6ee; }
+.prior-fines-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b08a4a;
+  background: #fbf2df;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+}
+.prior-fines-toggle { font-size: 12.5px; color: var(--text-3, #9c9384); font-weight: 600; }
+.prior-fines-intro {
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--text-2, #6b6256);
+  line-height: 1.5;
+  background: var(--bg-subtle, #f7f4ee);
+  border-radius: 10px;
+  margin: 0 0 12px;
+}
+.prior-fines-warn {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #b5564f;
+  background: #fbeaea;
+  border-radius: 10px;
+}
+.prior-fines-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.prior-fines-filter select,
+.prior-fines-filter input {
+  padding: 8px 11px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 9px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+}
+.prior-fines-filter input { flex: 1; min-width: 120px; }
+.prior-fines-summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.pf-sum-item {
+  flex: 1;
+  min-width: 90px;
+  background: var(--bg-subtle, #f7f4ee);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.pf-sum-item span { display: block; font-size: 11px; color: var(--text-3, #9c9384); margin-bottom: 3px; }
+.pf-sum-item b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.pf-sum-item.paid b { color: #2c8f3c; }
+.pf-sum-item.unpaid b { color: var(--late, #D14343); }
+.pf-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--line, #ece7de);
+  flex-wrap: wrap;
+}
+.pf-row.has-fine { background: #fffcf5; }
+.pf-row-info { min-width: 130px; display: flex; flex-direction: column; gap: 1px; }
+.pf-name { font-size: 14px; font-weight: 700; }
+.pf-dept { font-size: 11px; color: var(--text-3, #9c9384); }
+.pf-row-inputs { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.pf-field { display: flex; flex-direction: column; gap: 2px; }
+.pf-field span { font-size: 10px; color: var(--text-3, #9c9384); font-weight: 600; }
+.pf-field input {
+  width: 92px;
+  padding: 7px 9px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.pf-field input:focus { outline: none; border-color: var(--action, #8a5a2a); }
+.pf-unpaid {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-4, #b8b0a2);
+  font-variant-numeric: tabular-nums;
+  min-width: 84px;
+  text-align: right;
+}
+.pf-unpaid.on { color: var(--late, #D14343); }
+.pf-save-btn {
+  padding: 8px 14px;
+  background: var(--action, #8a5a2a);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pf-save-btn:hover { background: #6f4720; }
+@media (max-width: 640px) {
+  .pf-row-info { min-width: 0; flex: 1 1 100%; flex-direction: row; align-items: baseline; gap: 6px; }
+  .pf-row-inputs { margin-left: 0; width: 100%; justify-content: flex-start; }
+  .pf-field input { width: 80px; }
+  .pf-unpaid { min-width: 0; flex: 1; }
+  .pf-save-btn { flex-shrink: 0; }
+}
+
 .sys-links {
   display: inline-flex;
   align-items: center;
@@ -1996,6 +2119,30 @@
 
         <!-- 벌금 요약 -->
         <div class="admin-kpi-grid" id="pen-kpi"></div>
+
+        <!-- 이전 누적 벌금 (대시보드 도입 전 모은 벌금) -->
+        <div class="admin-table-card prior-fines-card">
+          <div class="admin-table-head prior-fines-head" onclick="togglePriorFines()">
+            <h3>📜 이전 누적 벌금 <span class="prior-fines-sub">대시보드 이전</span></h3>
+            <span class="prior-fines-toggle" id="prior-fines-toggle">▼ 펼치기</span>
+          </div>
+          <div id="prior-fines-body" style="display:none">
+            <div class="prior-fines-intro">
+              봉사기록부를 만들기 전에 모았던 벌금을 사명자별로 입력하세요. 입력한 미납액은 통계·미납 집계에 합산됩니다.
+            </div>
+            <div class="prior-fines-filter">
+              <select id="prior-f-dept" onchange="renderPriorFines()">
+                <option value="">전체 부서</option>
+              </select>
+              <input type="text" id="prior-f-search" placeholder="이름 검색…" oninput="renderPriorFines()">
+              <button class="admin-refresh-btn" onclick="loadPriorFines()">↻</button>
+            </div>
+            <div class="prior-fines-summary" id="prior-fines-summary"></div>
+            <div id="prior-fines-list">
+              <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+            </div>
+          </div>
+        </div>
 
         <!-- 벌금 표 -->
         <div class="admin-table-card">
@@ -2538,6 +2685,8 @@ function switchTab(tab){
   document.querySelectorAll('.tab-panel').forEach(p => {
     p.classList.toggle('active', p.id === `tab-${tab}`);
   });
+  // 관리자 탭이면서 로그인됐을 때만 넓은 레이아웃
+  document.body.classList.toggle('admin-wide', tab === 'admin' && isAdminLoggedIn);
 }
 
 // ────────────────────────────────────────────────────────────
@@ -3427,11 +3576,15 @@ function doAdminLogout(){
   document.getElementById('admin-main').style.display = 'none';
   document.getElementById('admin-pw').value = '';
   document.getElementById('admin-remember').checked = false;
+  document.body.classList.remove('admin-wide');
 }
 
 function renderAdminMain(){
   document.getElementById('admin-login').style.display = 'none';
   document.getElementById('admin-main').style.display = '';
+  // 관리자 탭이 현재 보이는 중이면 넓은 레이아웃 적용
+  const adminTabActive = document.querySelector('.tab[data-tab="admin"]')?.classList.contains('active');
+  if(adminTabActive) document.body.classList.add('admin-wide');
   populateAdminDeptFilter();
   populateAdminAddDept();
   populateMembersDeptFilter();
@@ -4143,6 +4296,155 @@ async function loadPenalty(){
   penaltyRecords = data || [];
   renderPenaltyKPI();
   renderPenalty();
+  loadPriorFines();   // 이전 누적 벌금도 함께
+}
+
+// ════════════════════════════════════════════════════════════
+// 이전 누적 벌금 (대시보드 도입 전 모은 벌금)
+// ════════════════════════════════════════════════════════════
+let priorFines = {};          // { member_id: {amount, paid_amount, note} }
+let _priorFinesOpen = false;
+
+function togglePriorFines(){
+  _priorFinesOpen = !_priorFinesOpen;
+  document.getElementById('prior-fines-body').style.display = _priorFinesOpen ? '' : 'none';
+  document.getElementById('prior-fines-toggle').textContent = _priorFinesOpen ? '▲ 접기' : '▼ 펼치기';
+  if(_priorFinesOpen){
+    // 부서 필터 채우기 (한 번만)
+    const sel = document.getElementById('prior-f-dept');
+    if(sel && sel.options.length <= 1){
+      const deptsWithMembers = new Set(allMembers.map(m => m.dept_id));
+      DEPTS.forEach(d => {
+        if(!deptsWithMembers.has(d.id)) return;
+        const o = document.createElement('option');
+        o.value = d.id; o.textContent = d.name;
+        sel.appendChild(o);
+      });
+    }
+    renderPriorFines();
+  }
+}
+
+async function loadPriorFines(){
+  try {
+    const { data, error } = await sb.from('attend_prior_fines').select('*');
+    if(error){
+      // 테이블 없으면 조용히 패스 (SQL 미실행)
+      if(/relation .*attend_prior_fines/i.test(error.message||'')) {
+        priorFines = {}; _priorFinesTableMissing = true;
+      }
+      return;
+    }
+    _priorFinesTableMissing = false;
+    priorFines = {};
+    (data || []).forEach(r => { priorFines[r.member_id] = r; });
+    if(_priorFinesOpen) renderPriorFines();
+    renderPenaltyKPI();  // 미납 합산 갱신
+  } catch(e){ console.warn('[loadPriorFines]', e); }
+}
+let _priorFinesTableMissing = false;
+
+function renderPriorFines(){
+  const box = document.getElementById('prior-fines-list');
+  if(!box) return;
+
+  if(_priorFinesTableMissing){
+    box.innerHTML = `<div class="prior-fines-warn">⚠️ 이전누적벌금_테이블.sql을 먼저 실행해주세요. (attend_prior_fines 테이블 없음)</div>`;
+    document.getElementById('prior-fines-summary').innerHTML = '';
+    return;
+  }
+
+  const deptF = document.getElementById('prior-f-dept').value;
+  const search = (document.getElementById('prior-f-search').value || '').trim();
+
+  let members = allMembers.slice();
+  if(deptF) members = members.filter(m => m.dept_id === deptF);
+  if(search) members = members.filter(m => (m.name||'').includes(search));
+
+  // 부서 → 이름 순 정렬
+  members.sort((a,b) => {
+    const ai = DEPTS.findIndex(d => d.id === a.dept_id);
+    const bi = DEPTS.findIndex(d => d.id === b.dept_id);
+    if(ai !== bi) return ai - bi;
+    return (a.name||'').localeCompare(b.name||'', 'ko');
+  });
+
+  // 요약
+  let totAmount = 0, totPaid = 0, withFine = 0;
+  Object.values(priorFines).forEach(p => {
+    totAmount += (p.amount || 0);
+    totPaid += (p.paid_amount || 0);
+    if((p.amount||0) > 0) withFine++;
+  });
+  const unpaid = totAmount - totPaid;
+  document.getElementById('prior-fines-summary').innerHTML = `
+    <div class="pf-sum-item"><span>대상 인원</span><b>${withFine}명</b></div>
+    <div class="pf-sum-item"><span>누적 총액</span><b>${fmtWon(totAmount)}</b></div>
+    <div class="pf-sum-item paid"><span>납부</span><b>${fmtWon(totPaid)}</b></div>
+    <div class="pf-sum-item unpaid"><span>미납</span><b>${fmtWon(unpaid)}</b></div>
+  `;
+
+  if(members.length === 0){
+    box.innerHTML = `<div class="empty"><div class="msg">해당하는 사명자가 없어요</div></div>`;
+    return;
+  }
+
+  box.innerHTML = members.map(m => {
+    const dept = DEPTS.find(d => d.id === m.dept_id);
+    const deptName = dept ? dept.name : (m.dept_id || '—');
+    const p = priorFines[m.id] || { amount: 0, paid_amount: 0, note: '' };
+    const hasFine = (p.amount||0) > 0;
+    const unpaidM = (p.amount||0) - (p.paid_amount||0);
+    return `
+      <div class="pf-row${hasFine?' has-fine':''}">
+        <div class="pf-row-info">
+          <span class="pf-name">${escapeHtml(m.name||'—')}</span>
+          <span class="pf-dept">${escapeHtml(deptName)} · ${escapeHtml(m.role||'')}</span>
+        </div>
+        <div class="pf-row-inputs">
+          <label class="pf-field">
+            <span>누적액</span>
+            <input type="number" min="0" step="1000" value="${p.amount||0}" id="pf-amt-${m.id}" placeholder="0">
+          </label>
+          <label class="pf-field">
+            <span>납부</span>
+            <input type="number" min="0" step="1000" value="${p.paid_amount||0}" id="pf-paid-${m.id}" placeholder="0">
+          </label>
+          <span class="pf-unpaid${unpaidM>0?' on':''}">미납 ${fmtWon(unpaidM>0?unpaidM:0)}</span>
+          <button class="pf-save-btn" onclick="savePriorFine(${m.id})">저장</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function savePriorFine(memberId){
+  const amount = parseInt(document.getElementById(`pf-amt-${memberId}`).value) || 0;
+  const paid   = parseInt(document.getElementById(`pf-paid-${memberId}`).value) || 0;
+  if(paid > amount){
+    showToast('납부액이 누적액보다 클 수 없습니다');
+    return;
+  }
+  try {
+    const { error } = await sb.from('attend_prior_fines').upsert({
+      member_id: memberId,
+      amount: amount,
+      paid_amount: paid,
+      updated_at: new Date().toISOString(),
+      updated_by: '관리자'
+    }, { onConflict: 'member_id' });
+    if(error) throw error;
+    priorFines[memberId] = { member_id: memberId, amount, paid_amount: paid };
+    showToast('✅ 저장됨');
+    renderPriorFines();
+    renderPenaltyKPI();
+  } catch(e){
+    console.error('[savePriorFine]', e);
+    if(/relation .*attend_prior_fines/i.test(e.message||'')){
+      showToast('이전누적벌금_테이블.sql을 먼저 실행하세요');
+    } else {
+      showToast('저장 실패: ' + (e.message||''));
+    }
+  }
 }
 
 function renderPenaltyKPI(){
@@ -4153,22 +4455,34 @@ function renderPenaltyKPI(){
   const unpaid = charged.filter(r => !r.penalty_paid);
   const unpaidAmount = unpaid.reduce((s, r) => s + (r.penalty_amount || 0), 0);
   const paidAmount = totalAmount - unpaidAmount;
+
+  // 이전 누적 벌금 합산
+  let priorTotal = 0, priorPaid = 0;
+  Object.values(priorFines).forEach(p => {
+    priorTotal += (p.amount || 0);
+    priorPaid += (p.paid_amount || 0);
+  });
+  const priorUnpaid = priorTotal - priorPaid;
+  const grandUnpaid = unpaidAmount + priorUnpaid;
+  const priorHint = priorTotal > 0
+    ? `<div class="k-meta">+ 이전 ${fmtWon(priorUnpaid)} 미납</div>`
+    : `<div class="k-meta">${unpaid.length}건 미납</div>`;
   
   document.getElementById('pen-kpi').innerHTML = `
     <div class="admin-kpi-card">
       <div class="k-label">부과 벌금</div>
       <div class="k-value">${fmtWon(totalAmount)}</div>
-      <div class="k-meta">${charged.length}건</div>
+      <div class="k-meta">${charged.length}건${priorTotal>0?` · 이전 ${fmtWon(priorTotal)}`:''}</div>
     </div>
     <div class="admin-kpi-card late-card">
-      <div class="k-label">미납 금액</div>
-      <div class="k-value">${fmtWon(unpaidAmount)}</div>
-      <div class="k-meta">${unpaid.length}건 미납</div>
+      <div class="k-label">총 미납</div>
+      <div class="k-value">${fmtWon(grandUnpaid)}</div>
+      ${priorHint}
     </div>
     <div class="admin-kpi-card ok-card">
       <div class="k-label">납부 완료</div>
-      <div class="k-value">${fmtWon(paidAmount)}</div>
-      <div class="k-meta">${charged.length - unpaid.length}건</div>
+      <div class="k-value">${fmtWon(paidAmount + priorPaid)}</div>
+      <div class="k-meta">${charged.length - unpaid.length}건${priorPaid>0?' + 이전':''}</div>
     </div>
     <div class="admin-kpi-card working">
       <div class="k-label">면제 검토</div>
