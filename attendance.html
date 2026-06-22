@@ -1398,6 +1398,178 @@
 <style>
 @keyframes sj-spin { to { transform: rotate(360deg); } }
 #refresh-btn.is-spinning svg, .sj-refresh-btn.is-spinning svg { animation: sj-spin .8s linear infinite; }
+
+/* 알림 토글 버튼 */
+.notif-toggle {
+  margin-top: 12px;
+  width: 100%;
+  padding: 11px;
+  border: 1.5px solid var(--line, #e3ddd2);
+  background: #fff;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2, #6b6256);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.notif-toggle:hover { background: #faf8f4; }
+.notif-toggle.on {
+  background: linear-gradient(135deg, #e8f5e9 0%, #d4ecd5 100%);
+  border-color: #7cb87f;
+  color: #2c6e2c;
+}
+.notif-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-3, #9c9384);
+  text-align: center;
+  line-height: 1.45;
+}
+
+/* 관리자 날짜/오늘 버튼 */
+.admin-today-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--line, #e3ddd2);
+  background: #fff;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a5a2a;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.admin-today-btn:hover { background: #faf8f4; }
+.admin-filter-field input[type="date"] {
+  padding: 7px 10px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--text, #2b2620);
+  background: #fff;
+}
+
+/* 잠금 변경 버튼 강조 (관리자 전용 표시) */
+.lock-change {
+  border-color: #e0b8b8 !important;
+  color: #b5564f !important;
+}
+
+/* ── 출퇴근 UI 개선 ── */
+.start-pen-hint {
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.start-pen-hint.ok     { background: #e8f5e9; color: #2c6e2c; }
+.start-pen-hint.late   { background: var(--late-soft, #FBEAEA); color: var(--late, #D14343); }
+.start-pen-hint.absent { background: #f3e8e8; color: #9c3a3a; }
+.start-pen-hint b { font-weight: 800; }
+
+.elapsed-box {
+  padding: 10px 14px;
+  background: #f0f7f0;
+  border: 1px solid #cfe6cf;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: #2c6e2c;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.elapsed-box b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.working-badge {
+  display: inline-block;
+  color: #2c8f3c;
+  font-weight: 800;
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+@keyframes pulse-dot { 50% { opacity: 0.5; } }
+.done-badge { color: var(--text-3, #9c9384); font-weight: 800; }
+
+.clock-pen {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+.clock-pen.late   { background: var(--late-soft, #FBEAEA); color: var(--late, #D14343); }
+.clock-pen.absent { background: #f3e8e8; color: #9c3a3a; }
+
+/* 시작/종료 버튼 더 크고 명확하게 */
+.btn-start, .btn-end {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  padding: 16px !important;
+  letter-spacing: 0.5px;
+}
+.sys-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  margin-right: 12px;
+}
+.sys-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: -0.1px;
+  border: 1px solid transparent;
+}
+.sys-link:hover { transform: translateY(-1px); }
+.sys-link-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.18);
+  font-family: "Noto Serif KR", Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+.sys-link-label { line-height: 1; }
+.sys-link-task {
+  background: linear-gradient(135deg, #2c5d9e 0%, #4178c8 100%);
+  border-color: #2c5d9e;
+  box-shadow: 0 1px 3px rgba(44,93,158,0.25);
+}
+.sys-link-task:hover {
+  background: linear-gradient(135deg, #234e85 0%, #2c5d9e 100%);
+  box-shadow: 0 2px 6px rgba(44,93,158,0.35);
+}
+.sys-link-fund {
+  background: linear-gradient(135deg, #1c3e63 0%, #2c5d9e 100%);
+  border-color: #1c3e63;
+  box-shadow: 0 1px 3px rgba(28,62,99,0.25);
+}
+.sys-link-fund:hover {
+  background: linear-gradient(135deg, #142d49 0%, #234e85 100%);
+  box-shadow: 0 2px 6px rgba(28,62,99,0.35);
+}
+
+@media (max-width: 640px) {
+  .sys-link { padding: 6px 9px !important; }
+  .sys-link-label { display: none; }
+  .sys-link-mark { width: 22px; height: 22px; font-size: 14px; }
+  .sys-links { margin-right: 6px; gap: 4px; }
+}
 </style>
 </head>
 <body>
@@ -1412,6 +1584,16 @@
       <div class="title">봉사 기록부</div>
       <span class="sub" id="page-date">—</span>
     </div>
+  </div>
+  <div class="sys-links">
+    <a href="index.html" class="sys-link sys-link-task" title="업무 대시보드 (연간계획)">
+      <span class="sys-link-mark">⌂</span>
+      <span class="sys-link-label">업무</span>
+    </a>
+    <a href="fund.html" class="sys-link sys-link-fund" title="자금청구 시스템">
+      <span class="sys-link-mark">₩</span>
+      <span class="sys-link-label">자금청구</span>
+    </a>
   </div>
   <nav class="tabs">
     <button class="tab active" data-tab="member" onclick="switchTab('member')">내 봉사</button>
@@ -1453,8 +1635,8 @@
         <div class="who" id="locked-who">—</div>
         <div class="where" id="locked-where">—</div>
       </div>
-      <button class="lock-change" onclick="changeLockedMember()" title="다른 사명자로 변경">
-        변경
+      <button class="lock-change" onclick="changeLockedMember()" title="다른 사명자로 변경 (관리자 비번 필요)">
+        🔒 변경
       </button>
     </div>
 
@@ -1477,6 +1659,9 @@
           봉사 시작
         </button>
       </div>
+      <!-- 알림 켜기 (시간 기반 리마인더: 08:40 시작, 20:00 종료) -->
+      <button class="notif-toggle" id="notif-toggle-btn" onclick="toggleNotifications()" title="08:40 시작 · 20:00 종료 알림">🔕 알림 켜기</button>
+      <div class="notif-hint">앱이 켜져 있을 때 오전 8:40, 저녁 8:00에 알림이 울립니다</div>
     </div>
 
     <!-- 본인 누적 기록 -->
@@ -1542,6 +1727,10 @@
         <!-- 필터 -->
         <div class="admin-filter">
           <div class="admin-filter-field">
+            <label>날짜</label>
+            <input type="date" id="admin-f-date" onchange="loadAdminToday()">
+          </div>
+          <div class="admin-filter-field">
             <label>부서</label>
             <select id="admin-f-dept" onchange="renderAdminToday()">
               <option value="">전체 부서</option>
@@ -1556,6 +1745,7 @@
               <option value="none">미시작</option>
             </select>
           </div>
+          <button class="admin-today-btn" onclick="adminGoToday()" title="오늘로">오늘</button>
           <button class="admin-refresh-btn" onclick="loadAdminToday()" title="새로고침">
             ↻ 새로고침
           </button>
@@ -1638,7 +1828,7 @@
             <input id="add-loc-address" class="add-input" placeholder="주소 (선택)" maxlength="100">
             <input id="add-loc-lat" class="add-input" type="text" inputmode="decimal" placeholder="위도 (예: 37.647144)" oninput="onAddLatInput()">
             <input id="add-loc-lng" class="add-input" type="text" inputmode="decimal" placeholder="경도 (예: 127.063121)">
-            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="1000">
+            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="200">
             <button class="add-btn" onclick="onAddLocation()">+ 추가</button>
           </div>
           <div class="admin-add-hint">
@@ -2238,11 +2428,97 @@ function switchTab(tab){
 // 시계 (1초 갱신)
 // ────────────────────────────────────────────────────────────
 function tickClock(){
-  document.getElementById('clock-display').textContent = fmtTime(new Date());
+  const now = new Date();
+  document.getElementById('clock-display').textContent = fmtTime(now);
+  _checkTimeReminders(now);
 }
 function startClock(){
   tickClock();
   setInterval(tickClock, 1000);
+}
+
+// ────────────────────────────────────────────────────────────
+// 시간 기반 알림 (앱이 열려있거나 백그라운드에 살아있을 때만 동작)
+//   · 08:40 — "봉사 시작" 리마인더
+//   · 20:00 — "봉사 종료" 리마인더
+//   ※ 앱을 완전히 종료하면 안 울립니다 (웹앱 한계). 매일 한 번 열어두세요.
+// ────────────────────────────────────────────────────────────
+const REMIND_START = { h: 8,  m: 40, key: 'start', title: '🔔 봉사 시작 시간',
+  body: '봉사를 시작할 시간입니다. 앱을 열어 "봉사 시작"을 눌러주세요.' };
+const REMIND_END   = { h: 20, m: 0,  key: 'end',   title: '🔔 봉사 종료 시간',
+  body: '봉사를 종료할 시간입니다. 앱을 열어 "봉사 종료"를 눌러주세요.' };
+const LS_KEY_NOTIF = 'sjames_attend_notif_on';
+
+function _remindFiredKey(d, which){
+  return `sjames_attend_remind_${fmtYMD(d)}_${which}`;
+}
+
+function _checkTimeReminders(now){
+  // 알림 켜져 있지 않으면 패스
+  if(localStorage.getItem(LS_KEY_NOTIF) !== '1') return;
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  // 초가 0~5일 때만 (분 진입 직후 한 번)
+  if(now.getSeconds() > 5) return;
+
+  [REMIND_START, REMIND_END].forEach(r => {
+    if(now.getHours() === r.h && now.getMinutes() === r.m){
+      const firedKey = _remindFiredKey(now, r.key);
+      if(localStorage.getItem(firedKey)) return;   // 오늘 이미 울림
+      localStorage.setItem(firedKey, '1');
+      _showNotification(r.title, r.body);
+    }
+  });
+}
+
+function _showNotification(title, body){
+  try {
+    const n = new Notification(title, {
+      body: body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%238a5a2a"/><text x="50" y="68" font-size="56" text-anchor="middle" fill="white">봉</text></svg>',
+      tag: 'sjames-attend-remind',
+      requireInteraction: false
+    });
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch(e){
+    console.warn('[notif]', e);
+  }
+}
+
+// 알림 켜기/끄기 토글
+async function toggleNotifications(){
+  if(typeof Notification === 'undefined'){
+    showToast('이 브라우저는 알림을 지원하지 않습니다');
+    return;
+  }
+  const isOn = localStorage.getItem(LS_KEY_NOTIF) === '1';
+  if(isOn){
+    localStorage.setItem(LS_KEY_NOTIF, '0');
+    _renderNotifBtn();
+    showToast('알림이 꺼졌습니다');
+    return;
+  }
+  // 켜기 — 권한 요청
+  let perm = Notification.permission;
+  if(perm === 'default'){
+    perm = await Notification.requestPermission();
+  }
+  if(perm !== 'granted'){
+    showToast('알림 권한이 거부되어 있습니다. 브라우저 설정에서 허용해주세요.');
+    return;
+  }
+  localStorage.setItem(LS_KEY_NOTIF, '1');
+  _renderNotifBtn();
+  _showNotification('✅ 알림이 켜졌습니다', '매일 오전 8:40 시작 · 저녁 8:00 종료 알림을 보냅니다. (앱이 켜져 있을 때)');
+}
+
+function _renderNotifBtn(){
+  const btn = document.getElementById('notif-toggle-btn');
+  if(!btn) return;
+  const isOn = localStorage.getItem(LS_KEY_NOTIF) === '1'
+    && typeof Notification !== 'undefined'
+    && Notification.permission === 'granted';
+  btn.classList.toggle('on', isOn);
+  btn.innerHTML = isOn ? '🔔 알림 켜짐' : '🔕 알림 켜기';
 }
 
 // 날짜 (상단바 sub 라벨)
@@ -2374,6 +2650,16 @@ function onMemberChange(){
   }
   currentMemberId = Number(memberId);
   currentMember = allMembers.find(m => m.id === currentMemberId);
+  currentDeptId = currentMember ? currentMember.dept_id : currentDeptId;
+
+  // ★ 선택 즉시 기기 잠금 (대리인증 방지)
+  //   한 번 선택하면 이 기기는 그 사명자 전용이 됨.
+  //   다른 사람으로 바꾸려면 '변경'(관리자 비번) 필요.
+  localStorage.setItem(LS_KEY_MEMBER, String(currentMemberId));
+  localStorage.setItem(LS_KEY_DEPT,   currentDeptId);
+  isLocked = true;
+  renderLockedPicker();
+
   loadTodayRecord();
   loadMyRecords();
 }
@@ -2412,28 +2698,60 @@ function updateClockArea(){
   
   // 오늘 기록 상태별로 UI 분기
   if(!todayRecord){
-    // 아직 시작 안 함
-    statusText.textContent = `${currentMember.name} · ${currentMember.role || '—'} · 아직 봉사 시작 전`;
+    // 아직 시작 안 함 — 지금 시작하면 어떤 상태인지 미리 안내
+    const now = new Date();
+    const pen = calcPenalty(now);
+    let penHint = '';
+    if(pen.type === 'late'){
+      penHint = `<div class="start-pen-hint late">⚠️ 지금 시작하면 <b>지각</b> · ${fmtWon(pen.amount)}</div>`;
+    } else if(pen.type === 'absent'){
+      penHint = `<div class="start-pen-hint absent">⚠️ 지금 시작하면 <b>결석</b> · ${fmtWon(pen.amount)}</div>`;
+    } else if(isPenaltyDay(now)){
+      penHint = `<div class="start-pen-hint ok">✅ 정상 출근 시간</div>`;
+    }
+    statusText.innerHTML = `<b>${escapeHtml(currentMember.name)}</b> · ${escapeHtml(currentMember.role || '—')} · 봉사 시작 전`;
     statusDot.className = 'status-dot';
-    actions.innerHTML = `<button class="btn-start" id="btn-start" onclick="onStartClick()">봉사 시작</button>`;
+    actions.innerHTML = `${penHint}<button class="btn-start" id="btn-start" onclick="onStartClick()">▶ 봉사 시작</button>`;
     locRow.style.display = 'flex';
   } else if(todayRecord.check_in_at && !todayRecord.check_out_at){
-    // 봉사 중
-    const inHM = fmtHM(new Date(todayRecord.check_in_at));
+    // 봉사 중 — 시작 시각, 경과 시간, 장소
+    const inAt = new Date(todayRecord.check_in_at);
+    const inHM = fmtHM(inAt);
     const locName = todayRecord.attend_locations?.name || '—';
-    statusText.textContent = `봉사 중 · ${inHM} 시작 · ${locName}`;
+    const elapsed = fmtDuration(new Date() - inAt);
+    // 시작 당시 벌금 상태 표시
+    const pen = todayRecord.penalty_type && todayRecord.penalty_type !== 'none'
+      ? `<span class="clock-pen ${todayRecord.penalty_type}">${penaltyLabel(todayRecord.penalty_type)} ${fmtWon(todayRecord.penalty_amount||0)}</span>` : '';
+    statusText.innerHTML = `<span class="working-badge">● 봉사 중</span> ${inHM} 시작 · ${escapeHtml(locName)} ${pen}`;
     statusDot.className = 'status-dot working';
-    actions.innerHTML = `<button class="btn-end" id="btn-end" onclick="onEndClick()">봉사 종료</button>`;
+    actions.innerHTML = `
+      <div class="elapsed-box">봉사 시간 <b id="elapsed-live">${elapsed}</b> 경과 중</div>
+      <button class="btn-end" id="btn-end" onclick="onEndClick()">■ 봉사 종료</button>`;
     locRow.style.display = 'none';
   } else if(todayRecord.check_in_at && todayRecord.check_out_at){
     // 종료 완료
-    const dur = fmtDuration(new Date(todayRecord.check_out_at) - new Date(todayRecord.check_in_at));
-    statusText.textContent = `오늘 봉사 종료 · ${dur} 봉사`;
+    const inAt = new Date(todayRecord.check_in_at);
+    const outAt = new Date(todayRecord.check_out_at);
+    const dur = fmtDuration(outAt - inAt);
+    const inHM = fmtHM(inAt), outHM = fmtHM(outAt);
+    const pen = todayRecord.penalty_type && todayRecord.penalty_type !== 'none'
+      ? `<span class="clock-pen ${todayRecord.penalty_type}">${penaltyLabel(todayRecord.penalty_type)} ${fmtWon(todayRecord.penalty_amount||0)}</span>` : '';
+    statusText.innerHTML = `<span class="done-badge">✓ 종료</span> ${inHM} ~ ${outHM} ${pen}`;
     statusDot.className = 'status-dot done';
-    actions.innerHTML = `<div class="done-box">오늘 봉사가 종료되었습니다. 수고하셨습니다.</div>`;
+    actions.innerHTML = `<div class="done-box">오늘 봉사가 종료되었습니다 · 총 <b>${dur}</b> 봉사<br><span style="font-size:12px;color:var(--text-3,#9c9384)">수고하셨습니다 🙏</span></div>`;
     locRow.style.display = 'none';
   }
 }
+
+// 봉사 중일 때 경과 시간 실시간 갱신
+setInterval(() => {
+  if(todayRecord && todayRecord.check_in_at && !todayRecord.check_out_at){
+    const el = document.getElementById('elapsed-live');
+    if(el){
+      el.textContent = fmtDuration(new Date() - new Date(todayRecord.check_in_at));
+    }
+  }
+}, 30000);  // 30초마다
 
 // 시각이 사유 필요한 시간인지 확인
 function needStartReason(now){
@@ -2790,7 +3108,11 @@ function renderUnlockedPicker(){
 }
 
 function changeLockedMember(){
-  if(!confirm('이 기기를 다른 사명자에게 양도하시겠어요?\n\n선택 정보가 초기화되고, 새 사명자를 선택하실 수 있습니다.')){
+  // 대리인증 방지: 다른 사명자로 바꾸려면 관리자(총무부 마스터) 비번 필요.
+  const pw = prompt('⚠️ 다른 사명자로 변경하려면 관리자 비밀번호가 필요합니다.\n(대리 인증 방지)\n\n관리자 비밀번호:');
+  if(pw === null) return;                 // 취소
+  if(pw !== ADMIN_PW){
+    showToast('비밀번호가 일치하지 않습니다');
     return;
   }
   localStorage.removeItem(LS_KEY_MEMBER);
@@ -2807,6 +3129,7 @@ function changeLockedMember(){
   document.getElementById('sel-member').disabled = true;
   updateClockArea();
   renderEmptyRecords();
+  showToast('잠금 해제됨 — 새 사명자를 선택하세요');
 }
 
 // 저장된 사명자 자동 복원
@@ -3402,7 +3725,7 @@ function renderLocations(){
 async function onAddLocation(){
   const name = document.getElementById('add-loc-name').value.trim();
   const address = document.getElementById('add-loc-address').value.trim();
-  const radius = parseInt(document.getElementById('add-loc-radius').value) || 1000;
+  const radius = parseInt(document.getElementById('add-loc-radius').value) || 200;
   const err = document.getElementById('add-loc-err');
   err.textContent = '';
   
@@ -3470,7 +3793,7 @@ async function onAddLocation(){
   document.getElementById('add-loc-address').value = '';
   document.getElementById('add-loc-lat').value = '';
   document.getElementById('add-loc-lng').value = '';
-  document.getElementById('add-loc-radius').value = '1000';
+  document.getElementById('add-loc-radius').value = '200';
   
   showToast(latN != null
     ? `✅ ${data.name} 추가됨 · 좌표 설정됨 (반경 ${radius}m)`
@@ -4227,25 +4550,46 @@ function populateAdminDeptFilter(){
 }
 
 // 오늘 전체 기록 로드
+// 관리자 조회 날짜 (없으면 오늘)
+function getAdminDate(){
+  const el = document.getElementById('admin-f-date');
+  const v = el && el.value ? el.value : '';
+  return v || fmtYMD(new Date());
+}
+function adminGoToday(){
+  const el = document.getElementById('admin-f-date');
+  if(el) el.value = fmtYMD(new Date());
+  loadAdminToday();
+}
+
 async function loadAdminToday(){
-  const today = fmtYMD(new Date());
+  const theDate = getAdminDate();
   const { data, error } = await sb
     .from('attend_records')
     .select('*, attend_locations(name)')
-    .eq('record_date', today);
+    .eq('record_date', theDate);
   
   if(error){
     console.error('[loadAdminToday]', error);
-    showToast('오늘 기록을 불러오지 못했어요');
+    showToast('기록을 불러오지 못했어요');
     return;
   }
   adminTodayRecords = data || [];
   renderAdminKPI();
   renderAdminToday();
+
+  // 표 제목에 날짜 반영
+  const head = document.querySelector('#admin-sub-today .admin-table-head h3');
+  if(head){
+    const isToday = theDate === fmtYMD(new Date());
+    head.textContent = isToday ? '오늘 현황' : `${fmtDateKor(theDate)} 현황`;
+  }
 }
 
 // KPI 카드
 function renderAdminKPI(){
+  const isToday = getAdminDate() === fmtYMD(new Date());
+  const dayWord = isToday ? '오늘' : '해당일';
   const total = allMembers.length;
   const present = adminTodayRecords.length;
   const working = adminTodayRecords.filter(r => r.check_in_at && !r.check_out_at).length;
@@ -4259,7 +4603,7 @@ function renderAdminKPI(){
       <div class="k-meta">활성 등록</div>
     </div>
     <div class="admin-kpi-card">
-      <div class="k-label">오늘 봉사</div>
+      <div class="k-label">${dayWord} 봉사</div>
       <div class="k-value">${present}</div>
       <div class="k-meta">시작 기준</div>
     </div>
@@ -4427,6 +4771,10 @@ function renderAdminToday(){
 async function init(){
   setPageDate();
   startClock();
+  _renderNotifBtn();   // 알림 버튼 상태 복원
+  // 관리자 날짜 기본값 = 오늘
+  const adminDateEl = document.getElementById('admin-f-date');
+  if(adminDateEl && !adminDateEl.value) adminDateEl.value = fmtYMD(new Date());
   await loadAllMembers();
   await loadAllLocations();
   await loadHolidays();   // 벌금 계산용 공휴일 Set
