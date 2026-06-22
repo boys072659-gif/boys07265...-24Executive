@@ -1510,6 +1510,120 @@
   padding: 16px !important;
   letter-spacing: 0.5px;
 }
+
+/* ── 벌금 카드 (PC/모바일 반응형) ── */
+.pen-card {
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: #fff;
+  transition: all 0.15s;
+}
+.pen-card.paid { background: #f4faf4; border-color: #cfe6cf; }
+.pen-card.exempt { background: #fafafa; opacity: 0.85; }
+.pen-card-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.pen-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 120px;
+}
+.pen-card-date {
+  font-size: 11.5px;
+  color: var(--text-3, #9c9384);
+  font-variant-numeric: tabular-nums;
+}
+.pen-card-name { font-size: 15px; font-weight: 700; color: var(--text, #2b2620); }
+.pen-card-dept { font-size: 11.5px; color: var(--text-3, #9c9384); }
+.pen-card-mid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.pen-card-amt { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pen-amt { color: var(--late, #D14343); }
+.pen-amt.is-paid { color: #2c6e2c; }
+.pen-amt-exempt { color: var(--text-4, #b8b0a2); }
+.pen-card-status { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.pen-type {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pen-type.late   { background: var(--late-soft, #FBEAEA); color: var(--late, #D14343); }
+.pen-type.absent { background: #f3e8e8; color: #9c3a3a; }
+.pen-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.pen-chip.charged { background: var(--late-soft, #FBEAEA); color: var(--late, #D14343); }
+.pen-chip.pending { background: #fff3d6; color: #8a5a16; }
+.pen-chip.exempt  { background: #e8f0e8; color: #4a7a4a; }
+.pen-chip.paid    { background: #d4ecd5; color: #1f6b22; }
+.pen-chip.unpaid  { background: #fde2e2; color: #b5564f; }
+.pen-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--line, #ece7de);
+}
+.pen-btn {
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+}
+.pen-btn.pay { background: linear-gradient(135deg, #2c8f3c 0%, #37a046 100%); color: #fff; }
+.pen-btn.pay:hover { background: linear-gradient(135deg, #257a32 0%, #2c8f3c 100%); }
+.pen-btn.ok { background: #fff; border-color: #b8d8b8; color: #2c6e2c; }
+.pen-btn.ok:hover { background: #f0f7f0; }
+.pen-btn.danger { background: #fff; border-color: #e0b8b8; color: #b5564f; }
+.pen-btn.danger:hover { background: #fbeaea; }
+.pen-btn.ghost { background: #fff; border-color: var(--line, #e3ddd2); color: var(--text-2, #6b6256); }
+.pen-btn.ghost:hover { background: #faf8f4; }
+.pen-reason {
+  margin-top: 9px;
+  font-size: 12.5px;
+  color: var(--text-2, #6b6256);
+  background: var(--bg-subtle, #f7f4ee);
+  padding: 7px 11px;
+  border-radius: 8px;
+  line-height: 1.45;
+}
+.pen-paid-at {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: #2c6e2c;
+  font-variant-numeric: tabular-nums;
+}
+.admin-kpi-card.late-card .k-value { color: var(--late, #D14343); }
+.admin-kpi-card.ok-card .k-value { color: #2c8f3c; }
+
+@media (max-width: 640px) {
+  .pen-card-main { gap: 8px; }
+  .pen-card-left { min-width: 0; flex: 1 1 100%; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .pen-card-mid { margin-left: 0; width: 100%; justify-content: space-between; }
+  .pen-card-status { width: 100%; }
+  .pen-btn { flex: 1; min-width: 90px; text-align: center; padding: 10px 12px; }
+}
+
 .sys-links {
   display: inline-flex;
   align-items: center;
@@ -1870,7 +1984,9 @@
             <label>상태</label>
             <select id="pen-f-status" onchange="renderPenalty()">
               <option value="">전체</option>
-              <option value="charged">부과</option>
+              <option value="unpaid">미납 (부과·미납)</option>
+              <option value="paid">납부완료</option>
+              <option value="charged">부과 (전체)</option>
               <option value="exempt_pending">면제 검토</option>
               <option value="exempt">면제 확정</option>
             </select>
@@ -4034,6 +4150,9 @@ function renderPenaltyKPI(){
   const pending = penaltyRecords.filter(r => r.penalty_status === 'exempt_pending');
   const exempt  = penaltyRecords.filter(r => r.penalty_status === 'exempt');
   const totalAmount = charged.reduce((s, r) => s + (r.penalty_amount || 0), 0);
+  const unpaid = charged.filter(r => !r.penalty_paid);
+  const unpaidAmount = unpaid.reduce((s, r) => s + (r.penalty_amount || 0), 0);
+  const paidAmount = totalAmount - unpaidAmount;
   
   document.getElementById('pen-kpi').innerHTML = `
     <div class="admin-kpi-card">
@@ -4041,20 +4160,20 @@ function renderPenaltyKPI(){
       <div class="k-value">${fmtWon(totalAmount)}</div>
       <div class="k-meta">${charged.length}건</div>
     </div>
+    <div class="admin-kpi-card late-card">
+      <div class="k-label">미납 금액</div>
+      <div class="k-value">${fmtWon(unpaidAmount)}</div>
+      <div class="k-meta">${unpaid.length}건 미납</div>
+    </div>
+    <div class="admin-kpi-card ok-card">
+      <div class="k-label">납부 완료</div>
+      <div class="k-value">${fmtWon(paidAmount)}</div>
+      <div class="k-meta">${charged.length - unpaid.length}건</div>
+    </div>
     <div class="admin-kpi-card working">
       <div class="k-label">면제 검토</div>
       <div class="k-value">${pending.length}</div>
       <div class="k-meta">확인 필요</div>
-    </div>
-    <div class="admin-kpi-card">
-      <div class="k-label">면제 확정</div>
-      <div class="k-value">${exempt.length}</div>
-      <div class="k-meta">승인됨</div>
-    </div>
-    <div class="admin-kpi-card absent">
-      <div class="k-label">전체 건수</div>
-      <div class="k-value">${penaltyRecords.length}</div>
-      <div class="k-meta">지각+결석</div>
     </div>
   `;
 }
@@ -4065,7 +4184,16 @@ function renderPenalty(){
   
   let rows = penaltyRecords.slice();
   if(deptF)   rows = rows.filter(r => r.attend_members?.dept_id === deptF);
-  if(statusF) rows = rows.filter(r => r.penalty_status === statusF);
+  if(statusF){
+    if(statusF === 'unpaid'){
+      // 미납 = 부과됐는데 아직 납부 안 함
+      rows = rows.filter(r => r.penalty_status === 'charged' && !r.penalty_paid);
+    } else if(statusF === 'paid'){
+      rows = rows.filter(r => r.penalty_status === 'charged' && r.penalty_paid);
+    } else {
+      rows = rows.filter(r => r.penalty_status === statusF);
+    }
+  }
   
   document.getElementById('pen-meta').textContent = `${rows.length}건`;
   
@@ -4075,53 +4203,74 @@ function renderPenalty(){
     return;
   }
   
-  const head = `
-    <div class="pen-row head">
-      <span>날짜</span>
-      <span>이름 · 부서</span>
-      <span>유형</span>
-      <span>금액</span>
-      <span>상태 · 처리</span>
-    </div>`;
-  
   const body = rows.map(r => {
     const m = r.attend_members || {};
     const dept = DEPTS.find(d => d.id === m.dept_id);
     const deptName = dept ? dept.name : (m.dept_id || '—');
     const label = penaltyLabel(r.penalty_type);
     const typeCls = r.penalty_type === 'absent' ? 'absent' : 'late';
-    
-    // 상태 + 처리 버튼
-    let statusHtml = '';
-    if(r.penalty_status === 'charged'){
-      statusHtml = `<span class="pen-chip charged">부과</span>
-        <button class="row-action ok" onclick="setPenaltyStatus(${r.id}, 'exempt')" title="면제 처리">면제</button>`;
-    } else if(r.penalty_status === 'exempt_pending'){
-      statusHtml = `<span class="pen-chip pending">검토중</span>
-        <button class="row-action ok" onclick="setPenaltyStatus(${r.id}, 'exempt')">면제</button>
-        <button class="row-action danger" onclick="setPenaltyStatus(${r.id}, 'charged')">부과</button>`;
-    } else if(r.penalty_status === 'exempt'){
-      statusHtml = `<span class="pen-chip exempt">면제</span>
-        <button class="row-action danger" onclick="setPenaltyStatus(${r.id}, 'charged')" title="부과로 되돌림">부과</button>`;
+    const isExempt = r.penalty_status === 'exempt';
+    const isCharged = r.penalty_status === 'charged';
+    const isPending = r.penalty_status === 'exempt_pending';
+    const isPaid = !!r.penalty_paid;
+
+    // 1) 상태 칩 (부과/검토중/면제 + 납부 여부)
+    let statusChips = '';
+    if(isCharged){
+      statusChips = isPaid
+        ? `<span class="pen-chip paid">납부완료</span>`
+        : `<span class="pen-chip charged">부과</span><span class="pen-chip unpaid">미납</span>`;
+    } else if(isPending){
+      statusChips = `<span class="pen-chip pending">검토중</span>`;
+    } else if(isExempt){
+      statusChips = `<span class="pen-chip exempt">면제</span>`;
     }
-    
+
+    // 2) 처리 버튼
+    let actionBtns = '';
+    if(isCharged){
+      // 부과 상태: 납부 토글 + 면제 전환
+      actionBtns = isPaid
+        ? `<button class="pen-btn ghost" onclick="setPenaltyPaid(${r.id}, false)">미납 처리</button>
+           <button class="pen-btn ok" onclick="setPenaltyStatus(${r.id}, 'exempt')">면제</button>`
+        : `<button class="pen-btn pay" onclick="setPenaltyPaid(${r.id}, true)">💰 납부완료</button>
+           <button class="pen-btn ok" onclick="setPenaltyStatus(${r.id}, 'exempt')">면제</button>`;
+    } else if(isPending){
+      actionBtns = `<button class="pen-btn ok" onclick="setPenaltyStatus(${r.id}, 'exempt')">면제</button>
+        <button class="pen-btn danger" onclick="setPenaltyStatus(${r.id}, 'charged')">부과</button>`;
+    } else if(isExempt){
+      actionBtns = `<button class="pen-btn danger" onclick="setPenaltyStatus(${r.id}, 'charged')">부과로 되돌림</button>`;
+    }
+
+    const amountHtml = isExempt
+      ? `<s class="pen-amt-exempt">${fmtWon(r.penalty_amount)}</s>`
+      : `<span class="pen-amt${isPaid?' is-paid':''}">${fmtWon(r.penalty_amount)}</span>`;
+
     const reasonHint = r.check_in_reason 
-      ? `<div class="pen-reason">사유: ${escapeHtml(r.check_in_reason)}</div>` : '';
-    
+      ? `<div class="pen-reason">📝 ${escapeHtml(r.check_in_reason)}</div>` : '';
+    const paidHint = (isCharged && isPaid && r.penalty_paid_at)
+      ? `<div class="pen-paid-at">납부일: ${fmtDateKor(r.penalty_paid_at.slice(0,10))}</div>` : '';
+
     return `
-      <div class="pen-row-wrap">
-        <div class="pen-row">
-          <span class="pen-date">${fmtDateKor(r.record_date)}</span>
-          <span><span class="col-name">${escapeHtml(m.name || '—')}</span><br><span style="color:var(--text-3);font-size:11.5px">${escapeHtml(deptName)}</span></span>
-          <span><span class="pen-type ${typeCls}">${label}</span></span>
-          <span class="pen-amount">${r.penalty_status === 'exempt' ? '<s style="color:var(--text-4)">'+fmtWon(r.penalty_amount)+'</s>' : fmtWon(r.penalty_amount)}</span>
-          <span class="pen-action-cell">${statusHtml}</span>
+      <div class="pen-card${isPaid?' paid':''}${isExempt?' exempt':''}">
+        <div class="pen-card-main">
+          <div class="pen-card-left">
+            <span class="pen-card-date">${fmtDateKor(r.record_date)}</span>
+            <span class="pen-card-name">${escapeHtml(m.name || '—')}</span>
+            <span class="pen-card-dept">${escapeHtml(deptName)}</span>
+          </div>
+          <div class="pen-card-mid">
+            <span class="pen-type ${typeCls}">${label}</span>
+            <span class="pen-card-amt">${amountHtml}</span>
+          </div>
+          <div class="pen-card-status">${statusChips}</div>
         </div>
-        ${reasonHint}
+        <div class="pen-card-actions">${actionBtns}</div>
+        ${reasonHint}${paidHint}
       </div>`;
   }).join('');
   
-  container.innerHTML = head + body;
+  container.innerHTML = body;
 }
 
 // 벌금 상태 변경 (면제/부과)
@@ -4137,6 +4286,29 @@ async function setPenaltyStatus(recordId, newStatus){
     return;
   }
   showToast(`✅ ${labels[newStatus]} 처리됨`);
+  await loadPenalty();
+}
+
+// 납부 여부 토글 (부과된 벌금만 대상)
+async function setPenaltyPaid(recordId, paid){
+  const update = paid
+    ? { penalty_paid: true,  penalty_paid_at: new Date().toISOString(), penalty_paid_by: '관리자' }
+    : { penalty_paid: false, penalty_paid_at: null, penalty_paid_by: null };
+  const { error } = await sb
+    .from('attend_records')
+    .update(update)
+    .eq('id', recordId);
+  if(error){
+    console.error('[setPenaltyPaid]', error);
+    // 컬럼 없을 때 친절 안내
+    if(/column .*penalty_paid/i.test(error.message || '')){
+      showToast('납부 컬럼이 없습니다 — 벌금_납부_컬럼추가.sql 먼저 실행하세요');
+    } else {
+      showToast('변경 실패: ' + (error.message || '서버 오류'));
+    }
+    return;
+  }
+  showToast(paid ? '✅ 납부 완료 처리됨' : '미납으로 되돌림');
   await loadPenalty();
 }
 
