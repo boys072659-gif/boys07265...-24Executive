@@ -1896,9 +1896,9 @@
           봉사 시작
         </button>
       </div>
-      <!-- 알림 켜기 (시간 기반 리마인더: 08:40 시작, 20:00 종료) -->
-      <button class="notif-toggle" id="notif-toggle-btn" onclick="toggleNotifications()" title="08:40 시작 · 20:00 종료 알림">🔕 알림 켜기</button>
-      <div class="notif-hint">앱이 켜져 있을 때 오전 8:40, 저녁 8:00에 알림이 울립니다</div>
+      <!-- 알림 켜기 (시간 기반 리마인더: 08:30 시작, 20:00 종료) -->
+      <button class="notif-toggle" id="notif-toggle-btn" onclick="toggleNotifications()" title="08:30 시작 · 20:00 종료 알림">🔕 알림 켜기</button>
+      <div class="notif-hint">앱이 켜져 있을 때 오전 8:30, 저녁 8:00에 알림이 울립니다</div>
     </div>
 
     <!-- 본인 누적 기록 -->
@@ -2065,7 +2065,7 @@
             <input id="add-loc-address" class="add-input" placeholder="주소 (선택)" maxlength="100">
             <input id="add-loc-lat" class="add-input" type="text" inputmode="decimal" placeholder="위도 (예: 37.647144)" oninput="onAddLatInput()">
             <input id="add-loc-lng" class="add-input" type="text" inputmode="decimal" placeholder="경도 (예: 127.063121)">
-            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="200">
+            <input id="add-loc-radius" class="add-input" type="number" placeholder="반경(m)" min="10" max="5000" value="100">
             <button class="add-btn" onclick="onAddLocation()">+ 추가</button>
           </div>
           <div class="admin-add-hint">
@@ -2704,11 +2704,11 @@ function startClock(){
 
 // ────────────────────────────────────────────────────────────
 // 시간 기반 알림 (앱이 열려있거나 백그라운드에 살아있을 때만 동작)
-//   · 08:40 — "봉사 시작" 리마인더
+//   · 08:30 — "봉사 시작" 리마인더
 //   · 20:00 — "봉사 종료" 리마인더
 //   ※ 앱을 완전히 종료하면 안 울립니다 (웹앱 한계). 매일 한 번 열어두세요.
 // ────────────────────────────────────────────────────────────
-const REMIND_START = { h: 8,  m: 40, key: 'start', title: '🔔 봉사 시작 시간',
+const REMIND_START = { h: 8,  m: 30, key: 'start', title: '🔔 봉사 시작 시간',
   body: '봉사를 시작할 시간입니다. 앱을 열어 "봉사 시작"을 눌러주세요.' };
 const REMIND_END   = { h: 20, m: 0,  key: 'end',   title: '🔔 봉사 종료 시간',
   body: '봉사를 종료할 시간입니다. 앱을 열어 "봉사 종료"를 눌러주세요.' };
@@ -2773,7 +2773,7 @@ async function toggleNotifications(){
   }
   localStorage.setItem(LS_KEY_NOTIF, '1');
   _renderNotifBtn();
-  _showNotification('✅ 알림이 켜졌습니다', '매일 오전 8:40 시작 · 저녁 8:00 종료 알림을 보냅니다. (앱이 켜져 있을 때)');
+  _showNotification('✅ 알림이 켜졌습니다', '매일 오전 8:30 시작 · 저녁 8:00 종료 알림을 보냅니다. (앱이 켜져 있을 때)');
 }
 
 function _renderNotifBtn(){
@@ -3994,7 +3994,7 @@ function renderLocations(){
 async function onAddLocation(){
   const name = document.getElementById('add-loc-name').value.trim();
   const address = document.getElementById('add-loc-address').value.trim();
-  const radius = parseInt(document.getElementById('add-loc-radius').value) || 200;
+  const radius = parseInt(document.getElementById('add-loc-radius').value) || 100;
   const err = document.getElementById('add-loc-err');
   err.textContent = '';
   
@@ -4062,7 +4062,7 @@ async function onAddLocation(){
   document.getElementById('add-loc-address').value = '';
   document.getElementById('add-loc-lat').value = '';
   document.getElementById('add-loc-lng').value = '';
-  document.getElementById('add-loc-radius').value = '200';
+  document.getElementById('add-loc-radius').value = '100';
   
   showToast(latN != null
     ? `✅ ${data.name} 추가됨 · 좌표 설정됨 (반경 ${radius}m)`
