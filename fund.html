@@ -1799,6 +1799,44 @@
   background: var(--bg-card);
 }
 
+/* 청구 상세 모달 — 코멘트/수정요청 박스 */
+.comment-box { }
+.comment-quick-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.comment-quick {
+  padding: 5px 11px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.comment-quick:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-comment-send {
+  padding: 9px 16px;
+  background: linear-gradient(135deg, #2c5d9e 0%, #4178c8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-comment-send:hover { background: linear-gradient(135deg, #234e85 0%, #2c5d9e 100%); }
+.btn-comment-send:disabled { opacity: 0.6; cursor: default; }
+
 /* 부서 다중 선택 그룹 */
 .dept-group-box { margin-bottom: 14px; }
 .dept-group-head {
@@ -3633,7 +3671,24 @@ function openDetail(id){
       <div class="detail-section action-box">
         <div class="detail-section-title">관리자 작업</div>
         ${primaryBtn ? `<div class="action-row">${primaryBtn}</div>${primaryHint ? `<div class="action-hint">${primaryHint}</div>` : ''}` : ''}
-        <div class="action-row" style="${primaryBtn ? 'margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)' : ''}">
+
+        <!-- 청구부서로 코멘트/수정요청 발송 -->
+        <div class="comment-box" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
+          <div style="font-size:11.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">💬 ${escapeHtml(r.dept || '청구부서')}로 코멘트·수정요청 보내기</div>
+          <div class="comment-quick-row">
+            <button class="comment-quick" onclick="insertCommentTemplate('detail')" type="button">상세 추가 요청</button>
+            <button class="comment-quick" onclick="insertCommentTemplate('amount')" type="button">금액 확인</button>
+            <button class="comment-quick" onclick="insertCommentTemplate('purpose')" type="button">사용용도 확인</button>
+            <button class="comment-quick" onclick="insertCommentTemplate('reject')" type="button">반려 안내</button>
+          </div>
+          <textarea id="modal-comment-text" rows="3" placeholder="청구부서 자금청구 토픽으로 보낼 메시지를 입력하세요…" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:8px;font-size:13.5px;font-family:var(--font-body);line-height:1.55;resize:vertical;margin-bottom:8px"></textarea>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-comment-send" onclick="sendCommentToDept(${r.id})" id="comment-send-btn">📤 청구부서로 발송</button>
+            <span id="comment-status" style="font-size:12px;color:var(--text-tertiary)"></span>
+          </div>
+        </div>
+
+        <div class="action-row" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
           <button class="btn btn-delete-action" onclick="askDelete(${r.id})">
             🗑️ 청구 삭제
           </button>
@@ -3645,6 +3700,145 @@ function openDetail(id){
 
   document.getElementById('modal-body').innerHTML = meta + approvalBox + actionBox + rawBox + submitMeta;
   document.getElementById('modal-backdrop').classList.add('show');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 청구 코멘트/수정요청 — 청구부서 자금청구 토픽으로 직접 발송
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const COMMENT_TEMPLATES = {
+  detail:  '🔍 세부내역을 좀 더 구체적으로 작성해 주시기 바랍니다.\n(예: 품목별 수량·단가, 구매처 등)',
+  amount:  '💰 청구금액 확인 부탁드립니다.\n금액 산정 근거 또는 견적서를 첨부 부탁드립니다.',
+  purpose: '📝 사용용도를 좀 더 명확히 작성해 주시기 바랍니다.',
+  reject:  '⚠️ 본 청구는 다음 사유로 반려되었습니다.\n사유: ',
+};
+
+function insertCommentTemplate(kind){
+  const t = COMMENT_TEMPLATES[kind] || '';
+  const ta = document.getElementById('modal-comment-text');
+  if(!ta) return;
+  ta.value = ta.value ? `${ta.value.trimEnd()}\n\n${t}` : t;
+  ta.focus();
+  // 커서를 끝에
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+}
+
+async function sendCommentToDept(requestId){
+  const ta = document.getElementById('modal-comment-text');
+  const message = (ta?.value || '').trim();
+  const btn = document.getElementById('comment-send-btn');
+  const status = document.getElementById('comment-status');
+  if(!message){ showToast('보낼 메시지를 입력하세요'); return; }
+
+  // 청구 정보
+  const r = requests.find(x => x.id === requestId);
+  if(!r){ showToast('청구 정보를 찾을 수 없습니다'); return; }
+
+  // ★ 원본 청구 메시지가 올라온 곳에 답글로 달기 (가장 자연스럽고 맥락 명확)
+  //   tg_chat_id / tg_message_id / tg_topic_id 가 저장돼 있어야 가능.
+  //   없을 경우(옛 데이터 등) 부서 등록 chat_id로 일반 발송 fallback.
+  let chatId   = r.tg_chat_id    || null;
+  let topicId  = r.tg_topic_id   ?? null;
+  let replyTo  = r.tg_message_id || null;
+  let usingReply = !!(chatId && replyTo);
+
+  if(!chatId){
+    // fallback — 부서 등록 chat_id로 일반 발송
+    const deptId = r.dept_id;
+    if(!deptId){ showToast('청구부서 정보가 없습니다'); return; }
+    try {
+      const { data } = await sb.from('exec_dept_telegram')
+        .select('chat_id, enabled')
+        .eq('dept_id', deptId)
+        .single();
+      if(data) chatId = data.chat_id;
+    } catch(_){}
+    if(!chatId){
+      showToast('이 부서의 텔레그램 그룹(chat_id)이 등록돼 있지 않습니다');
+      return;
+    }
+    try {
+      const { data } = await sb.from('fund_dept_topics')
+        .select('topic_id')
+        .eq('dept_id', deptId)
+        .single();
+      if(data && data.topic_id != null) topicId = data.topic_id;
+    } catch(_){}
+  }
+
+  // 봇 토큰 (업무 대시보드와 공유)
+  const token = (localStorage.getItem('sjames_bot_token') || '').trim();
+  if(!token){
+    if(!confirm('봇 토큰이 저장돼 있지 않습니다.\n발송 탭에서 한 번 토큰을 입력·저장해야 합니다.\n발송 탭으로 이동할까요?')) return;
+    closeModal();
+    switchTab('send');
+    return;
+  }
+
+  const safeText = message
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // 답글이면 청구번호 헤더가 필요 없음 (답글로 맥락이 보임)
+  // 답글이 아니면 청구번호 헤더 붙임
+  const fullMsg = usingReply
+    ? `<b>💬 [총무부 코멘트]</b>\n\n${safeText}`
+    : `<b>💬 [자금청구 #${r.request_no} 관련]</b>\n\n${safeText}`;
+
+  const where = usingReply
+    ? '원본 메시지 답글로'
+    : (r.dept || r.dept_id) + ' 그룹방' + (topicId?' (자금청구 토픽)':'') + '으로';
+  if(!confirm(`${where} 발송할까요?`)) return;
+
+  btn.disabled = true;
+  status.textContent = '발송 중…';
+  status.style.color = 'var(--text-tertiary)';
+
+  try {
+    const payload = {
+      chat_id: chatId,
+      text: fullMsg,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    };
+    if(topicId != null) payload.message_thread_id = topicId;
+    if(replyTo){
+      // reply_parameters가 신형 API. 옛 reply_to_message_id도 호환됨.
+      payload.reply_parameters = { message_id: replyTo, allow_sending_without_reply: true };
+    }
+
+    const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if(data.ok){
+      try {
+        await sb.from('fund_send_log').insert({
+          dept_id: r.dept_id,
+          dept_name: r.dept || r.dept_id,
+          chat_id: chatId,
+          topic_id: topicId,
+          message: `[코멘트 #${r.request_no}${usingReply?' · 답글':''}] ${message}`,
+          sent_by: currentUser ? currentUser.dept : '',
+          ok: true,
+        });
+      } catch(_){}
+      status.textContent = usingReply ? '✅ 답글 발송 완료' : '✅ 발송 완료';
+      status.style.color = 'var(--approved)';
+      ta.value = '';
+      showToast(usingReply ? `📤 원본 메시지에 답글로 발송됨` : `📤 ${r.dept || r.dept_id}로 발송됨`);
+    } else {
+      status.textContent = `❌ 실패: ${data.description || ''}`;
+      status.style.color = 'var(--cancelled)';
+      showToast('발송 실패: ' + (data.description || ''));
+    }
+  } catch(e){
+    console.error('[sendCommentToDept]', e);
+    status.textContent = '❌ 네트워크 오류';
+    status.style.color = 'var(--cancelled)';
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
