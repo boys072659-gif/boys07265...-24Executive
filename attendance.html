@@ -7842,7 +7842,11 @@ async function sendAttendReport(){
     try {
       const res = await fetch(ATTEND_REPORT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify({
           secret: ATTEND_REPORT_SECRET,
           date: theDate,
@@ -7943,7 +7947,11 @@ async function sendNoticeBroadcast(){
     try {
       const res = await fetch(ATTEND_REPORT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify(payload),
       });
       const raw = await res.text();
