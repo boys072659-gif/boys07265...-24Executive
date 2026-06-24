@@ -1454,6 +1454,45 @@
   font-family: inherit;
   color: var(--text, #2b2620);
   background: #fff;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  min-height: 38px;
+}
+/* iOS Safari — 셀 전체 탭으로 달력 열기 */
+.admin-filter-field input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  width: 100%;
+}
+.admin-filter-field input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0; top: 0;
+  width: 100%; height: 100%;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+.admin-filter-field { position: relative; }
+
+/* 모든 date input에 동일 패턴 적용 — 셀 어디를 눌러도 달력 열림 */
+input[type="date"].add-input,
+.add-input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  position: relative;
+}
+input[type="date"].add-input::-webkit-calendar-picker-indicator,
+.add-input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0; top: 0;
+  width: 100%; height: 100%;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
 }
 
 /* 잠금 변경 버튼 강조 (관리자 전용 표시) */
@@ -1667,6 +1706,44 @@
 }
 .tg-report-btn:hover { background: linear-gradient(135deg, #234e85 0%, #2c5d9e 100%); transform: translateY(-1px); }
 .tg-report-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+/* 발송 대상 입력 영역 */
+.tg-target-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 8px;
+}
+.tg-target-field { display: flex; flex-direction: column; gap: 4px; }
+.tg-target-field label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-3, #9c9384);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.tg-target-field input {
+  padding: 9px 11px;
+  border: 1px solid #cdddf0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--font-num, monospace);
+  background: #fff;
+  width: 100%;
+}
+.tg-target-field input:focus {
+  outline: none;
+  border-color: #4178c8;
+  box-shadow: 0 0 0 3px rgba(65, 120, 200, 0.15);
+}
+.tg-target-status {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 0;
+  line-height: 1.4;
+}
+@media (max-width: 480px) {
+  .tg-target-row { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 640px) {
   .tg-report-btn { width: 100%; }
@@ -2227,14 +2304,28 @@
           </button>
         </div>
 
-        <!-- 텔레그램 출퇴근 발송 -->
+        <!-- 텔레그램 발송 -->
         <div class="tg-report-box">
           <div class="tg-report-info">
-            <b>📤 텔레그램 출퇴근 현황 발송</b>
-            <span>선택한 날짜의 정시·지각·결석·미출석 현황을 그룹방 토픽으로 보냅니다. (매일 저녁 9시 자동 발송)</span>
+            <b>📤 텔레그램 발송</b>
+            <span>선택한 날짜의 출퇴근 현황을 그룹방 토픽으로 보냅니다. (매일 저녁 9시 자동 발송)</span>
           </div>
+
+          <!-- 발송 대상 (Chat ID + 토픽 ID) -->
+          <div class="tg-target-row">
+            <div class="tg-target-field">
+              <label>그룹 Chat ID</label>
+              <input type="text" id="tg-target-chatid" placeholder="예: -1001234567890" onchange="saveTgTarget()">
+            </div>
+            <div class="tg-target-field">
+              <label>토픽 ID <span style="font-weight:500;color:var(--text-3,#9c9384);font-size:10.5px">(선택)</span></label>
+              <input type="text" id="tg-target-topicid" placeholder="없으면 일반 채팅" onchange="saveTgTarget()">
+            </div>
+          </div>
+          <div class="tg-target-status" id="tg-target-status"></div>
+
           <textarea id="tg-report-extra" class="tg-report-extra" rows="3" placeholder="(선택) 출퇴근 현황 위에 추가로 보낼 공지·메시지가 있다면 입력하세요…"></textarea>
-          <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 지금 내보내기</button>
+          <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 지금 발송</button>
         </div>
 
         <!-- 오늘 현황 표 -->
@@ -3933,6 +4024,7 @@ function renderAdminMain(){
   populatePenaltyDeptFilter();
   loadHolidays();   // 공휴일 Set 갱신 (벌금 계산용)
   loadAdminToday();
+  loadTgTarget();   // 발송 대상 chat_id/topic_id 복원
 }
 
 // 벌금 탭 부서 필터
@@ -5473,13 +5565,101 @@ function adminGoToday(){
 const ATTEND_REPORT_URL = 'https://faxaqxyafsitdfykxgem.supabase.co/functions/v1/attend-daily-report';
 const ATTEND_REPORT_SECRET = 'sjames2026';  // Edge Function의 ATTEND_REPORT_SECRET 환경변수와 동일하게
 
+// ── 발송 대상(Chat ID + Topic ID) — DB attend_report_target에 저장 ──
+let _tgTargetTableMissing = false;
+
+async function loadTgTarget(){
+  try {
+    const { data, error } = await sb.from('attend_report_target')
+      .select('chat_id, topic_id').eq('id', 1).single();
+    if(error){
+      if(/relation .*attend_report_target/i.test(error.message||'')){
+        _tgTargetTableMissing = true;
+      }
+      return;
+    }
+    const ci = document.getElementById('tg-target-chatid');
+    const ti = document.getElementById('tg-target-topicid');
+    if(ci && data){
+      ci.value = data.chat_id || '';
+      ti.value = data.topic_id != null ? String(data.topic_id) : '';
+    }
+    _renderTgTargetStatus();
+  } catch(e){ console.warn('[loadTgTarget]', e); }
+}
+
+async function saveTgTarget(){
+  const chatId = (document.getElementById('tg-target-chatid').value || '').trim();
+  const topicRaw = (document.getElementById('tg-target-topicid').value || '').trim();
+  const topicId = topicRaw ? parseInt(topicRaw) : null;
+  if(topicRaw && isNaN(topicId)){
+    showToast('토픽 ID는 숫자여야 합니다');
+    return;
+  }
+  try {
+    const { error } = await sb.from('attend_report_target').upsert({
+      id: 1,
+      chat_id: chatId || null,
+      topic_id: topicId,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' });
+    if(error) throw error;
+    _renderTgTargetStatus();
+    showToast('✅ 저장됨');
+  } catch(e){
+    console.error('[saveTgTarget]', e);
+    if(/relation .*attend_report_target/i.test(e.message||'')){
+      showToast('attend_report_target.sql을 먼저 실행하세요');
+    } else {
+      showToast('저장 실패: ' + (e.message||''));
+    }
+  }
+}
+
+function _renderTgTargetStatus(){
+  const el = document.getElementById('tg-target-status');
+  if(!el) return;
+  const ci = (document.getElementById('tg-target-chatid').value || '').trim();
+  const ti = (document.getElementById('tg-target-topicid').value || '').trim();
+  if(_tgTargetTableMissing){
+    el.innerHTML = `⚠️ attend_report_target.sql을 먼저 실행해야 발송 가능합니다`;
+    el.style.color = 'var(--late, #D14343)';
+    return;
+  }
+  if(!ci){
+    el.innerHTML = `⚠️ Chat ID를 입력해야 발송 가능합니다`;
+    el.style.color = 'var(--late, #D14343)';
+    return;
+  }
+  el.innerHTML = ti
+    ? `✅ <b>${escapeHtml(ci)}</b> · 토픽 <b>${escapeHtml(ti)}</b>로 발송`
+    : `✅ <b>${escapeHtml(ci)}</b> 그룹 일반 채팅으로 발송`;
+  el.style.color = 'var(--approved, #2c8f3c)';
+}
+
 async function sendAttendReport(){
+  const chatId = (document.getElementById('tg-target-chatid').value || '').trim();
+  const topicRaw = (document.getElementById('tg-target-topicid').value || '').trim();
+  if(!chatId){
+    showToast('먼저 Chat ID를 입력하세요');
+    document.getElementById('tg-target-chatid').focus();
+    return;
+  }
+  const topicId = topicRaw ? parseInt(topicRaw) : null;
+  if(topicRaw && isNaN(topicId)){
+    showToast('토픽 ID는 숫자여야 합니다');
+    return;
+  }
+
   const theDate = getAdminDate();
   const isToday = theDate === fmtYMD(new Date());
   const extraEl = document.getElementById('tg-report-extra');
   const extraMsg = extraEl ? extraEl.value.trim() : '';
   const confirmMsg = `${isToday ? '오늘' : theDate}의 출퇴근 현황${extraMsg ? ' + 추가 메시지' : ''}을 텔레그램으로 보낼까요?`;
   if(!confirm(confirmMsg)) return;
+
+  // 보낼 때마다 대상도 자동 저장 (편의)
+  saveTgTarget().catch(_=>{});
 
   const btn = document.getElementById('tg-report-btn');
   btn.disabled = true;
@@ -5493,6 +5673,8 @@ async function sendAttendReport(){
       body: JSON.stringify({
         secret: ATTEND_REPORT_SECRET,
         date: theDate,
+        chat_id: chatId,
+        topic_id: topicId,
         extra: extraMsg || null,
       })
     });
