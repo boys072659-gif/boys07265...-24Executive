@@ -7931,32 +7931,52 @@ async function sendNoticeBroadcast(){
   const targets = tgTargets.filter(t => ids.includes(t.id));
   if(!confirm(`${targets.length}개 그룹방에 공지를 발송할까요?`)) return;
 
+  console.log('[notice] === 공지 발송 시작 ===');
+  console.log('[notice] 클라이언트 버전: 2024-notice-v2');
+  console.log('[notice] 메시지:', msg);
+  console.log('[notice] 대상 수:', targets.length);
+
   const btn = document.getElementById('notice-send-btn');
   btn.disabled = true;
   const orig = btn.textContent;
   
   let okCount = 0, failCount = 0;
   let firstErr = '';
+  let oldEdge = false;
   for(let i = 0; i < targets.length; i++){
     const t = targets[i];
     btn.textContent = `발송 중… (${i+1}/${targets.length})`;
+    const payload = {
+      secret: ATTEND_REPORT_SECRET,
+      notice_only: true,
+      chat_id: t.chat_id,
+      topic_id: t.topic_id,
+      extra: msg,
+    };
+    console.log(`[notice] [${t.label}] 요청 페이로드:`, payload);
     try {
       const res = await fetch(ATTEND_REPORT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret: ATTEND_REPORT_SECRET,
-          notice_only: true,           // 봉사 현황 없이 공지만 발송
-          chat_id: t.chat_id,
-          topic_id: t.topic_id,
-          extra: msg,
-        })
+        body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      const raw = await res.text();
+      console.log(`[notice] [${t.label}] HTTP ${res.status} 응답:`, raw);
+      let data;
+      try { data = JSON.parse(raw); } catch(_) { data = { ok: false, error: 'JSON 파싱 실패', raw }; }
+      // edge 버전 체크 — 새 버전은 version 필드를 항상 응답에 포함
+      if(!data.version) oldEdge = true;
+      // 새 버전인데 mode가 notice_only가 아니면, edge가 분기를 잘못 탄 것
+      if(data.version && data.mode !== 'notice_only'){
+        failCount++;
+        if(!firstErr) firstErr = `edge가 ${data.mode} 모드로 빠짐 (notice_only 아님)`;
+        console.error(`[${t.label}] wrong mode`, data);
+        continue;
+      }
       if(data.ok) okCount++; else {
         failCount++;
         console.error(`[${t.label}]`, data);
-        if(!firstErr) firstErr = data.error || data.tg?.description || (data.results?.[0]?.error) || JSON.stringify(data).slice(0,150);
+        if(!firstErr) firstErr = data.error || data.tg?.description || JSON.stringify(data).slice(0,200);
       }
     } catch(e){
       failCount++;
@@ -7966,7 +7986,9 @@ async function sendNoticeBroadcast(){
     if(i < targets.length - 1) await new Promise(r => setTimeout(r, 250));
   }
   
-  if(failCount === 0){
+  if(oldEdge){
+    showToast('⚠️ Edge Function이 옛 버전입니다 — 새 attend-daily-report.ts를 Supabase에서 Deploy 해주세요');
+  } else if(failCount === 0){
     showToast(`✅ ${okCount}개 그룹방 공지 발송 완료`);
     closeNoticeModal();
   } else {
