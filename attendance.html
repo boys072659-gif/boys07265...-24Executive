@@ -7775,21 +7775,36 @@ async function _buildReportPreview(theDate, extraMsg, target){
   records.forEach(r => recByMember.set(r.member_id, r));
   
   const onTime = [], late = [], absent = [], noShow = [];
+  // HH:MM (check_in 시작 시간만)
+  const fmtTime = (iso) => {
+    if(!iso) return '';
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  };
   for(const m of members){
     const rec = recByMember.get(m.id);
     if(!rec || !rec.check_in_at){ noShow.push({ ...m }); continue; }
     const reason = (rec.check_in_reason || '').trim();
-    if(rec.penalty_type === 'late') late.push({ ...m, reason });
-    else if(rec.penalty_type === 'absent') absent.push({ ...m, reason });
-    else onTime.push({ ...m });
+    const time = fmtTime(rec.check_in_at);
+    if(rec.penalty_type === 'late') late.push({ ...m, reason, time });
+    else if(rec.penalty_type === 'absent') absent.push({ ...m, reason, time });
+    else onTime.push({ ...m, time });
   }
   const cmp = (a,b) => (a.name||'').localeCompare(b.name||'', 'ko');
   [onTime, late, absent, noShow].forEach(arr => arr.sort(cmp));
   
-  const lineSimple = (m) => `· ${m.name}`;
-  const lineWithReason = (m) => m.reason ? `· ${m.name} (${m.reason})` : `· ${m.name}`;
-  const listSimple = (arr) => arr.length ? arr.map(lineSimple).join('\n') : '· (없음)';
-  const listReason = (arr) => arr.length ? arr.map(lineWithReason).join('\n') : '· (없음)';
+  // 정시: 이름 (시간), 지각·결석: 이름 (시간, 사유), 미출석: 이름만
+  const lineTime = (m) => m.time ? `· ${m.name} (${m.time})` : `· ${m.name}`;
+  const lineFull = (m) => {
+    const parts = [];
+    if(m.time) parts.push(m.time);
+    if(m.reason) parts.push(m.reason);
+    return parts.length ? `· ${m.name} (${parts.join(', ')})` : `· ${m.name}`;
+  };
+  const lineName = (m) => `· ${m.name}`;
+  const listTime = (arr) => arr.length ? arr.map(lineTime).join('\n') : '· (없음)';
+  const listFull = (arr) => arr.length ? arr.map(lineFull).join('\n') : '· (없음)';
+  const listName = (arr) => arr.length ? arr.map(lineName).join('\n') : '· (없음)';
   
   // 날짜 표시
   const d = new Date(theDate + 'T00:00:00');
@@ -7800,10 +7815,10 @@ async function _buildReportPreview(theDate, extraMsg, target){
   let msg = `🌙 봉사 종료를 눌러주세요\n\n`;
   msg += `📋 ${dateKor} 봉사 현황 ${scopeName}\n`;
   msg += `대상 ${members.length}명 · 정시 ${onTime.length} · 지각 ${late.length} · 결석 ${absent.length} · 미출석 ${noShow.length}\n`;
-  msg += `\n✅ 정시 (${onTime.length}명)\n${listSimple(onTime)}`;
-  msg += `\n\n🟡 지각 (${late.length}명)\n${listReason(late)}`;
-  msg += `\n\n🔴 결석 (${absent.length}명)\n${listReason(absent)}`;
-  msg += `\n\n⬜ 미출석 (${noShow.length}명)\n${listSimple(noShow)}`;
+  msg += `\n✅ 정시 (${onTime.length}명)\n${listTime(onTime)}`;
+  msg += `\n\n🟡 지각 (${late.length}명)\n${listFull(late)}`;
+  msg += `\n\n🔴 결석 (${absent.length}명)\n${listFull(absent)}`;
+  msg += `\n\n⬜ 미출석 (${noShow.length}명)\n${listName(noShow)}`;
   
   if(extraMsg){
     msg = `📢 공지\n${extraMsg}\n\n━━━━━━━━━━━━━━━━━\n\n${msg}`;
@@ -7921,6 +7936,7 @@ async function sendNoticeBroadcast(){
   const orig = btn.textContent;
   
   let okCount = 0, failCount = 0;
+  let firstErr = '';
   for(let i = 0; i < targets.length; i++){
     const t = targets[i];
     btn.textContent = `발송 중… (${i+1}/${targets.length})`;
@@ -7937,10 +7953,15 @@ async function sendNoticeBroadcast(){
         })
       });
       const data = await res.json();
-      if(data.ok) okCount++; else { failCount++; console.error(`[${t.label}]`, data); }
+      if(data.ok) okCount++; else {
+        failCount++;
+        console.error(`[${t.label}]`, data);
+        if(!firstErr) firstErr = data.error || data.tg?.description || (data.results?.[0]?.error) || JSON.stringify(data).slice(0,150);
+      }
     } catch(e){
       failCount++;
       console.error(`[${t.label}]`, e);
+      if(!firstErr) firstErr = e.message || String(e);
     }
     if(i < targets.length - 1) await new Promise(r => setTimeout(r, 250));
   }
@@ -7949,7 +7970,7 @@ async function sendNoticeBroadcast(){
     showToast(`✅ ${okCount}개 그룹방 공지 발송 완료`);
     closeNoticeModal();
   } else {
-    showToast(`발송: 성공 ${okCount} / 실패 ${failCount}`);
+    showToast(`실패 ${failCount}/${targets.length}: ${firstErr || '콘솔 확인'}`);
   }
   btn.disabled = false;
   btn.textContent = orig;
