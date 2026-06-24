@@ -2125,80 +2125,94 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   📋 봉사 기록 카드 (개인 화면) — 모바일·데스크탑 통합 디자인
+   📋 봉사 기록 카드 — 안정적 2단 구조 (날짜/시간 좌, 본문 우)
    ════════════════════════════════════════════════════════════════════ */
-.history-list { display: flex; flex-direction: column; }
+.history-list { display: flex; flex-direction: column; gap: 0; }
 
 .hist-card {
   display: grid;
-  grid-template-columns: 100px 1fr auto;
+  grid-template-columns: 88px minmax(0, 1fr);
   gap: 14px;
-  align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--line, #ece7de);
   background: #fff;
-  transition: background 0.15s;
+  position: relative;
 }
 .hist-card:last-child { border-bottom: none; }
-.hist-card:hover { background: #fcfaf6; }
 
-/* 상태별 좌측 막대 */
-.hist-card.working { background: linear-gradient(90deg, #f0f7f0 0%, transparent 60%); border-left: 3px solid #2c8f3c; padding-left: 13px; }
-.hist-card.late    { background: linear-gradient(90deg, #fbeaea 0%, transparent 60%); border-left: 3px solid #D14343; padding-left: 13px; }
-.hist-card.absent  { background: linear-gradient(90deg, #f3e8e8 0%, transparent 60%); border-left: 3px solid #9c3a3a; padding-left: 13px; }
+/* 상태별 좌측 막대 + 배경 */
+.hist-card.working { background: #f6faf6; border-left: 3px solid #2c8f3c; padding-left: 13px; }
+.hist-card.late    { background: #fdf6f6; border-left: 3px solid #D14343; padding-left: 13px; }
+.hist-card.absent  { background: #fcf2f2; border-left: 3px solid #9c3a3a; padding-left: 13px; }
 
-/* 좌: 날짜 + 시간 */
-.hist-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+/* 좌: 날짜 + 시간 — 항상 좁은 컬럼이라 줄바꿈 강제 */
+.hist-left {
+  min-width: 0;
+}
 .hist-date {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--text, #2b2620);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  line-height: 1.4;
 }
 .hist-time {
   font-size: 11.5px;
   color: var(--text-2, #6b6256);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  line-height: 1.4;
+  margin-top: 2px;
 }
 
-/* 중: 칩들 + 사유 */
-.hist-mid { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.hist-chips {
+/* 우: 본문 — 상단 칩들 + 봉사시간 한 줄, 그 아래 사유 */
+.hist-mid {
+  min-width: 0;
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hist-topline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hist-chips {
+  display: inline-flex;
   flex-wrap: wrap;
   gap: 5px;
   align-items: center;
 }
-.hist-chips:empty { display: none; }
-.hist-reason {
-  font-size: 11.5px;
-  color: var(--text-2, #6b6256);
-  background: var(--bg-subtle, #f7f4ee);
-  padding: 5px 9px;
-  border-radius: 6px;
-  line-height: 1.45;
-  word-break: break-word;
-}
-
-/* 우: 봉사시간 + 상태 태그 */
-.hist-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
-}
+.hist-spacer { flex: 1; min-width: 8px; }
 .hist-dur {
   font-size: 12px;
   font-weight: 700;
-  color: var(--text, #2b2620);
+  color: var(--text-2, #6b6256);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.hist-tag {
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.hist-tag.working { background: #fff3d6; color: #8a5a16; }
+.hist-tag.done    { background: #eee8dc; color: var(--text-2, #6b6256); }
 
-/* 칩 자체 — 더 컴팩트 */
+.hist-reason {
+  font-size: 12px;
+  color: var(--text-2, #6b6256);
+  background: var(--bg-subtle, #f7f4ee);
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 칩 모양 */
 .hist-chips .gps-chip,
 .hist-chips .pen-chip {
   font-size: 11px;
@@ -2213,39 +2227,111 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
 .hist-chips .pen-chip.pending { background: #fff3d6; color: #8a5a16; }
 .hist-chips .pen-chip.exempt  { background: #e8f0e8; color: #4a7a4a; }
 
-.hist-right .tag {
-  font-size: 11px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.hist-right .tag.working { background: #fff3d6; color: #8a5a16; }
-.hist-right .tag.done    { background: #eee8dc; color: var(--text-2, #6b6256); }
-
-/* 모바일 — 카드가 화면 끝까지 안 잘리게, 좌측 폭 축소 */
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .hist-card {
-    grid-template-columns: 70px 1fr auto;
+    grid-template-columns: 72px minmax(0, 1fr);
     gap: 10px;
     padding: 12px 14px;
   }
   .hist-card.working, .hist-card.late, .hist-card.absent { padding-left: 11px; }
   .hist-date { font-size: 12px; }
   .hist-time { font-size: 11px; }
-  .hist-reason { font-size: 11px; padding: 4px 8px; }
+  .hist-reason { font-size: 11.5px; padding: 5px 9px; }
 }
-@media (max-width: 420px) {
-  /* 진짜 좁은 화면 — 우측 정보를 칩 줄에 합치고 1+1 그리드 */
-  .hist-card { grid-template-columns: 64px 1fr; gap: 8px; padding: 11px 12px; }
-  .hist-right {
-    grid-column: 2;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    margin-top: 2px;
-  }
+
+/* ── 벌금 지출 / 잔액 ── */
+.expense-card { border: 1px solid #cdddf0; }
+.expense-head { cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; }
+.expense-head:hover { background: #f5f9fe; }
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.bal-card {
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: center;
+}
+.bal-card.income  { background: #eef4fb; }
+.bal-card.spent   { background: #fdf6f6; }
+.bal-card.balance { background: #e8f5e9; }
+.bal-label { font-size: 11px; font-weight: 700; color: var(--text-3, #9c9384); margin-bottom: 4px; }
+.bal-value { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.bal-card.spent .bal-value { color: var(--late, #D14343); }
+.bal-meta  { font-size: 10.5px; color: var(--text-3, #9c9384); margin-top: 3px; }
+
+.exp-add-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 130px auto;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.exp-add-row input {
+  padding: 9px 11px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  width: 100%;
+}
+.exp-add-row input:focus { outline: none; border-color: #4178c8; }
+.exp-add-btn {
+  padding: 9px 16px;
+  background: linear-gradient(135deg, #2c5d9e 0%, #4178c8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.exp-add-btn:hover { background: linear-gradient(135deg, #234e85 0%, #2c5d9e 100%); }
+
+.exp-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 110px 32px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--line, #ece7de);
+}
+.exp-row:last-child { border-bottom: none; }
+.exp-row-date { font-size: 12px; color: var(--text-2, #6b6256); font-variant-numeric: tabular-nums; }
+.exp-row-item { font-size: 13px; font-weight: 600; }
+.exp-row-amt {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--late, #D14343);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.exp-del-btn {
+  width: 28px; height: 28px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-3, #9c9384);
+  cursor: pointer;
+}
+.exp-del-btn:hover { background: #fbeaea; border-color: #e0b8b8; color: #b5564f; }
+
+@media (max-width: 640px) {
+  .balance-grid { grid-template-columns: 1fr; gap: 8px; }
+  .bal-card { padding: 10px 12px; }
+  .bal-value { font-size: 16px; }
+  .exp-add-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .exp-add-row input[type="date"] { grid-column: 1; }
+  .exp-add-row input[type="number"] { grid-column: 2; }
+  .exp-add-row input[type="text"] { grid-column: span 2; }
+  .exp-add-btn { grid-column: span 2; padding: 11px; }
+  .exp-row { grid-template-columns: 90px 1fr auto 28px; gap: 8px; padding: 9px 2px; }
+  .exp-row-date { font-size: 11px; }
+  .exp-row-item { font-size: 12.5px; }
 }
 </style>
 </head>
@@ -2604,6 +2690,47 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
             </div>
             <div class="prior-fines-summary" id="prior-fines-summary"></div>
             <div id="prior-fines-list">
+              <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 벌금 잔액 + 지출 내역 -->
+        <div class="admin-table-card expense-card">
+          <div class="admin-table-head expense-head" onclick="toggleExpense()">
+            <h3>💼 벌금 잔액 · 지출 내역</h3>
+            <span class="prior-fines-toggle" id="expense-toggle">▼ 펼치기</span>
+          </div>
+          <div id="expense-body" style="display:none">
+            <!-- 잔액 요약 -->
+            <div class="balance-grid" id="expense-balance">
+              <div class="bal-card income">
+                <div class="bal-label">총 납부 벌금</div>
+                <div class="bal-value" id="bal-income">—</div>
+                <div class="bal-meta">대시보드 + 이전 누적</div>
+              </div>
+              <div class="bal-card spent">
+                <div class="bal-label">지출 합계</div>
+                <div class="bal-value" id="bal-spent">—</div>
+                <div class="bal-meta" id="bal-spent-meta">—</div>
+              </div>
+              <div class="bal-card balance">
+                <div class="bal-label">💰 잔액</div>
+                <div class="bal-value" id="bal-balance">—</div>
+                <div class="bal-meta">사용 가능</div>
+              </div>
+            </div>
+
+            <!-- 지출 추가 폼 -->
+            <div class="exp-add-row">
+              <input type="date" id="exp-date" title="지출 날짜">
+              <input type="text" id="exp-item" placeholder="지출 항목 (예: 간식 구입)" maxlength="50">
+              <input type="number" id="exp-amount" placeholder="금액(원)" min="0" step="100">
+              <button class="exp-add-btn" onclick="addExpense()">+ 추가</button>
+            </div>
+
+            <!-- 지출 내역 표 -->
+            <div id="expense-list">
               <div class="loading"><span class="spinner"></span>불러오는 중…</div>
             </div>
           </div>
@@ -4083,12 +4210,14 @@ async function loadMyRecords(){
           <div class="hist-time">${timeText}</div>
         </div>
         <div class="hist-mid">
-          <div class="hist-chips">${gpsHtml}${penaltyHtml}</div>
-          ${reasons.length ? `<div class="hist-reason">${escapeHtml(reasons.join(' / '))}</div>` : ''}
+          <div class="hist-topline">
+            <span class="hist-chips">${gpsHtml}${penaltyHtml}</span>
+            <span class="hist-spacer"></span>
+            ${duration ? `<span class="hist-dur">${duration}</span>` : ''}
+            ${tagHtml ? tagHtml.replace(/class="tag /, 'class="hist-tag ') : ''}
+          </div>
+          ${reasons.length ? `<div class="hist-reason">${escapeHtml(reasons.join(' · '))}</div>` : ''}
         </div>
-        <div class="hist-right">
-          ${duration ? `<div class="hist-dur">${duration}</div>` : ''}
-          ${tagHtml}
       </div>`;
   }).join('');
   
@@ -4907,6 +5036,139 @@ async function loadPenalty(){
   renderPenaltyKPI();
   renderPenalty();
   loadPriorFines();   // 이전 누적 벌금도 함께
+  loadExpense();      // 지출 내역도 함께
+}
+
+// ════════════════════════════════════════════════════════════
+// 벌금 지출 내역
+// ════════════════════════════════════════════════════════════
+let expenseRows = [];
+let _expenseTableMissing = false;
+let _expenseOpen = false;
+
+function toggleExpense(){
+  _expenseOpen = !_expenseOpen;
+  document.getElementById('expense-body').style.display = _expenseOpen ? '' : 'none';
+  document.getElementById('expense-toggle').textContent = _expenseOpen ? '▲ 접기' : '▼ 펼치기';
+  if(_expenseOpen){
+    // 날짜 입력칸 기본값 = 오늘
+    const dt = document.getElementById('exp-date');
+    if(dt && !dt.value) dt.value = fmtYMD(new Date());
+    renderExpense();
+  }
+}
+
+async function loadExpense(){
+  try {
+    const { data, error } = await sb.from('attend_penalty_expense')
+      .select('*').order('spent_date', { ascending: false });
+    if(error){
+      if(/relation .*attend_penalty_expense/i.test(error.message||'')){
+        _expenseTableMissing = true;
+      }
+      return;
+    }
+    _expenseTableMissing = false;
+    expenseRows = data || [];
+    if(_expenseOpen) renderExpense();
+  } catch(e){ console.warn('[loadExpense]', e); }
+}
+
+function _calcBalances(){
+  // 수입(납부된 벌금) — 대시보드 부과+납부 합 + 이전 누적의 납부 합
+  const paidFromCharged = penaltyRecords
+    .filter(r => r.penalty_status === 'charged' && r.penalty_paid)
+    .reduce((s, r) => s + (r.penalty_amount || 0), 0);
+  let paidFromPrior = 0;
+  Object.values(priorFines).forEach(p => { paidFromPrior += (p.paid_amount || 0); });
+  const income = paidFromCharged + paidFromPrior;
+
+  // 지출 합계
+  const spent = expenseRows.reduce((s, e) => s + (e.amount || 0), 0);
+
+  return { income, spent, balance: income - spent };
+}
+
+function renderExpense(){
+  const balBox = document.getElementById('expense-balance');
+  const list = document.getElementById('expense-list');
+  if(!list) return;
+
+  if(_expenseTableMissing){
+    list.innerHTML = `<div class="prior-fines-warn">⚠️ 벌금_지출_테이블.sql을 먼저 실행해주세요. (attend_penalty_expense 테이블 없음)</div>`;
+    document.getElementById('bal-income').textContent = '—';
+    document.getElementById('bal-spent').textContent  = '—';
+    document.getElementById('bal-balance').textContent = '—';
+    return;
+  }
+
+  const { income, spent, balance } = _calcBalances();
+  document.getElementById('bal-income').textContent = fmtWon(income);
+  document.getElementById('bal-spent').textContent  = fmtWon(spent);
+  document.getElementById('bal-spent-meta').textContent = `${expenseRows.length}건`;
+  const balEl = document.getElementById('bal-balance');
+  balEl.textContent = fmtWon(balance);
+  balEl.style.color = balance < 0 ? 'var(--late, #D14343)' : '#2c8f3c';
+
+  if(expenseRows.length === 0){
+    list.innerHTML = `<div class="empty" style="padding:24px 12px"><div class="msg">아직 지출 내역이 없어요</div></div>`;
+    return;
+  }
+
+  list.innerHTML = expenseRows.map(e => `
+    <div class="exp-row">
+      <div class="exp-row-date">${fmtDateKor(e.spent_date)}</div>
+      <div class="exp-row-item">${escapeHtml(e.item || '—')}</div>
+      <div class="exp-row-amt">−${fmtWon(e.amount)}</div>
+      <button class="exp-del-btn" onclick="deleteExpense(${e.id})" title="삭제">✕</button>
+    </div>
+  `).join('');
+}
+
+async function addExpense(){
+  const date = document.getElementById('exp-date').value;
+  const item = document.getElementById('exp-item').value.trim();
+  const amount = parseInt(document.getElementById('exp-amount').value) || 0;
+  if(!date){ showToast('날짜를 입력하세요'); return; }
+  if(!item){ showToast('지출 항목을 입력하세요'); return; }
+  if(amount <= 0){ showToast('금액을 입력하세요'); return; }
+
+  try {
+    const { error } = await sb.from('attend_penalty_expense').insert({
+      spent_date: date,
+      item: item,
+      amount: amount,
+      created_by: '관리자',
+    });
+    if(error) throw error;
+    // 입력칸 비우기 (날짜는 유지)
+    document.getElementById('exp-item').value = '';
+    document.getElementById('exp-amount').value = '';
+    showToast('✅ 지출 추가됨');
+    await loadExpense();
+  } catch(e){
+    console.error('[addExpense]', e);
+    if(/relation .*attend_penalty_expense/i.test(e.message||'')){
+      showToast('벌금_지출_테이블.sql을 먼저 실행하세요');
+    } else {
+      showToast('추가 실패: ' + (e.message||''));
+    }
+  }
+}
+
+async function deleteExpense(id){
+  const e = expenseRows.find(x => x.id === id);
+  if(!e) return;
+  if(!confirm(`'${e.item}' 지출(${fmtWon(e.amount)})을 삭제할까요?`)) return;
+  try {
+    const { error } = await sb.from('attend_penalty_expense').delete().eq('id', id);
+    if(error) throw error;
+    showToast('🗑️ 삭제됨');
+    await loadExpense();
+  } catch(err){
+    console.error('[deleteExpense]', err);
+    showToast('삭제 실패: ' + (err.message||''));
+  }
 }
 
 // ════════════════════════════════════════════════════════════
