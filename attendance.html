@@ -2538,6 +2538,75 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
 }
 .add-jungjin-label input { width: 15px; height: 15px; cursor: pointer; }
 
+/* ── 중진 모드 (읽기 전용) — 관리·수정·삭제 UI 일괄 숨김 ── */
+body.readonly-mode .admin-add-card,           /* 사명자/장소 추가 폼 전체 */
+body.readonly-mode .admin-subtab[data-subtab="locations"],
+body.readonly-mode .admin-subtab[data-subtab="holidays"],
+body.readonly-mode #admin-sub-locations,
+body.readonly-mode #admin-sub-holidays,
+body.readonly-mode .tg-report-box,            /* 발송 박스 전체 */
+body.readonly-mode .expense-card,             /* 벌금 지출/잔액 관리 */
+body.readonly-mode .pf-row-inputs,            /* 이전 누적 벌금 편집 */
+body.readonly-mode .pen-btn.pay,              /* 납부완료 버튼 */
+body.readonly-mode .pen-btn.exempt,           /* 면제 버튼 */
+body.readonly-mode .row-action.danger,        /* 비활성화 버튼 */
+body.readonly-mode .row-action.ok,            /* 활성화 버튼 */
+body.readonly-mode .members-row .col-edit,    /* 사명자 수정 버튼 칸 */
+body.readonly-mode .members-row .col-toggle,  /* 활성/비활성 칸 */
+body.readonly-mode .loc-list .row-action,     /* 장소 수정 버튼 */
+body.readonly-mode .holiday-row .row-action,  /* 공휴일 삭제 */
+body.readonly-mode .hist-tag.editable,        /* 기록 클릭 편집 */
+body.readonly-mode .admin-today-row .open-rec-btn {
+  display: none !important;
+}
+
+/* 중진 모드 — 클릭으로 기록 편집되는 행도 단순 표시 */
+body.readonly-mode .admin-today-row { cursor: default; }
+body.readonly-mode .admin-today-row:hover { background: transparent; }
+
+/* 중진 모드 진입 안내 */
+.jungjin-entry { margin-top: 18px; }
+.jungjin-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0 14px;
+  color: var(--text-3, #9c9384);
+  font-size: 11.5px;
+}
+.jungjin-divider::before, .jungjin-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line, #e3ddd2);
+}
+.jungjin-divider span { padding: 0 12px; }
+.jungjin-entry-info {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-2, #6b6256);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.jungjin-entry-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #fbf2df 0%, #f5e6c0 100%);
+  color: #8a5a16;
+  border: 1px solid #e8d5a0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.jungjin-entry-btn:hover { background: linear-gradient(135deg, #f5e6c0 0%, #e8d5a0 100%); }
+.jungjin-entry-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-3, #9c9384);
+  margin-top: 6px;
+}
+
 /* 장소 추가 좌표 */
 .loc-points-section {
   margin: 14px 0 8px;
@@ -2772,6 +2841,14 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
         </label>
         <button class="admin-login-btn" onclick="doAdminLogin()">로그인</button>
         <div class="admin-login-err" id="admin-login-err"></div>
+
+        <!-- 중진 모드 입장 (현재 선택된 사명자가 중진일 때만) -->
+        <div class="jungjin-entry" id="jungjin-entry" style="display:none">
+          <div class="jungjin-divider"><span>또는</span></div>
+          <div class="jungjin-entry-info" id="jungjin-entry-info">—</div>
+          <button class="jungjin-entry-btn" onclick="enterJungjinMode()">👤 중진 모드로 입장</button>
+          <div class="jungjin-entry-hint">소속 부서의 근태 현황을 조회할 수 있습니다 (수정 불가)</div>
+        </div>
       </div>
     </div>
 
@@ -4024,6 +4101,9 @@ function onMemberChange(){
   isLocked = true;
   renderLockedPicker();
 
+  // 중진 모드 진입 안내 갱신
+  if(typeof _updateJungjinEntry === 'function') _updateJungjinEntry();
+
   loadTodayRecord();
   loadMyRecords();
 }
@@ -4518,6 +4598,7 @@ async function restoreSavedMember(){
   currentDeptId = savedDept || member.dept_id;
   isLocked = true;
   renderLockedPicker();
+  if(typeof _updateJungjinEntry === 'function') _updateJungjinEntry();
   await loadTodayRecord();
   await loadMyRecords();
   return true;
@@ -4647,15 +4728,37 @@ const LS_KEY_ADMIN = 'sjames_attend_admin';
 let isAdminLoggedIn = false;
 let adminTodayRecords = [];                     // 오늘 전체 기록
 
+// ── 뷰 모드 (권한) ──
+//   'admin'   = 마스터 (전체 권한 + 수정 가능)
+//   'jungjin' = 중진 (본인 소속 부서만, 읽기 전용)
+//   '신학부장은 jungjin이지만 부서 제한 없음 (전체 열람)'
+let viewMode = null;          // 'admin' | 'jungjin' | null
+let viewerDeptId = null;      // 중진일 때 제한할 부서 id (신학부장은 null=전체)
+
+function isReadonly(){ return viewMode === 'jungjin'; }
+function canViewAll(){ return viewMode === 'admin' || (viewMode === 'jungjin' && viewerDeptId === null); }
+function isAllowedDept(deptId){
+  if(canViewAll()) return true;
+  return deptId === viewerDeptId;
+}
+// 신학부장 판정 — d07 신학부의 부장
+function _isShinHakBuJang(member){
+  if(!member) return false;
+  return member.dept_id === 'd07' && (member.role === '부장');
+}
+
 // 자동 로그인 복원
 function restoreAdmin(){
   try {
     const saved = localStorage.getItem(LS_KEY_ADMIN);
     if(saved === '1'){
       isAdminLoggedIn = true;
+      viewMode = 'admin';
+      viewerDeptId = null;
       renderAdminMain();
     }
   } catch(e){}
+  _updateJungjinEntry();
 }
 
 function doAdminLogin(){
@@ -4669,6 +4772,8 @@ function doAdminLogin(){
   }
   err.textContent = '';
   isAdminLoggedIn = true;
+  viewMode = 'admin';
+  viewerDeptId = null;
   if(remember){
     localStorage.setItem(LS_KEY_ADMIN, '1');
   } else {
@@ -4677,14 +4782,48 @@ function doAdminLogin(){
   renderAdminMain();
 }
 
+// 중진 모드 진입 — 현재 선택된 사명자가 중진(또는 신학부장)일 때만
+function enterJungjinMode(){
+  if(!currentMember || currentMember.is_jungjin !== true){
+    showToast('중진만 입장할 수 있습니다');
+    return;
+  }
+  viewMode = 'jungjin';
+  // 신학부장이면 전체 열람, 그 외 중진은 본인 부서만
+  viewerDeptId = _isShinHakBuJang(currentMember) ? null : currentMember.dept_id;
+  isAdminLoggedIn = true;  // UI 흐름상 로그인 상태로 표시
+  renderAdminMain();
+}
+
+function _updateJungjinEntry(){
+  const box = document.getElementById('jungjin-entry');
+  const info = document.getElementById('jungjin-entry-info');
+  if(!box || !info) return;
+  if(currentMember && currentMember.is_jungjin === true){
+    box.style.display = '';
+    const dept = DEPTS.find(d => d.id === currentMember.dept_id);
+    const deptName = dept ? dept.name : currentMember.dept_id;
+    const scope = _isShinHakBuJang(currentMember)
+      ? `<b>${escapeHtml(currentMember.name)}</b> · 신학부장 — <span style="color:#8a5a16">전체 부서 열람 가능</span>`
+      : `<b>${escapeHtml(currentMember.name)}</b> · ${escapeHtml(deptName)} — 본인 부서만`;
+    info.innerHTML = scope;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
 function doAdminLogout(){
   isAdminLoggedIn = false;
+  viewMode = null;
+  viewerDeptId = null;
   localStorage.removeItem(LS_KEY_ADMIN);
   document.getElementById('admin-login').style.display = '';
   document.getElementById('admin-main').style.display = 'none';
   document.getElementById('admin-pw').value = '';
   document.getElementById('admin-remember').checked = false;
   document.body.classList.remove('admin-wide');
+  document.body.classList.remove('readonly-mode');
+  _updateJungjinEntry();
 }
 
 function renderAdminMain(){
@@ -4693,13 +4832,39 @@ function renderAdminMain(){
   // 관리자 탭이 현재 보이는 중이면 넓은 레이아웃 적용
   const adminTabActive = document.querySelector('.tab[data-tab="admin"]')?.classList.contains('active');
   if(adminTabActive) document.body.classList.add('admin-wide');
+  // 중진 모드(읽기 전용) 클래스 토글
+  document.body.classList.toggle('readonly-mode', viewMode === 'jungjin');
+  _updateAdminToolbar();
   populateAdminDeptFilter();
   populateAdminAddDept();
   populateMembersDeptFilter();
   populatePenaltyDeptFilter();
-  loadHolidays();   // 공휴일 Set 갱신 (벌금 계산용)
+  loadHolidays();
   loadAdminToday();
-  loadTgTarget();   // 발송 대상 chat_id/topic_id 복원
+  loadTgTarget();
+}
+
+function _updateAdminToolbar(){
+  const label = document.querySelector('.admin-toolbar-label');
+  if(!label) return;
+  if(viewMode === 'jungjin'){
+    const dept = currentMember ? DEPTS.find(d => d.id === currentMember.dept_id) : null;
+    const scope = _isShinHakBuJang(currentMember)
+      ? '전체 부서'
+      : (dept ? dept.name : '본인 부서');
+    label.innerHTML = `👤 중진 모드 · ${escapeHtml(currentMember?.name || '')} <span style="color:var(--text-3,#9c9384);font-weight:500">(${escapeHtml(scope)} · 읽기 전용)</span>`;
+  } else {
+    label.innerHTML = '🔑 관리자';
+  }
+}
+
+// 읽기 전용 가드 — 중진 모드는 수정 함수 호출 차단
+function _readonlyGuard(){
+  if(viewMode === 'jungjin'){
+    showToast('읽기 전용 모드입니다 (수정/추가/삭제 불가)');
+    return true;
+  }
+  return false;
 }
 
 // 벌금 탭 부서 필터
@@ -4774,6 +4939,7 @@ function populateMembersDeptFilter(){
 // 사명자 추가
 // ────────────────────────────────────────────────────────────
 async function onAddMember(){
+  if(_readonlyGuard()) return;
   const deptId = document.getElementById('add-mem-dept').value;
   const name = document.getElementById('add-mem-name').value.trim();
   const role = document.getElementById('add-mem-role').value;
@@ -4865,6 +5031,8 @@ function renderMembers(){
   const jungjinFilter = document.getElementById('mem-f-jungjin')?.value || '';
   
   let rows = adminAllMembers.slice();
+  // 중진 모드 — 본인 부서만
+  rows = rows.filter(m => isAllowedDept(m.dept_id));
   if(deptFilter) rows = rows.filter(m => m.dept_id === deptFilter);
   if(statusFilter === 'active')   rows = rows.filter(m => m.is_active === true);
   else if(statusFilter === 'inactive') rows = rows.filter(m => m.is_active === false);
@@ -4922,6 +5090,7 @@ function renderMembers(){
 let editingMemberId = null;
 
 function openMemberModal(memberId){
+  if(_readonlyGuard()) return;
   const m = adminAllMembers.find(x => x.id === memberId);
   if(!m){ showToast('사명자를 찾을 수 없어요'); return; }
   
@@ -5166,6 +5335,7 @@ function renderLocations(){
 
 // 장소 추가
 async function onAddLocation(){
+  if(_readonlyGuard()) return;
   const name = document.getElementById('add-loc-name').value.trim();
   const address = document.getElementById('add-loc-address').value.trim();
   const radius = parseInt(document.getElementById('add-loc-radius').value) || 100;
@@ -5231,6 +5401,28 @@ async function onAddLocation(){
     return;
   }
   
+  // ★ 새 장소에 본부 좌표를 보조 좌표로 자동 등록
+  //   (본부 자체이거나, 본부 좌표가 없으면 건너뜀)
+  if(name !== '본부'){
+    const hq = adminAllLocations.find(l => l.name === '본부' && l.lat != null && l.lng != null);
+    if(hq){
+      try {
+        await sb.from('attend_location_points').insert({
+          location_id: data.id,
+          label: '본부',
+          lat: hq.lat,
+          lng: hq.lng,
+          radius: hq.radius || 100,
+          is_active: true,
+          sort_order: 0,
+        });
+      } catch(e){
+        // attend_location_points 테이블 없거나 실패 시에도 장소 추가는 성공으로 처리
+        console.warn('[onAddLocation/HQ]', e);
+      }
+    }
+  }
+  
   // 폼 초기화
   document.getElementById('add-loc-name').value = '';
   document.getElementById('add-loc-address').value = '';
@@ -5238,9 +5430,10 @@ async function onAddLocation(){
   document.getElementById('add-loc-lng').value = '';
   document.getElementById('add-loc-radius').value = '100';
   
+  const hqAdded = name !== '본부' && adminAllLocations.find(l => l.name === '본부' && l.lat != null && l.lng != null);
   showToast(latN != null
-    ? `✅ ${data.name} 추가됨 · 좌표 설정됨 (반경 ${radius}m)`
-    : `✅ ${data.name} 추가됨 (좌표는 수정에서 설정)`);
+    ? `✅ ${data.name} 추가됨 · 좌표 설정됨 (반경 ${radius}m)${hqAdded ? ' · 본부 보조좌표 자동 등록' : ''}`
+    : `✅ ${data.name} 추가됨 (좌표는 수정에서 설정)${hqAdded ? ' · 본부 보조좌표 자동 등록' : ''}`);
   await loadAllLocationsAdmin();
   await loadAllLocations();  // 메인 드롭다운 갱신
 }
@@ -5263,6 +5456,7 @@ function onAddLatInput(){
 let editingLocationId = null;
 
 function openLocModal(locId){
+  if(_readonlyGuard()) return;
   const l = adminAllLocations.find(x => x.id === locId);
   if(!l){ showToast('장소를 찾을 수 없어요'); return; }
   editingLocationId = locId;
@@ -5335,6 +5529,7 @@ async function setLpCurrentPosition(){
 }
 
 async function saveLocPoint(){
+  if(_readonlyGuard()) return;
   if(!editingLocationId) return;
   const label = document.getElementById('lp-label').value.trim();
   const lat = parseFloat(document.getElementById('lp-lat').value);
@@ -5658,6 +5853,7 @@ function renderExpense(){
 }
 
 async function addExpense(){
+  if(_readonlyGuard()) return;
   const date = document.getElementById('exp-date').value;
   const item = document.getElementById('exp-item').value.trim();
   const amount = parseInt(document.getElementById('exp-amount').value) || 0;
@@ -5852,17 +6048,21 @@ async function savePriorFine(memberId){
 }
 
 function renderPenaltyKPI(){
-  const charged = penaltyRecords.filter(r => r.penalty_status === 'charged');
-  const pending = penaltyRecords.filter(r => r.penalty_status === 'exempt_pending');
-  const exempt  = penaltyRecords.filter(r => r.penalty_status === 'exempt');
+  // 중진 모드 — 본인 부서 인원의 벌금만 집계
+  const scopedRecords = penaltyRecords.filter(r => isAllowedDept(r.attend_members?.dept_id));
+  const charged = scopedRecords.filter(r => r.penalty_status === 'charged');
+  const pending = scopedRecords.filter(r => r.penalty_status === 'exempt_pending');
+  const exempt  = scopedRecords.filter(r => r.penalty_status === 'exempt');
   const totalAmount = charged.reduce((s, r) => s + (r.penalty_amount || 0), 0);
   const unpaid = charged.filter(r => !r.penalty_paid);
   const unpaidAmount = unpaid.reduce((s, r) => s + (r.penalty_amount || 0), 0);
   const paidAmount = totalAmount - unpaidAmount;
 
-  // 이전 누적 벌금 합산
+  // 이전 누적 벌금 합산 — 중진 모드는 본인 부서 인원만
   let priorTotal = 0, priorPaid = 0;
-  Object.values(priorFines).forEach(p => {
+  Object.entries(priorFines).forEach(([mid, p]) => {
+    const mem = adminAllMembers.find(m => String(m.id) === String(mid));
+    if(!isAllowedDept(mem?.dept_id)) return;
     priorTotal += (p.amount || 0);
     priorPaid += (p.paid_amount || 0);
   });
@@ -5901,6 +6101,8 @@ function renderPenalty(){
   const statusF = document.getElementById('pen-f-status').value;
   
   let rows = penaltyRecords.slice();
+  // 중진 모드 — 본인 부서만
+  rows = rows.filter(r => isAllowedDept(r.attend_members?.dept_id));
   if(deptF)   rows = rows.filter(r => r.attend_members?.dept_id === deptF);
   if(statusF){
     if(statusF === 'unpaid'){
@@ -6082,6 +6284,7 @@ function renderHolidays(){
 }
 
 async function onAddHoliday(){
+  if(_readonlyGuard()) return;
   const date = document.getElementById('add-hol-date').value;
   const note = document.getElementById('add-hol-note').value.trim();
   const err = document.getElementById('add-hol-err');
@@ -6182,8 +6385,9 @@ function renderStats(){
   const rangeSel = document.getElementById('stat-f-range').value;
   const scope = document.getElementById('stat-f-scope').value;
   
-  // 기간 내 records 필터 (요일 범위)
+  // 기간 내 records 필터 (요일 범위) + 중진 모드 부서 필터
   let records = statsRecords.filter(r => {
+    if(!isAllowedDept(r.attend_members?.dept_id)) return false;
     const d = new Date(r.record_date);
     if(rangeSel === 'weekday'){
       const day = d.getDay();
@@ -6372,6 +6576,7 @@ function _reasonHasPrereport(s){
 }
 
 function openRecModal(recordId){
+  if(_readonlyGuard()) return;
   const rec = adminTodayRecords.find(r => r.id === recordId);
   if(!rec){ showToast('기록을 찾을 수 없어요'); return; }
   editingRecordId = recordId;
@@ -6402,6 +6607,7 @@ function openRecModal(recordId){
 
 // 미출석자 — 신규 기록 생성 모드
 function openRecModalForMember(memberId){
+  if(_readonlyGuard()) return;
   const member = allMembers.find(m => m.id === memberId);
   if(!member){ showToast('사명자를 찾을 수 없어요'); return; }
   const theDate = getAdminDate();
@@ -6627,6 +6833,7 @@ function closeTgTargetAddRow(){
 }
 
 async function addTgTarget(){
+  if(_readonlyGuard()) return;
   const label = document.getElementById('tg-new-label').value.trim();
   const chatId = document.getElementById('tg-new-chatid').value.trim();
   const topicRaw = document.getElementById('tg-new-topicid').value.trim();
@@ -6844,9 +7051,15 @@ async function loadAdminToday(){
 function renderAdminKPI(){
   const isToday = getAdminDate() === fmtYMD(new Date());
   const dayWord = isToday ? '오늘' : '해당일';
-  const total = allMembers.length;
-  const present = adminTodayRecords.length;
-  const working = adminTodayRecords.filter(r => r.check_in_at && !r.check_out_at).length;
+  // 중진 모드는 본인 부서 인원/기록만 집계
+  const scopedMembers = allMembers.filter(m => isAllowedDept(m.dept_id));
+  const scopedRecords = adminTodayRecords.filter(r => {
+    const m = scopedMembers.find(x => x.id === r.member_id);
+    return !!m;
+  });
+  const total = scopedMembers.length;
+  const present = scopedRecords.length;
+  const working = scopedRecords.filter(r => r.check_in_at && !r.check_out_at).length;
   const absent = total - present;
   
   const grid = document.getElementById('admin-kpi');
@@ -6883,16 +7096,18 @@ function renderAdminToday(){
   const recordByMember = {};
   adminTodayRecords.forEach(r => { recordByMember[r.member_id] = r; });
   
-  // 행 만들기
-  let rows = allMembers.map(m => {
-    const rec = recordByMember[m.id] || null;
-    let status;
-    if(!rec) status = 'none';
-    else if(rec.check_in_at && !rec.check_out_at) status = 'working';
-    else if(rec.check_in_at && rec.check_out_at) status = 'done';
-    else status = 'none';
-    return { member: m, record: rec, status };
-  });
+  // 행 만들기 — 중진 모드는 본인 부서만 (신학부장은 전체)
+  let rows = allMembers
+    .filter(m => isAllowedDept(m.dept_id))
+    .map(m => {
+      const rec = recordByMember[m.id] || null;
+      let status;
+      if(!rec) status = 'none';
+      else if(rec.check_in_at && !rec.check_out_at) status = 'working';
+      else if(rec.check_in_at && rec.check_out_at) status = 'done';
+      else status = 'none';
+      return { member: m, record: rec, status };
+    });
   
   // 필터
   if(deptFilter) rows = rows.filter(r => r.member.dept_id === deptFilter);
