@@ -2536,6 +2536,121 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
   cursor: pointer;
   white-space: nowrap;
 }
+/* 중진 모드 — 마스터 전용 UI 숨김 */
+body.readonly-mode .admin-only { display: none !important; }
+
+/* CSV 일괄 업로드 */
+.csv-upload-card { background: linear-gradient(135deg, #fafaf6 0%, #f5f4ee 100%); border: 1px solid #d6d2c4; margin-top: 14px; }
+.csv-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.csv-tpl-btn, .csv-file-btn {
+  padding: 9px 14px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text, #2b2620);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.csv-tpl-btn:hover, .csv-file-btn:hover { background: #fbf9f4; border-color: #c5bea8; }
+.csv-file-btn { color: #2c5d9e; border-color: #cdddf0; }
+.csv-file-btn:hover { background: #eef4fb; }
+.csv-file-name { font-size: 12px; color: var(--text-3, #9c9384); }
+.csv-hint {
+  font-size: 11.5px;
+  color: var(--text-2, #6b6256);
+  line-height: 1.55;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px dashed var(--line, #e3ddd2);
+}
+.csv-preview {
+  margin-top: 10px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.csv-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.csv-preview-table th, .csv-preview-table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line, #ece7de);
+  vertical-align: top;
+}
+.csv-preview-table th { color: var(--text-3, #9c9384); font-weight: 700; }
+.csv-preview-table .row-err { background: #fdf2f2; }
+.csv-preview-table .row-err td { color: #b5564f; }
+.csv-preview-table .row-dup { background: #fdf6e7; }
+.csv-preview-table .row-dup td { color: #8a5a16; }
+.csv-status-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.csv-status-tag.ok   { background: #e8f5e9; color: #2c6e2c; }
+.csv-status-tag.err  { background: #fbeaea; color: #b5564f; }
+.csv-status-tag.dup  { background: #fff3d6; color: #8a5a16; }
+.csv-import-btn {
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #2c8f3c 0%, #3aa84d 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.csv-import-btn:hover { background: linear-gradient(135deg, #226e2e 0%, #2c8f3c 100%); }
+.csv-import-btn:disabled { opacity: 0.6; cursor: default; }
+.csv-result {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  background: #e8f5e9;
+  color: #2c6e2c;
+  border: 1px solid #b8d8b8;
+}
+.csv-result.err { background: #fbeaea; color: #b5564f; border-color: #e0b8b8; }
+
+@media (max-width: 640px) {
+  .csv-actions { flex-direction: column; align-items: stretch; }
+  .csv-tpl-btn, .csv-file-btn { width: 100%; justify-content: center; padding: 11px; }
+  .csv-preview-table { font-size: 11px; }
+}
+
 .add-jungjin-label input { width: 15px; height: 15px; cursor: pointer; }
 
 /* ── 중진 모드 (읽기 전용) — 관리·수정·삭제 UI 일괄 숨김 ── */
@@ -2558,6 +2673,18 @@ body.readonly-mode .holiday-row .row-action,  /* 공휴일 삭제 */
 body.readonly-mode .hist-tag.editable,        /* 기록 클릭 편집 */
 body.readonly-mode .admin-today-row .open-rec-btn {
   display: none !important;
+}
+
+/* 단, 중진 모드에서도 본인 부서 사명자는 관리 가능 → 사명자 탭만 다시 노출 */
+body.readonly-mode #admin-sub-members .admin-add-card { display: block !important; }
+body.readonly-mode #admin-sub-members .members-row .col-edit,
+body.readonly-mode #admin-sub-members .members-row .col-toggle {
+  display: inline-block !important;
+}
+/* 다른 부서 행의 버튼은 .row-no-perm 클래스로 숨김 (JS가 부여) */
+body.readonly-mode .members-row.row-no-perm .col-edit,
+body.readonly-mode .members-row.row-no-perm .col-toggle {
+  visibility: hidden !important;
 }
 
 /* 중진 모드 — 클릭으로 기록 편집되는 행도 단순 표시 */
@@ -2981,7 +3108,12 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
               <option value="회장">회장</option>
               <option value="과장">과장</option>
               <option value="서무">서무</option>
+              <option value="부서무">부서무</option>
               <option value="총무">총무</option>
+              <option value="팀장">팀장</option>
+              <option value="강사">강사</option>
+              <option value="전도사">전도사</option>
+              <option value="국장">국장</option>
               <option value="회원">회원</option>
               <option value="기타">기타</option>
             </select>
@@ -2993,6 +3125,25 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
             <button class="add-btn" onclick="onAddMember()">+ 추가</button>
           </div>
           <div class="admin-add-err" id="add-mem-err"></div>
+        </div>
+
+        <!-- CSV 일괄 업로드 (마스터 전용) -->
+        <div class="admin-add-card csv-upload-card admin-only">
+          <div class="admin-add-title">📂 CSV 일괄 업로드 <span style="font-weight:500;color:var(--text-3);font-size:11.5px">— 한 번에 여러 명 등록</span></div>
+          <div class="csv-actions">
+            <button class="csv-tpl-btn" onclick="downloadMemberCsvTemplate()" type="button">📥 양식 내려받기 (CSV)</button>
+            <label class="csv-file-btn">
+              📤 CSV 파일 선택
+              <input type="file" id="csv-file-input" accept=".csv,text/csv" onchange="onCsvFileSelected(event)" style="display:none">
+            </label>
+            <span id="csv-file-name" class="csv-file-name">선택된 파일 없음</span>
+          </div>
+          <div class="csv-hint">
+            컬럼: <b>부서</b> · <b>이름</b> · <b>역할</b> · <b>연락처</b> · <b>중진</b> (Y/N)<br>
+            부서는 "01 총무부"처럼 번호 포함 가능 / 같은 부서·이름 중복은 자동 건너뜀
+          </div>
+          <div id="csv-preview" class="csv-preview" style="display:none"></div>
+          <div id="csv-result" class="csv-result" style="display:none"></div>
         </div>
 
         <!-- 사명자 필터 -->
@@ -3300,7 +3451,12 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
           <option value="회장">회장</option>
           <option value="과장">과장</option>
           <option value="서무">서무</option>
+          <option value="부서무">부서무</option>
           <option value="총무">총무</option>
+          <option value="팀장">팀장</option>
+          <option value="강사">강사</option>
+          <option value="전도사">전도사</option>
+          <option value="국장">국장</option>
           <option value="회원">회원</option>
           <option value="기타">기타</option>
         </select>
@@ -4867,6 +5023,23 @@ function _readonlyGuard(){
   return false;
 }
 
+// 사명자 관리 권한 가드 — 중진 모드라도 본인 부서 사명자는 관리 가능
+//   - 마스터: 무조건 통과
+//   - 중진(신학부장 포함): 본인 부서 사명자만 통과
+//     · deptId 명시: 그 부서가 본인 부서인지 확인
+//     · 신학부장은 viewerDeptId=null이라 전체 통과 (전체 권한)
+function canManageMember(deptId){
+  if(viewMode === 'admin') return true;
+  if(viewMode !== 'jungjin') return false;
+  if(viewerDeptId === null) return true;   // 신학부장 = 전체 관리
+  return deptId === viewerDeptId;
+}
+function _memberMgmtGuard(deptId){
+  if(canManageMember(deptId)) return false;
+  showToast('이 부서의 사명자는 관리 권한이 없습니다');
+  return true;
+}
+
 // 벌금 탭 부서 필터
 function populatePenaltyDeptFilter(){
   const sel = document.getElementById('pen-f-dept');
@@ -4915,13 +5088,23 @@ function switchAdminSubtab(name){
 // ────────────────────────────────────────────────────────────
 function populateAdminAddDept(){
   const sel = document.getElementById('add-mem-dept');
-  if(!sel || sel.options.length > 1) return;
-  DEPTS.forEach(d => {
+  if(!sel) return;
+  // 중진(부서 한정)은 본인 부서만, 마스터·신학부장은 전체
+  const list = (viewMode === 'jungjin' && viewerDeptId !== null)
+    ? DEPTS.filter(d => d.id === viewerDeptId)
+    : DEPTS;
+  // 매번 다시 채우기 (모드 전환 대응)
+  sel.innerHTML = '<option value="">부서 선택</option>';
+  list.forEach(d => {
     const opt = document.createElement('option');
     opt.value = d.id;
     opt.textContent = d.name;
     sel.appendChild(opt);
   });
+  // 중진이면 본인 부서 자동 선택
+  if(viewMode === 'jungjin' && viewerDeptId !== null){
+    sel.value = viewerDeptId;
+  }
 }
 
 function populateMembersDeptFilter(){
@@ -4939,8 +5122,8 @@ function populateMembersDeptFilter(){
 // 사명자 추가
 // ────────────────────────────────────────────────────────────
 async function onAddMember(){
-  if(_readonlyGuard()) return;
   const deptId = document.getElementById('add-mem-dept').value;
+  if(_memberMgmtGuard(deptId)) return;
   const name = document.getElementById('add-mem-name').value.trim();
   const role = document.getElementById('add-mem-role').value;
   const phone = document.getElementById('add-mem-phone').value.trim();
@@ -5064,11 +5247,12 @@ function renderMembers(){
     const dept = DEPTS.find(d => d.id === m.dept_id);
     const deptName = dept ? dept.name : m.dept_id;
     const inactiveClass = m.is_active ? '' : 'inactive';
+    const noPermClass = canManageMember(m.dept_id) ? '' : 'row-no-perm';
     const jungjinBadge = m.is_jungjin
       ? `<span class="jj-badge">중진</span>`
       : `<span class="jj-badge normal">일반</span>`;
     return `
-      <div class="members-row ${inactiveClass}">
+      <div class="members-row ${inactiveClass} ${noPermClass}">
         <span><span class="col-name">${escapeHtml(m.name)}</span> · <span style="color:var(--text-3);font-size:12px">${escapeHtml(m.role || '—')}</span> ${jungjinBadge}</span>
         <span style="color:var(--text-3)">${escapeHtml(deptName)}</span>
         <span class="col-phone">${escapeHtml(m.phone || '—')}</span>
@@ -5084,21 +5268,287 @@ function renderMembers(){
   container.innerHTML = head + body;
 }
 
+// ════════════════════════════════════════════════════════════
+// CSV 일괄 업로드 (마스터 전용)
+// ════════════════════════════════════════════════════════════
+let _csvParsedRows = null;  // 미리보기 후 import에서 쓸 파싱 결과
+
+function downloadMemberCsvTemplate(){
+  // BOM 추가 (엑셀 한글 깨짐 방지)
+  const BOM = '\uFEFF';
+  const sampleRows = [
+    ['부서', '이름', '역할', '연락처', '중진'],
+    ['01 총무부', '홍길동', '회원', '010-1234-5678', 'Y'],
+    ['07 신학부', '김철수', '과장', '', 'N'],
+    ['10 문화부', '이영희', '서무', '010-2222-3333', 'Y'],
+  ];
+  const csv = BOM + sampleRows.map(r => r.map(_csvEscape).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '사명자_일괄등록_양식.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📥 양식 다운로드됨');
+}
+
+function _csvEscape(v){
+  const s = String(v ?? '');
+  if(/[",\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+  return s;
+}
+
+// 단순 RFC4180 호환 파서 (인용 처리 + CRLF/LF)
+function _parseCsv(text){
+  // BOM 제거
+  if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQ = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQ = true;
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\r'){ /* skip */ }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+  }
+  if(field !== '' || row.length > 0){ row.push(field); rows.push(row); }
+  // 마지막 빈 행 제거
+  return rows.filter(r => r.some(c => (c||'').trim() !== ''));
+}
+
+function onCsvFileSelected(event){
+  const file = event.target.files?.[0];
+  if(!file) return;
+  document.getElementById('csv-file-name').textContent = file.name;
+  document.getElementById('csv-result').style.display = 'none';
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const rows = _parseCsv(text);
+      if(rows.length < 2){
+        _showCsvError('CSV에 데이터가 없습니다 (헤더 외 최소 1줄 필요)');
+        return;
+      }
+      _previewCsvRows(rows);
+    } catch(err){
+      console.error('[csv-parse]', err);
+      _showCsvError('CSV 파싱 실패: ' + err.message);
+    }
+  };
+  reader.onerror = () => _showCsvError('파일 읽기 실패');
+  reader.readAsText(file, 'utf-8');
+}
+
+function _showCsvError(msg){
+  const el = document.getElementById('csv-result');
+  el.style.display = '';
+  el.className = 'csv-result err';
+  el.textContent = '❌ ' + msg;
+  document.getElementById('csv-preview').style.display = 'none';
+  _csvParsedRows = null;
+}
+
+function _normalizeDept(input){
+  // "01 총무부", "1 총무부", "총무부", "d01" 모두 매칭
+  const s = (input || '').trim();
+  if(!s) return null;
+  // d-id 매칭
+  const byId = DEPTS.find(d => d.id === s);
+  if(byId) return byId;
+  // 이름 정확 일치
+  const byName = DEPTS.find(d => d.name === s || d.name.endsWith(' ' + s) || d.name.replace(/^\d+(?:[-\s]\d+)?\s*/, '') === s);
+  if(byName) return byName;
+  // 부분 일치
+  const partial = DEPTS.find(d => d.name.includes(s) || s.includes(d.name.replace(/^\d+(?:[-\s]\d+)?\s*/, '')));
+  return partial || null;
+}
+
+function _previewCsvRows(rows){
+  const header = rows[0].map(h => h.trim());
+  const dataRows = rows.slice(1);
+  
+  // 컬럼 매핑 (위치는 유연하게 — 이름으로 찾음)
+  const colIdx = {
+    dept:    header.findIndex(h => /부서|dept/i.test(h)),
+    name:    header.findIndex(h => /이름|name/i.test(h)),
+    role:    header.findIndex(h => /역할|role/i.test(h)),
+    phone:   header.findIndex(h => /연락처|전화|phone/i.test(h)),
+    jungjin: header.findIndex(h => /중진|jungjin/i.test(h)),
+  };
+  if(colIdx.dept < 0 || colIdx.name < 0){
+    _showCsvError('필수 컬럼이 없습니다 (부서, 이름)');
+    return;
+  }
+  
+  const parsed = dataRows.map((r, i) => {
+    const deptRaw = (r[colIdx.dept] || '').trim();
+    const name    = (r[colIdx.name] || '').trim();
+    const roleRaw = colIdx.role >= 0 ? (r[colIdx.role] || '').trim() : '';
+    const phone   = colIdx.phone >= 0 ? (r[colIdx.phone] || '').trim() : '';
+    const jjRaw   = colIdx.jungjin >= 0 ? (r[colIdx.jungjin] || '').trim() : '';
+    
+    const dept = _normalizeDept(deptRaw);
+    const role = roleRaw || '회원';
+    const isJungjin = /^(y|yes|true|1|중진|o)$/i.test(jjRaw);
+    
+    let status = 'ok', err = '';
+    if(!name){ status = 'err'; err = '이름 없음'; }
+    else if(name.length < 2){ status = 'err'; err = '이름 2자 이상'; }
+    else if(!dept){ status = 'err'; err = `부서 인식 실패: "${deptRaw}"`; }
+    else {
+      // 같은 부서·이름 중복 (활성·비활성 모두)
+      const dup = adminAllMembers.find(m => m.dept_id === dept.id && m.name === name);
+      if(dup){ status = 'dup'; err = '이미 등록됨'; }
+    }
+    
+    return {
+      lineNo: i + 2,  // 헤더 다음 라인 번호
+      deptRaw, deptId: dept?.id, deptName: dept?.name,
+      name, role, phone, isJungjin,
+      status, err,
+    };
+  });
+  
+  _csvParsedRows = parsed;
+  _renderCsvPreview(parsed);
+}
+
+function _renderCsvPreview(rows){
+  const box = document.getElementById('csv-preview');
+  const okCount = rows.filter(r => r.status === 'ok').length;
+  const dupCount = rows.filter(r => r.status === 'dup').length;
+  const errCount = rows.filter(r => r.status === 'err').length;
+  
+  const tbody = rows.map(r => {
+    const tag = r.status === 'ok'
+      ? `<span class="csv-status-tag ok">등록</span>`
+      : r.status === 'dup'
+      ? `<span class="csv-status-tag dup">중복 건너뜀</span>`
+      : `<span class="csv-status-tag err">오류</span>`;
+    const cls = r.status === 'ok' ? '' : r.status === 'dup' ? 'row-dup' : 'row-err';
+    return `<tr class="${cls}">
+      <td>${r.lineNo}</td>
+      <td>${escapeHtml(r.deptName || r.deptRaw || '—')}</td>
+      <td>${escapeHtml(r.name || '—')}</td>
+      <td>${escapeHtml(r.role || '—')}</td>
+      <td>${escapeHtml(r.phone || '—')}</td>
+      <td>${r.isJungjin ? '중진' : '일반'}</td>
+      <td>${tag}${r.err ? ` <span style="font-size:10.5px;color:#9c9384">${escapeHtml(r.err)}</span>` : ''}</td>
+    </tr>`;
+  }).join('');
+  
+  box.style.display = '';
+  box.innerHTML = `
+    <div class="csv-preview-head">
+      <span>총 ${rows.length}건 · 등록 가능 <b style="color:#2c6e2c">${okCount}</b> · 중복 ${dupCount} · 오류 ${errCount}</span>
+      ${okCount > 0 ? `<button class="csv-import-btn" onclick="importCsvRows()">✅ ${okCount}건 일괄 등록</button>` : ''}
+    </div>
+    <table class="csv-preview-table">
+      <thead><tr><th>#</th><th>부서</th><th>이름</th><th>역할</th><th>연락처</th><th>구분</th><th>상태</th></tr></thead>
+      <tbody>${tbody}</tbody>
+    </table>
+  `;
+}
+
+async function importCsvRows(){
+  if(!_csvParsedRows){ showToast('미리보기를 먼저 확인하세요'); return; }
+  const rows = _csvParsedRows.filter(r => r.status === 'ok');
+  if(rows.length === 0){ showToast('등록할 항목이 없습니다'); return; }
+  if(!confirm(`${rows.length}건을 일괄 등록할까요?`)) return;
+  
+  const btn = document.querySelector('.csv-import-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '등록 중…'; }
+  
+  // 부서별 sort_order — 기존 max 기준으로 누적
+  const sortOrderByDept = {};
+  adminAllMembers.forEach(m => {
+    if(!sortOrderByDept[m.dept_id]) sortOrderByDept[m.dept_id] = 0;
+    sortOrderByDept[m.dept_id] = Math.max(sortOrderByDept[m.dept_id], m.sort_order || 0);
+  });
+  
+  const inserts = rows.map(r => {
+    sortOrderByDept[r.deptId] = (sortOrderByDept[r.deptId] || 0) + 1;
+    return {
+      dept_id:    r.deptId,
+      name:       r.name,
+      role:       r.role,
+      phone:      r.phone || null,
+      is_active:  true,
+      is_jungjin: r.isJungjin,
+      sort_order: r.role === '부장' ? 0 : sortOrderByDept[r.deptId],
+    };
+  });
+  
+  // Supabase는 한 번에 여러 행 insert 지원
+  let okCount = 0, failCount = 0;
+  const errors = [];
+  // 청크 50개씩 (너무 큰 페이로드 방지)
+  for(let i = 0; i < inserts.length; i += 50){
+    const chunk = inserts.slice(i, i + 50);
+    const { data, error } = await sb.from('attend_members').insert(chunk).select('id');
+    if(error){
+      failCount += chunk.length;
+      errors.push(error.message);
+      console.error('[csv-import]', error);
+    } else {
+      okCount += (data?.length || chunk.length);
+    }
+  }
+  
+  // 결과 표시
+  const el = document.getElementById('csv-result');
+  el.style.display = '';
+  if(failCount === 0){
+    el.className = 'csv-result';
+    el.innerHTML = `✅ ${okCount}건 등록 완료`;
+  } else {
+    el.className = 'csv-result err';
+    el.innerHTML = `⚠️ 성공 ${okCount}건 · 실패 ${failCount}건<br><small>${escapeHtml(errors[0] || '')}</small>`;
+  }
+  
+  // 입력 초기화
+  document.getElementById('csv-file-input').value = '';
+  document.getElementById('csv-file-name').textContent = '선택된 파일 없음';
+  document.getElementById('csv-preview').style.display = 'none';
+  _csvParsedRows = null;
+  
+  // 명단 새로고침
+  await loadAllMembersAdmin();
+  await loadAllMembers();
+}
+
 // ────────────────────────────────────────────────────────────
 // 사명자 수정 모달
 // ────────────────────────────────────────────────────────────
 let editingMemberId = null;
 
 function openMemberModal(memberId){
-  if(_readonlyGuard()) return;
   const m = adminAllMembers.find(x => x.id === memberId);
   if(!m){ showToast('사명자를 찾을 수 없어요'); return; }
+  if(_memberMgmtGuard(m.dept_id)) return;
   
   editingMemberId = memberId;
   
-  // 부서 드롭다운 채우기
+  // 부서 드롭다운 — 중진은 본인 부서만 (다른 부서로 이동 불가),
+  // 마스터·신학부장은 전체 부서 선택 가능
   const deptSel = document.getElementById('edit-mem-dept');
-  deptSel.innerHTML = DEPTS.map(d => 
+  const deptOptions = (viewMode === 'jungjin' && viewerDeptId !== null)
+    ? DEPTS.filter(d => d.id === viewerDeptId)
+    : DEPTS;
+  deptSel.innerHTML = deptOptions.map(d => 
     `<option value="${d.id}" ${d.id === m.dept_id ? 'selected' : ''}>${d.name}</option>`
   ).join('');
   
@@ -5125,8 +5575,12 @@ function closeMemberModalIfBackdrop(e){
 
 async function saveMemberEdit(){
   if(!editingMemberId) return;
+  // 권한 체크 — 현재 멤버 부서와 변경할 부서 둘 다 가능해야 함
+  const orig = adminAllMembers.find(x => x.id === editingMemberId);
+  if(orig && _memberMgmtGuard(orig.dept_id)) return;
   
   const deptId = document.getElementById('edit-mem-dept').value;
+  if(_memberMgmtGuard(deptId)) return;
   const name   = document.getElementById('edit-mem-name').value.trim();
   const role   = document.getElementById('edit-mem-role').value;
   const phone  = document.getElementById('edit-mem-phone').value.trim();
@@ -5180,6 +5634,7 @@ async function deleteMemberPermanent(){
   if(!editingMemberId) return;
   const m = adminAllMembers.find(x => x.id === editingMemberId);
   if(!m) return;
+  if(_memberMgmtGuard(m.dept_id)) return;
 
   // 봉사 기록 존재 여부 체크
   const { count } = await sb.from('attend_records')
@@ -5226,6 +5681,7 @@ async function deleteMemberPermanent(){
 async function toggleMemberActive(memberId, makeActive){
   const m = adminAllMembers.find(x => x.id === memberId);
   if(!m) return;
+  if(_memberMgmtGuard(m.dept_id)) return;
   
   // 비활성화 시 확인
   if(!makeActive){
