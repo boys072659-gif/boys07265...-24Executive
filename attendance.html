@@ -2333,6 +2333,317 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
   .exp-row-date { font-size: 11px; }
   .exp-row-item { font-size: 12.5px; }
 }
+
+/* ── 다중 발송 대상 ── */
+.tg-targets-section { display: flex; flex-direction: column; gap: 8px; }
+.tg-targets-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tg-targets-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2c5d9e;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.tg-target-add-btn {
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #cdddf0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2c5d9e;
+  cursor: pointer;
+}
+.tg-target-add-btn:hover { background: #eef4fb; }
+.tg-target-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-3, #9c9384);
+  background: #fff;
+  border: 1px dashed #cdddf0;
+  border-radius: 8px;
+}
+.tg-target-warn {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: var(--late, #D14343);
+  background: #fbeaea;
+  border-radius: 8px;
+}
+.tg-target-item {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 12px;
+  background: #fff;
+  border: 1px solid #cdddf0;
+  border-radius: 8px;
+}
+.tg-target-item.disabled { opacity: 0.55; }
+.tg-target-check input { width: 18px; height: 18px; cursor: pointer; }
+.tg-target-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.tg-target-label { font-size: 13.5px; font-weight: 700; }
+.tg-target-meta {
+  font-size: 11px;
+  color: var(--text-2, #6b6256);
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
+}
+.tg-target-meta .muted { color: var(--text-3, #9c9384); }
+.tg-target-del {
+  width: 28px; height: 28px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-3, #9c9384);
+  cursor: pointer;
+}
+.tg-target-del:hover { background: #fbeaea; border-color: #e0b8b8; color: #b5564f; }
+.tg-target-add-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px auto auto;
+  gap: 6px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #cdddf0;
+  border-radius: 8px;
+}
+.tg-target-add-row input {
+  padding: 7px 10px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12.5px;
+  background: #fff;
+}
+.tg-target-add-row input:focus { outline: none; border-color: #4178c8; }
+.tg-target-save-btn, .tg-target-cancel-btn {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.tg-target-save-btn { background: #2c5d9e; color: #fff; }
+.tg-target-save-btn:hover { background: #234e85; }
+.tg-target-cancel-btn { background: #fff; border-color: var(--line, #e3ddd2); color: var(--text-2, #6b6256); }
+
+/* 발송 액션 행 */
+.tg-action-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.tg-preview-btn {
+  padding: 12px 20px;
+  background: #fff;
+  color: #2c5d9e;
+  border: 1px solid #cdddf0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tg-preview-btn:hover { background: #eef4fb; }
+
+/* 미리보기 모달 */
+.tg-preview-targets { margin-bottom: 12px; }
+.tg-preview-targets-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tg-preview-target-chip {
+  display: inline-block;
+  padding: 5px 11px;
+  background: #eef4fb;
+  border: 1px solid #cdddf0;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #2c5d9e;
+}
+.tg-preview-warn {
+  padding: 12px;
+  background: #fbeaea;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--late, #D14343);
+}
+.tg-preview-text {
+  white-space: pre-wrap;
+  background: var(--bg-subtle, #f7f4ee);
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-family: var(--font-num, ui-monospace), 'SF Mono', 'Cascadia Mono', monospace;
+  line-height: 1.55;
+  color: var(--text, #2b2620);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .tg-target-add-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .tg-target-add-row input[type="text"]:nth-child(1) { grid-column: span 2; }
+  .tg-target-save-btn, .tg-target-cancel-btn { padding: 9px 12px; }
+  .tg-action-row { flex-direction: column-reverse; gap: 6px; }
+  .tg-preview-btn, .tg-report-btn { width: 100%; }
+}
+
+/* 중진 뱃지 */
+.jj-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fbf2df 0%, #f5e6c0 100%);
+  color: #8a5a16;
+  margin-left: 4px;
+  border: 1px solid #e8d5a0;
+}
+.jj-badge.normal {
+  background: #f3f1ec;
+  color: var(--text-3, #9c9384);
+  border-color: var(--line, #e3ddd2);
+}
+.add-jungjin-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a5a16;
+  background: #fbf2df;
+  border: 1px solid #e8d5a0;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.add-jungjin-label input { width: 15px; height: 15px; cursor: pointer; }
+
+/* 장소 추가 좌표 */
+.loc-points-section {
+  margin: 14px 0 8px;
+  padding: 12px 14px;
+  background: var(--bg-subtle, #f7f4ee);
+  border-radius: 10px;
+}
+.loc-points-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text, #2b2620);
+}
+.loc-points-head small { font-weight: 500; color: var(--text-3, #9c9384); font-size: 11px; }
+.loc-point-add-btn {
+  padding: 5px 11px;
+  background: #fff;
+  border: 1px solid #cdddf0;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #2c5d9e;
+  cursor: pointer;
+}
+.loc-point-add-btn:hover { background: #eef4fb; }
+.loc-points-empty {
+  padding: 10px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-3, #9c9384);
+  border: 1px dashed var(--line, #e3ddd2);
+  border-radius: 8px;
+  background: #fff;
+}
+.loc-point-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.lp-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lp-label { font-size: 13px; font-weight: 700; }
+.lp-coords {
+  font-size: 11px;
+  color: var(--text-2, #6b6256);
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+.lp-del-btn {
+  width: 26px; height: 26px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-3, #9c9384);
+  cursor: pointer;
+}
+.lp-del-btn:hover { background: #fbeaea; border-color: #e0b8b8; color: #b5564f; }
+
+.loc-point-add-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #cdddf0;
+  border-radius: 8px;
+}
+.loc-point-add-row input {
+  padding: 7px 10px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12.5px;
+  background: #fff;
+  width: 100%;
+}
+.loc-point-add-btns {
+  grid-column: span 4;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.loc-point-gps-btn, .loc-point-save-btn, .loc-point-cancel-btn {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.loc-point-gps-btn { background: #fff; border-color: #cdddf0; color: #2c5d9e; }
+.loc-point-save-btn { background: #2c5d9e; color: #fff; }
+.loc-point-save-btn:hover { background: #234e85; }
+.loc-point-cancel-btn { background: #fff; border-color: var(--line, #e3ddd2); color: var(--text-2, #6b6256); }
+
+@media (max-width: 640px) {
+  .loc-point-add-row { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
@@ -2518,24 +2829,52 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
         <div class="tg-report-box">
           <div class="tg-report-info">
             <b>📤 텔레그램 발송</b>
-            <span>선택한 날짜의 출퇴근 현황을 그룹방 토픽으로 보냅니다. (매일 저녁 9시 자동 발송)</span>
+            <span>선택한 날짜의 봉사 시작·종료 현황을 등록된 그룹방 토픽으로 보냅니다. (매일 저녁 9시 자동 발송)</span>
           </div>
 
-          <!-- 발송 대상 (Chat ID + 토픽 ID) -->
-          <div class="tg-target-row">
-            <div class="tg-target-field">
-              <label>그룹 Chat ID</label>
-              <input type="text" id="tg-target-chatid" placeholder="예: -1001234567890" onchange="saveTgTarget()">
+          <!-- 발송 대상 목록 (다중) -->
+          <div class="tg-targets-section">
+            <div class="tg-targets-head">
+              <span class="tg-targets-title">발송 대상</span>
+              <button class="tg-target-add-btn" onclick="openTgTargetAddRow()" type="button">+ 그룹방 추가</button>
             </div>
-            <div class="tg-target-field">
-              <label>토픽 ID <span style="font-weight:500;color:var(--text-3,#9c9384);font-size:10.5px">(선택)</span></label>
-              <input type="text" id="tg-target-topicid" placeholder="없으면 일반 채팅" onchange="saveTgTarget()">
+            <div id="tg-targets-list">
+              <div class="loading"><span class="spinner"></span>불러오는 중…</div>
+            </div>
+            <!-- 추가 입력 폼 (숨김) -->
+            <div class="tg-target-add-row" id="tg-target-add-row" style="display:none">
+              <input type="text" id="tg-new-label" placeholder="이름 (예: 본부 그룹방)" maxlength="40">
+              <input type="text" id="tg-new-chatid" placeholder="Chat ID (예: -1001234567890)">
+              <input type="text" id="tg-new-topicid" placeholder="토픽 ID (선택)">
+              <button class="tg-target-save-btn" onclick="addTgTarget()" type="button">저장</button>
+              <button class="tg-target-cancel-btn" onclick="closeTgTargetAddRow()" type="button">취소</button>
             </div>
           </div>
-          <div class="tg-target-status" id="tg-target-status"></div>
 
-          <textarea id="tg-report-extra" class="tg-report-extra" rows="3" placeholder="(선택) 출퇴근 현황 위에 추가로 보낼 공지·메시지가 있다면 입력하세요…"></textarea>
-          <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 지금 발송</button>
+          <textarea id="tg-report-extra" class="tg-report-extra" rows="3" placeholder="(선택) 봉사 현황 위에 추가로 보낼 공지·메시지가 있다면 입력하세요…"></textarea>
+
+          <div class="tg-action-row">
+            <button class="tg-preview-btn" onclick="previewAttendReport()" id="tg-preview-btn" type="button">👁 미리보기</button>
+            <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 지금 발송</button>
+          </div>
+        </div>
+
+        <!-- 미리보기 모달 -->
+        <div class="modal-backdrop" id="tg-preview-backdrop" onclick="closeTgPreviewIfBackdrop(event)">
+          <div class="reason-modal" onclick="event.stopPropagation()" style="max-width:560px">
+            <div class="reason-modal-head">
+              <h3 class="reason-modal-title">📋 발송 미리보기</h3>
+              <p class="reason-modal-sub" id="tg-preview-sub">—</p>
+            </div>
+            <div class="reason-modal-body">
+              <div class="tg-preview-targets" id="tg-preview-targets"></div>
+              <div class="tg-preview-text" id="tg-preview-text">—</div>
+            </div>
+            <div class="reason-modal-footer" style="justify-content:space-between">
+              <button class="btn-cancel" onclick="closeTgPreview()">닫기</button>
+              <button class="btn-confirm" onclick="closeTgPreview(); sendAttendReport()">이대로 발송</button>
+            </div>
+          </div>
         </div>
 
         <!-- 오늘 현황 표 -->
@@ -2570,6 +2909,10 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
               <option value="기타">기타</option>
             </select>
             <input id="add-mem-phone" class="add-input" placeholder="연락처 (선택)" maxlength="20">
+            <label class="add-jungjin-label" title="중진은 지각·결석 시 벌금 부과 대상">
+              <input type="checkbox" id="add-mem-jungjin">
+              <span>중진</span>
+            </label>
             <button class="add-btn" onclick="onAddMember()">+ 추가</button>
           </div>
           <div class="admin-add-err" id="add-mem-err"></div>
@@ -2589,6 +2932,14 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
               <option value="active">활성</option>
               <option value="all">전체 (비활성 포함)</option>
               <option value="inactive">비활성만</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label>구분</label>
+            <select id="mem-f-jungjin" onchange="renderMembers()">
+              <option value="">전체</option>
+              <option value="jungjin">중진만</option>
+              <option value="normal">일반만</option>
             </select>
           </div>
           <button class="admin-refresh-btn" onclick="loadAllMembersAdmin()" title="새로고침">↻ 새로고침</button>
@@ -2800,6 +3151,7 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
             <select id="stat-f-scope" onchange="renderStats()">
               <option value="all">전체</option>
               <option value="dept">부서별</option>
+              <option value="location">장소별</option>
               <option value="member">개인별</option>
             </select>
           </div>
@@ -2885,6 +3237,13 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
         <input id="edit-mem-order" class="add-input" type="number" min="0" max="999"
                title="작은 숫자가 위로. 부장은 0">
       </div>
+      <div class="member-form-row">
+        <label>구분</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
+          <input type="checkbox" id="edit-mem-jungjin" style="width:16px;height:16px;cursor:pointer">
+          <span>중진 (지각·결석 시 벌금 부과)</span>
+        </label>
+      </div>
       <div class="admin-add-err" id="edit-mem-err"></div>
     </div>
     <div class="reason-modal-footer" style="justify-content:space-between">
@@ -2939,6 +3298,27 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
           <span>GPS 검증 사용 (해제 시 위치 확인 없이 시작/종료 가능)</span>
         </label>
       </div>
+
+      <!-- 추가 좌표 (한 장소에 여러 위치 등록) -->
+      <div class="loc-points-section">
+        <div class="loc-points-head">
+          <span>📍 추가 좌표 <small>(여러 곳에서 봉사 가능)</small></span>
+          <button class="loc-point-add-btn" type="button" onclick="openLocPointAdd()">+ 추가</button>
+        </div>
+        <div id="loc-points-list"></div>
+        <div class="loc-point-add-row" id="loc-point-add-row" style="display:none">
+          <input type="text" id="lp-label" placeholder="이름 (예: 본부 보조)" maxlength="30">
+          <input type="number" id="lp-lat" step="0.0000001" placeholder="위도">
+          <input type="number" id="lp-lng" step="0.0000001" placeholder="경도">
+          <input type="number" id="lp-radius" min="10" max="5000" placeholder="반경(빈칸=공통)">
+          <div class="loc-point-add-btns">
+            <button type="button" onclick="setLpCurrentPosition()" class="loc-point-gps-btn">📍 현재 위치</button>
+            <button type="button" onclick="saveLocPoint()" class="loc-point-save-btn">저장</button>
+            <button type="button" onclick="closeLocPointAdd()" class="loc-point-cancel-btn">취소</button>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-add-err" id="edit-loc-err"></div>
     </div>
     <div class="reason-modal-footer">
@@ -3198,34 +3578,56 @@ async function verifyGPS(location){
     return { tried: false, success: null, distance: null, accuracy: null,
              lat: null, lng: null, message: '이 장소는 위치 확인을 사용하지 않습니다' };
   }
-  if(location.lat == null || location.lng == null){
+  // 후보 좌표 모음 — 기본 좌표 + 추가 좌표(attend_location_points)
+  const points = [];
+  if(location.lat != null && location.lng != null){
+    points.push({
+      label: '기본', lat: location.lat, lng: location.lng,
+      radius: Number(location.radius || 100),
+    });
+  }
+  (location.attend_location_points || []).forEach(p => {
+    if(p.is_active === false) return;
+    if(p.lat == null || p.lng == null) return;
+    points.push({
+      label: p.label || '추가',
+      lat: p.lat, lng: p.lng,
+      radius: Number(p.radius || location.radius || 100),
+    });
+  });
+  if(points.length === 0){
     return { tried: false, success: false, distance: null, accuracy: null,
              lat: null, lng: null, message: '봉사 장소에 기준 좌표가 없습니다 (관리자에 문의)' };
   }
   try {
     const fix = await getBestPosition();
-    const distance = haversineDistance(fix.lat, fix.lng, location.lat, location.lng);
-    const radius = Number(location.radius || 100);
+    // 모든 후보 중 가장 가까운 지점 채택
+    let best = null;
+    for(const p of points){
+      const d = haversineDistance(fix.lat, fix.lng, p.lat, p.lng);
+      if(!best || d < best.distance) best = { ...p, distance: d };
+    }
+    const radius = best.radius;
     const acc = Math.round(fix.accuracy || 0);
-    // GPS 자체 오차(±accuracy)를 허용 범위에 반영 — 실내 보정 (상한 ACC_CAP).
-    // 예: 반경 300m, GPS 오차 ±900m → 1200m까지 "범위 안"으로 인정.
     const ACC_CAP = 1500;
     const accUsed = Math.min(acc, ACC_CAP);
     const tolerance = radius + accUsed;
-    const withinStrict = distance <= radius;
-    const within = distance <= tolerance;
+    const withinStrict = best.distance <= radius;
+    const within = best.distance <= tolerance;
+    // 어느 후보로 인증됐는지 메시지에 표시 (포인트 2개 이상일 때만)
+    const labelSuffix = points.length > 1 ? ` [${best.label}]` : '';
     let message;
     if(withinStrict){
-      message = `위치 확인됨 · 거리 ${fmtDistance(distance)} (허용 ${radius}m)`;
+      message = `위치 확인됨${labelSuffix} · 거리 ${fmtDistance(best.distance)} (허용 ${radius}m)`;
     } else if(within){
-      message = `위치 확인됨 · 거리 ${fmtDistance(distance)} · GPS 오차 ±${accUsed}m 감안 (허용 ${radius}m)`;
+      message = `위치 확인됨${labelSuffix} · 거리 ${fmtDistance(best.distance)} · GPS 오차 ±${accUsed}m 감안 (허용 ${radius}m)`;
     } else {
-      message = `봉사 장소에서 ${fmtDistance(distance)} 떨어짐 · GPS 오차 ±${acc}m (허용 ${radius}m)`;
+      message = `봉사 장소에서 ${fmtDistance(best.distance)} 떨어짐${labelSuffix} · GPS 오차 ±${acc}m (허용 ${radius}m)`;
     }
     return {
       tried: true,
       success: within,
-      distance: Math.round(distance),
+      distance: Math.round(best.distance),
       accuracy: acc,
       lat: fix.lat,
       lng: fix.lng,
@@ -3504,10 +3906,18 @@ async function loadAllMembers(){
 async function loadAllLocations(){
   const { data, error } = await sb
     .from('attend_locations')
-    .select('*')
+    .select('*, attend_location_points(*)')
     .eq('is_active', true)
     .order('sort_order', { ascending: true });
   if(error){
+    // 테이블 미생성 시 옛 쿼리로 폴백
+    if(/relation .*attend_location_points/i.test(error.message||'')){
+      const { data: data2 } = await sb.from('attend_locations')
+        .select('*').eq('is_active', true).order('sort_order', { ascending: true });
+      allLocations = data2 || [];
+      populateLocationOptions();
+      return;
+    }
     console.error('[loadAllLocations]', error);
     return;
   }
@@ -3654,7 +4064,7 @@ function updateClockArea(){
   if(!todayRecord){
     // 아직 시작 안 함 — 지금 시작하면 어떤 상태인지 미리 안내
     const now = new Date();
-    const pen = calcPenalty(now);
+    const pen = calcPenalty(now, currentMember);
     let penHint = '';
     if(pen.type === 'late'){
       penHint = `<div class="start-pen-hint late">⚠️ 지금 시작하면 <b>지각</b> · ${fmtWon(pen.amount)}</div>`;
@@ -3738,7 +4148,12 @@ function isPenaltyDay(d){
 
 // 시작 시각 기준 벌금 판정
 // 반환: { type: 'none'|'late'|'absent', amount: int }
-function calcPenalty(checkInDate){
+//   ※ 중진(is_jungjin=true)이고 평일(월~금)이며 공휴일이 아닐 때만 벌금 부과
+function calcPenalty(checkInDate, member){
+  // 일반(중진 아님) → 벌금 없음
+  if(member && member.is_jungjin === false){
+    return { type: 'none', amount: 0 };
+  }
   // 공휴일·주말이면 벌금 없음
   if(!isPenaltyDay(checkInDate)){
     return { type: 'none', amount: 0 };
@@ -3836,7 +4251,7 @@ async function doStart(reason, gps){
   const today = fmtYMD(now);
   
   // 벌금 계산
-  const penalty = calcPenalty(now);
+  const penalty = calcPenalty(now, currentMember);
   // 사유가 있으면 (지각·결석이면서 사유 적었으면) 면제 검토 중
   let penaltyStatus = 'none';
   if(penalty.type !== 'none'){
@@ -4393,6 +4808,7 @@ async function onAddMember(){
     role:       role,
     phone:      phone || null,
     is_active:  true,
+    is_jungjin: !!document.getElementById('add-mem-jungjin')?.checked,
     sort_order: sortOrder,
   };
 
@@ -4446,14 +4862,20 @@ async function loadAllMembersAdmin(){
 function renderMembers(){
   const deptFilter   = document.getElementById('mem-f-dept').value;
   const statusFilter = document.getElementById('mem-f-status').value;
+  const jungjinFilter = document.getElementById('mem-f-jungjin')?.value || '';
   
   let rows = adminAllMembers.slice();
   if(deptFilter) rows = rows.filter(m => m.dept_id === deptFilter);
   if(statusFilter === 'active')   rows = rows.filter(m => m.is_active === true);
   else if(statusFilter === 'inactive') rows = rows.filter(m => m.is_active === false);
+  if(jungjinFilter === 'jungjin') rows = rows.filter(m => m.is_jungjin === true);
+  else if(jungjinFilter === 'normal') rows = rows.filter(m => m.is_jungjin !== true);
   
+  // 중진 / 일반 카운트
+  const jungjinCount = adminAllMembers.filter(m => m.is_active && m.is_jungjin === true).length;
+  const normalCount  = adminAllMembers.filter(m => m.is_active && m.is_jungjin !== true).length;
   document.getElementById('members-meta').textContent =
-    `${rows.length}명 / 전체 ${adminAllMembers.length}명`;
+    `${rows.length}명 표시 / 활성 중진 ${jungjinCount}명 · 일반 ${normalCount}명`;
   
   const container = document.getElementById('members-list');
   if(rows.length === 0){
@@ -4463,7 +4885,7 @@ function renderMembers(){
   
   const head = `
     <div class="members-row head">
-      <span>이름 · 역할</span>
+      <span>이름 · 역할 · 구분</span>
       <span>부서</span>
       <span>연락처</span>
       <span class="col-edit">수정</span>
@@ -4474,9 +4896,12 @@ function renderMembers(){
     const dept = DEPTS.find(d => d.id === m.dept_id);
     const deptName = dept ? dept.name : m.dept_id;
     const inactiveClass = m.is_active ? '' : 'inactive';
+    const jungjinBadge = m.is_jungjin
+      ? `<span class="jj-badge">중진</span>`
+      : `<span class="jj-badge normal">일반</span>`;
     return `
       <div class="members-row ${inactiveClass}">
-        <span><span class="col-name">${escapeHtml(m.name)}</span> · <span style="color:var(--text-3);font-size:12px">${escapeHtml(m.role || '—')}</span></span>
+        <span><span class="col-name">${escapeHtml(m.name)}</span> · <span style="color:var(--text-3);font-size:12px">${escapeHtml(m.role || '—')}</span> ${jungjinBadge}</span>
         <span style="color:var(--text-3)">${escapeHtml(deptName)}</span>
         <span class="col-phone">${escapeHtml(m.phone || '—')}</span>
         <span class="col-edit"><button class="row-action" onclick="openMemberModal(${m.id})">수정</button></span>
@@ -4512,6 +4937,7 @@ function openMemberModal(memberId){
   document.getElementById('edit-mem-role').value  = m.role || '부장';
   document.getElementById('edit-mem-phone').value = m.phone || '';
   document.getElementById('edit-mem-order').value = m.sort_order ?? 0;
+  document.getElementById('edit-mem-jungjin').checked = m.is_jungjin === true;
   document.getElementById('edit-mem-err').textContent = '';
   document.getElementById('member-modal-sub').textContent = 
     `${m.name} · ${m.is_active ? '활성' : '비활성'}`;
@@ -4559,6 +4985,7 @@ async function saveMemberEdit(){
     role:       role,
     phone:      phone || null,
     sort_order: order,
+    is_jungjin: !!document.getElementById('edit-mem-jungjin')?.checked,
     updated_at: new Date().toISOString(),
   };
   
@@ -4662,10 +5089,18 @@ let adminAllLocations = [];   // 비활성 포함 전체
 async function loadAllLocationsAdmin(){
   const { data, error } = await sb
     .from('attend_locations')
-    .select('*')
+    .select('*, attend_location_points(*)')
     .order('sort_order', { ascending: true })
     .order('id', { ascending: true });
   if(error){
+    // 추가 포인트 테이블 미생성 → 폴백
+    if(/relation .*attend_location_points/i.test(error.message||'')){
+      const { data: data2 } = await sb.from('attend_locations')
+        .select('*').order('sort_order', { ascending: true }).order('id', { ascending: true });
+      adminAllLocations = data2 || [];
+      renderLocations();
+      return;
+    }
     console.error('[loadAllLocationsAdmin]', error);
     showToast('봉사 장소를 불러오지 못했어요');
     return;
@@ -4844,6 +5279,8 @@ function openLocModal(locId){
   document.getElementById('loc-modal-sub').textContent = 
     `${l.name} · ${l.is_active ? '활성' : '비활성'}`;
   
+  renderLocPoints(l);   // 추가 좌표 렌더
+  closeLocPointAdd();
   document.getElementById('loc-modal-backdrop').classList.add('show');
 }
 
@@ -4851,6 +5288,101 @@ function closeLocModal(){
   document.getElementById('loc-modal-backdrop').classList.remove('show');
   editingLocationId = null;
 }
+
+// ── 추가 좌표 (한 장소에 여러 위치) ──
+function renderLocPoints(loc){
+  const list = document.getElementById('loc-points-list');
+  if(!list) return;
+  const pts = (loc.attend_location_points || []).filter(p => p.is_active !== false)
+    .sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
+  if(pts.length === 0){
+    list.innerHTML = `<div class="loc-points-empty">아직 추가 좌표가 없어요 — "+ 추가"로 본부 등 다른 좌표를 등록할 수 있습니다</div>`;
+    return;
+  }
+  list.innerHTML = pts.map(p => `
+    <div class="loc-point-item">
+      <div class="lp-info">
+        <span class="lp-label">${escapeHtml(p.label || '추가 좌표')}</span>
+        <span class="lp-coords">${Number(p.lat).toFixed(6)}, ${Number(p.lng).toFixed(6)}${p.radius ? ` · 반경 ${p.radius}m` : ''}</span>
+      </div>
+      <button class="lp-del-btn" type="button" onclick="deleteLocPoint(${p.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+function openLocPointAdd(){
+  document.getElementById('loc-point-add-row').style.display = 'grid';
+  document.getElementById('lp-label').value = '';
+  document.getElementById('lp-lat').value = '';
+  document.getElementById('lp-lng').value = '';
+  document.getElementById('lp-radius').value = '';
+  document.getElementById('lp-label').focus();
+}
+function closeLocPointAdd(){
+  const el = document.getElementById('loc-point-add-row');
+  if(el) el.style.display = 'none';
+}
+
+async function setLpCurrentPosition(){
+  try {
+    const fix = await getBestPosition();
+    document.getElementById('lp-lat').value = fix.lat.toFixed(7);
+    document.getElementById('lp-lng').value = fix.lng.toFixed(7);
+    showToast('✅ 현재 위치 좌표 입력됨');
+  } catch(e){
+    showToast(gpsErrorText(e));
+  }
+}
+
+async function saveLocPoint(){
+  if(!editingLocationId) return;
+  const label = document.getElementById('lp-label').value.trim();
+  const lat = parseFloat(document.getElementById('lp-lat').value);
+  const lng = parseFloat(document.getElementById('lp-lng').value);
+  const radiusVal = document.getElementById('lp-radius').value.trim();
+  const radius = radiusVal ? parseInt(radiusVal) : null;
+  if(isNaN(lat) || isNaN(lng)){ showToast('위도·경도를 입력하세요'); return; }
+  try {
+    const { error } = await sb.from('attend_location_points').insert({
+      location_id: editingLocationId,
+      label: label || null,
+      lat, lng,
+      radius,
+      is_active: true,
+    });
+    if(error) throw error;
+    closeLocPointAdd();
+    showToast('✅ 추가 좌표 등록됨');
+    await loadAllLocationsAdmin();
+    await loadAllLocations();
+    const fresh = adminAllLocations.find(x => x.id === editingLocationId);
+    if(fresh) renderLocPoints(fresh);
+  } catch(e){
+    console.error('[saveLocPoint]', e);
+    if(/relation .*attend_location_points/i.test(e.message||'')){
+      showToast('장소_추가좌표.sql을 먼저 실행하세요');
+    } else {
+      showToast('추가 실패: ' + (e.message||''));
+    }
+  }
+}
+
+async function deleteLocPoint(pointId){
+  if(!confirm('이 추가 좌표를 삭제할까요?')) return;
+  try {
+    const { error } = await sb.from('attend_location_points').delete().eq('id', pointId);
+    if(error) throw error;
+    showToast('🗑️ 삭제됨');
+    await loadAllLocationsAdmin();
+    await loadAllLocations();
+    const fresh = adminAllLocations.find(x => x.id === editingLocationId);
+    if(fresh) renderLocPoints(fresh);
+  } catch(e){
+    console.error('[deleteLocPoint]', e);
+    showToast('삭제 실패: ' + (e.message||''));
+  }
+}
+
 
 function closeLocModalIfBackdrop(e){
   if(e.target.id === 'loc-modal-backdrop') closeLocModal();
@@ -5633,7 +6165,7 @@ async function loadStats(){
   const { start, end } = getStatsPeriod();
   const { data, error } = await sb
     .from('attend_records')
-    .select('*, attend_members(name, dept_id, role)')
+    .select('*, attend_members(name, dept_id, role), attend_locations(name)')
     .gte('record_date', fmtYMD(start))
     .lte('record_date', fmtYMD(end));
   if(error){
@@ -5717,6 +6249,37 @@ function renderStats(){
       return `<div class="stat-row">
         <span class="stat-label">${fmtDateKor(dt)}</span>
         <span class="stat-num">${s.total}</span>
+        <span class="stat-num ${s.late ? 'late' : ''}">${s.late || '—'}</span>
+        <span class="stat-num ${s.absent ? 'absent' : ''}">${s.absent || '—'}</span>
+      </div>`;
+    }).join('');
+    container.innerHTML = head + body;
+    
+  } else if(scope === 'location'){
+    // 장소별
+    const byLoc = {};
+    records.forEach(r => {
+      const locId = r.location_id || 'unknown';
+      const locName = r.attend_locations?.name || '미지정';
+      if(!byLoc[locId]) byLoc[locId] = { name: locName, total: 0, late: 0, absent: 0, members: new Set() };
+      byLoc[locId].total++;
+      byLoc[locId].members.add(r.member_id);
+      if(r.penalty_type === 'late') byLoc[locId].late++;
+      if(r.penalty_type === 'absent') byLoc[locId].absent++;
+    });
+    const locIds = Object.keys(byLoc).sort((a,b) => byLoc[b].total - byLoc[a].total);
+    if(locIds.length === 0){
+      container.innerHTML = `<div class="empty"><div class="msg">기간 내 기록이 없어요</div></div>`;
+      return;
+    }
+    document.getElementById('stat-meta').textContent = `${locIds.length}개 장소`;
+    const head = `<div class="stat-row head member"><span>장소</span><span>봉사</span><span>인원</span><span>지각</span><span>결석</span></div>`;
+    const body = locIds.map(lid => {
+      const s = byLoc[lid];
+      return `<div class="stat-row member">
+        <span class="stat-label">${escapeHtml(s.name)}</span>
+        <span class="stat-num">${s.total}</span>
+        <span class="stat-num">${s.members.size}</span>
         <span class="stat-num ${s.late ? 'late' : ''}">${s.late || '—'}</span>
         <span class="stat-num ${s.absent ? 'absent' : ''}">${s.absent || '—'}</span>
       </div>`;
@@ -6003,89 +6566,206 @@ function adminGoToday(){
 const ATTEND_REPORT_URL = 'https://faxaqxyafsitdfykxgem.supabase.co/functions/v1/attend-daily-report';
 const ATTEND_REPORT_SECRET = 'sjames2026';  // Edge Function의 ATTEND_REPORT_SECRET 환경변수와 동일하게
 
-// ── 발송 대상(Chat ID + Topic ID) — DB attend_report_target에 저장 ──
-let _tgTargetTableMissing = false;
+// ── 발송 대상 (다중) — DB attend_report_targets ──
+let tgTargets = [];
+let _tgTargetsTableMissing = false;
 
 async function loadTgTarget(){
   try {
-    const { data, error } = await sb.from('attend_report_target')
-      .select('chat_id, topic_id').eq('id', 1).single();
+    const { data, error } = await sb.from('attend_report_targets')
+      .select('*').order('sort_order').order('id');
     if(error){
-      if(/relation .*attend_report_target/i.test(error.message||'')){
-        _tgTargetTableMissing = true;
+      if(/relation .*attend_report_targets/i.test(error.message||'')){
+        _tgTargetsTableMissing = true;
+        renderTgTargets();
       }
       return;
     }
-    const ci = document.getElementById('tg-target-chatid');
-    const ti = document.getElementById('tg-target-topicid');
-    if(ci && data){
-      ci.value = data.chat_id || '';
-      ti.value = data.topic_id != null ? String(data.topic_id) : '';
-    }
-    _renderTgTargetStatus();
+    _tgTargetsTableMissing = false;
+    tgTargets = data || [];
+    renderTgTargets();
   } catch(e){ console.warn('[loadTgTarget]', e); }
 }
 
-async function saveTgTarget(){
-  const chatId = (document.getElementById('tg-target-chatid').value || '').trim();
-  const topicRaw = (document.getElementById('tg-target-topicid').value || '').trim();
-  const topicId = topicRaw ? parseInt(topicRaw) : null;
-  if(topicRaw && isNaN(topicId)){
-    showToast('토픽 ID는 숫자여야 합니다');
+function renderTgTargets(){
+  const box = document.getElementById('tg-targets-list');
+  if(!box) return;
+  if(_tgTargetsTableMissing){
+    box.innerHTML = `<div class="tg-target-warn">⚠️ 발송_대상_다중.sql을 먼저 실행해주세요. (attend_report_targets 테이블 없음)</div>`;
     return;
   }
+  if(tgTargets.length === 0){
+    box.innerHTML = `<div class="tg-target-empty">아직 등록된 그룹방이 없어요 — 위 "+ 그룹방 추가"로 시작하세요</div>`;
+    return;
+  }
+  box.innerHTML = tgTargets.map(t => `
+    <div class="tg-target-item${t.enabled ? '' : ' disabled'}">
+      <label class="tg-target-check">
+        <input type="checkbox" ${t.enabled ? 'checked' : ''} onchange="toggleTgTarget(${t.id}, this.checked)">
+      </label>
+      <div class="tg-target-info">
+        <div class="tg-target-label">${escapeHtml(t.label)}</div>
+        <div class="tg-target-meta">
+          <span>Chat ${escapeHtml(t.chat_id)}</span>
+          ${t.topic_id != null ? `<span>· 토픽 ${t.topic_id}</span>` : `<span class="muted">· 일반 채팅</span>`}
+        </div>
+      </div>
+      <button class="tg-target-del" onclick="deleteTgTarget(${t.id})" title="삭제">✕</button>
+    </div>
+  `).join('');
+}
+
+function openTgTargetAddRow(){
+  document.getElementById('tg-target-add-row').style.display = 'grid';
+  document.getElementById('tg-new-label').value = '';
+  document.getElementById('tg-new-chatid').value = '';
+  document.getElementById('tg-new-topicid').value = '';
+  document.getElementById('tg-new-label').focus();
+}
+function closeTgTargetAddRow(){
+  document.getElementById('tg-target-add-row').style.display = 'none';
+}
+
+async function addTgTarget(){
+  const label = document.getElementById('tg-new-label').value.trim();
+  const chatId = document.getElementById('tg-new-chatid').value.trim();
+  const topicRaw = document.getElementById('tg-new-topicid').value.trim();
+  if(!label){ showToast('이름을 입력하세요'); return; }
+  if(!chatId){ showToast('Chat ID를 입력하세요'); return; }
+  const topicId = topicRaw ? parseInt(topicRaw) : null;
+  if(topicRaw && isNaN(topicId)){ showToast('토픽 ID는 숫자여야 합니다'); return; }
   try {
-    const { error } = await sb.from('attend_report_target').upsert({
-      id: 1,
-      chat_id: chatId || null,
-      topic_id: topicId,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'id' });
+    const maxOrder = tgTargets.length > 0 ? Math.max(...tgTargets.map(t => t.sort_order || 0)) : -1;
+    const { error } = await sb.from('attend_report_targets').insert({
+      label, chat_id: chatId, topic_id: topicId,
+      enabled: true, sort_order: maxOrder + 1,
+    });
     if(error) throw error;
-    _renderTgTargetStatus();
-    showToast('✅ 저장됨');
+    closeTgTargetAddRow();
+    showToast(`✅ ${label} 추가됨`);
+    await loadTgTarget();
   } catch(e){
-    console.error('[saveTgTarget]', e);
-    if(/relation .*attend_report_target/i.test(e.message||'')){
-      showToast('attend_report_target.sql을 먼저 실행하세요');
+    console.error('[addTgTarget]', e);
+    if(/relation .*attend_report_targets/i.test(e.message||'')){
+      showToast('발송_대상_다중.sql을 먼저 실행하세요');
     } else {
-      showToast('저장 실패: ' + (e.message||''));
+      showToast('추가 실패: ' + (e.message||''));
     }
   }
 }
 
-function _renderTgTargetStatus(){
-  const el = document.getElementById('tg-target-status');
-  if(!el) return;
-  const ci = (document.getElementById('tg-target-chatid').value || '').trim();
-  const ti = (document.getElementById('tg-target-topicid').value || '').trim();
-  if(_tgTargetTableMissing){
-    el.innerHTML = `⚠️ attend_report_target.sql을 먼저 실행해야 발송 가능합니다`;
-    el.style.color = 'var(--late, #D14343)';
-    return;
-  }
-  if(!ci){
-    el.innerHTML = `⚠️ Chat ID를 입력해야 발송 가능합니다`;
-    el.style.color = 'var(--late, #D14343)';
-    return;
-  }
-  el.innerHTML = ti
-    ? `✅ <b>${escapeHtml(ci)}</b> · 토픽 <b>${escapeHtml(ti)}</b>로 발송`
-    : `✅ <b>${escapeHtml(ci)}</b> 그룹 일반 채팅으로 발송`;
-  el.style.color = 'var(--approved, #2c8f3c)';
+async function toggleTgTarget(id, enabled){
+  try {
+    await sb.from('attend_report_targets').update({
+      enabled: enabled,
+      updated_at: new Date().toISOString(),
+    }).eq('id', id);
+    const t = tgTargets.find(x => x.id === id);
+    if(t) t.enabled = enabled;
+    renderTgTargets();
+  } catch(e){ console.error('[toggleTgTarget]', e); }
 }
 
+async function deleteTgTarget(id){
+  const t = tgTargets.find(x => x.id === id);
+  if(!t) return;
+  if(!confirm(`'${t.label}'을(를) 발송 대상에서 삭제할까요?`)) return;
+  try {
+    await sb.from('attend_report_targets').delete().eq('id', id);
+    showToast(`🗑️ ${t.label} 삭제됨`);
+    await loadTgTarget();
+  } catch(e){
+    console.error('[deleteTgTarget]', e);
+    showToast('삭제 실패: ' + (e.message||''));
+  }
+}
+
+// ── 미리보기 ──
+async function previewAttendReport(){
+  const theDate = getAdminDate();
+  const extraMsg = (document.getElementById('tg-report-extra')?.value || '').trim();
+  const enabledTargets = tgTargets.filter(t => t.enabled);
+
+  // 발송 대상 표시
+  const subEl = document.getElementById('tg-preview-sub');
+  const targetsEl = document.getElementById('tg-preview-targets');
+  subEl.textContent = `${fmtDateKor(theDate)} · ${enabledTargets.length}개 그룹방으로 발송 예정`;
+
+  if(enabledTargets.length === 0){
+    targetsEl.innerHTML = `<div class="tg-preview-warn">⚠️ 활성화된 발송 대상이 없습니다</div>`;
+  } else {
+    targetsEl.innerHTML = `<div class="tg-preview-targets-list">${enabledTargets.map(t => `
+      <span class="tg-preview-target-chip">📍 ${escapeHtml(t.label)}${t.topic_id != null ? ` · T${t.topic_id}` : ''}</span>
+    `).join('')}</div>`;
+  }
+
+  // 메시지 본문 미리보기 — 로컬에서 동일 로직으로 생성
+  const text = await _buildReportPreview(theDate, extraMsg);
+  document.getElementById('tg-preview-text').textContent = text;
+  document.getElementById('tg-preview-backdrop').classList.add('show');
+}
+
+function closeTgPreview(){
+  document.getElementById('tg-preview-backdrop').classList.remove('show');
+}
+function closeTgPreviewIfBackdrop(e){
+  if(e.target.id === 'tg-preview-backdrop') closeTgPreview();
+}
+
+async function _buildReportPreview(theDate, extraMsg){
+  // 사명자 전원 + 그날 기록
+  const [memRes, recRes] = await Promise.all([
+    sb.from('attend_members').select('id, name, is_active').eq('is_active', true),
+    sb.from('attend_records').select('member_id, penalty_type, check_in_reason, check_in_at').eq('record_date', theDate),
+  ]);
+  const members = memRes.data || [];
+  const records = recRes.data || [];
+  const recByMember = new Map();
+  records.forEach(r => recByMember.set(r.member_id, r));
+  
+  const hasPre = (s) => !!(s && s.replace(/\s/g,'').includes('사전보고'));
+  const onTime = [], late = [], absent = [], noShow = [];
+  for(const m of members){
+    const rec = recByMember.get(m.id);
+    if(!rec || !rec.check_in_at){ noShow.push({ ...m }); continue; }
+    const pre = hasPre(rec.check_in_reason);
+    if(rec.penalty_type === 'late') late.push({ ...m, pre });
+    else if(rec.penalty_type === 'absent') absent.push({ ...m, pre });
+    else onTime.push({ ...m });
+  }
+  const cmp = (a,b) => (a.name||'').localeCompare(b.name||'', 'ko');
+  [onTime, late, absent, noShow].forEach(arr => arr.sort(cmp));
+  
+  const line = (m) => `· ${m.name}${m.pre ? ' ※사전보고' : ''}`;
+  const list = (arr) => arr.length ? arr.map(line).join('\n') : '· (없음)';
+  
+  // 날짜 표시
+  const d = new Date(theDate + 'T00:00:00');
+  const days = ['일','월','화','수','목','금','토'];
+  const dateKor = `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+  
+  let msg = `📋 ${dateKor} 봉사 시작·종료 현황\n`;
+  msg += `전체 ${members.length}명 · 정시 ${onTime.length} · 지각 ${late.length} · 결석 ${absent.length} · 미출석 ${noShow.length}\n`;
+  msg += `\n✅ 정시 (${onTime.length}명)\n${list(onTime)}`;
+  msg += `\n\n🟡 지각 (${late.length}명)\n${list(late)}`;
+  msg += `\n\n🔴 결석 (${absent.length}명)\n${list(absent)}`;
+  msg += `\n\n⬜ 미출석 (${noShow.length}명)\n${list(noShow)}`;
+  
+  if(extraMsg){
+    msg = `📢 공지\n${extraMsg}\n\n━━━━━━━━━━━━━━━━━\n\n${msg}`;
+  }
+  return msg;
+}
+
+// ── 실제 발송 — 여러 대상에 순차 발송 ──
 async function sendAttendReport(){
-  const chatId = (document.getElementById('tg-target-chatid').value || '').trim();
-  const topicRaw = (document.getElementById('tg-target-topicid').value || '').trim();
-  if(!chatId){
-    showToast('먼저 Chat ID를 입력하세요');
-    document.getElementById('tg-target-chatid').focus();
+  if(_tgTargetsTableMissing){
+    showToast('발송_대상_다중.sql을 먼저 실행하세요');
     return;
   }
-  const topicId = topicRaw ? parseInt(topicRaw) : null;
-  if(topicRaw && isNaN(topicId)){
-    showToast('토픽 ID는 숫자여야 합니다');
+  const enabledTargets = tgTargets.filter(t => t.enabled);
+  if(enabledTargets.length === 0){
+    showToast('활성화된 발송 대상이 없습니다 — 그룹방을 추가하거나 체크하세요');
     return;
   }
 
@@ -6093,44 +6773,47 @@ async function sendAttendReport(){
   const isToday = theDate === fmtYMD(new Date());
   const extraEl = document.getElementById('tg-report-extra');
   const extraMsg = extraEl ? extraEl.value.trim() : '';
-  const confirmMsg = `${isToday ? '오늘' : theDate}의 출퇴근 현황${extraMsg ? ' + 추가 메시지' : ''}을 텔레그램으로 보낼까요?`;
-  if(!confirm(confirmMsg)) return;
-
-  // 보낼 때마다 대상도 자동 저장 (편의)
-  saveTgTarget().catch(_=>{});
+  const labels = enabledTargets.map(t => t.label).join(', ');
+  if(!confirm(`${isToday ? '오늘' : theDate}의 봉사 현황${extraMsg ? ' + 추가 메시지' : ''}을\n${labels}에 발송할까요?`)) return;
 
   const btn = document.getElementById('tg-report-btn');
   btn.disabled = true;
   const orig = btn.textContent;
-  btn.textContent = '발송 중…';
-
-  try {
-    const res = await fetch(ATTEND_REPORT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        secret: ATTEND_REPORT_SECRET,
-        date: theDate,
-        chat_id: chatId,
-        topic_id: topicId,
-        extra: extraMsg || null,
-      })
-    });
-    const data = await res.json();
-    if(data.ok){
-      showToast('✅ 텔레그램으로 발송했습니다');
-      if(extraEl) extraEl.value = '';
-    } else {
-      showToast('발송 실패: ' + (data.error || '서버 오류'));
-      console.error('[attend-report]', data);
+  
+  let okCount = 0, failCount = 0;
+  for(let i = 0; i < enabledTargets.length; i++){
+    const t = enabledTargets[i];
+    btn.textContent = `발송 중… (${i+1}/${enabledTargets.length})`;
+    try {
+      const res = await fetch(ATTEND_REPORT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: ATTEND_REPORT_SECRET,
+          date: theDate,
+          chat_id: t.chat_id,
+          topic_id: t.topic_id,
+          extra: extraMsg || null,
+        })
+      });
+      const data = await res.json();
+      if(data.ok) okCount++; else { failCount++; console.error(`[${t.label}]`, data); }
+    } catch(e){
+      failCount++;
+      console.error(`[${t.label}]`, e);
     }
-  } catch(e){
-    console.error('[sendAttendReport]', e);
-    showToast('발송 실패 — Edge Function이 배포되었는지 확인하세요');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = orig;
+    // 텔레그램 rate-limit 가드
+    if(i < enabledTargets.length - 1) await new Promise(r => setTimeout(r, 250));
   }
+  
+  if(failCount === 0){
+    showToast(`✅ ${okCount}개 그룹방에 발송 완료`);
+    if(extraEl) extraEl.value = '';
+  } else {
+    showToast(`발송: 성공 ${okCount} / 실패 ${failCount} (콘솔 확인)`);
+  }
+  btn.disabled = false;
+  btn.textContent = orig;
 }
 
 async function loadAdminToday(){
