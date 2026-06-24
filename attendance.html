@@ -2663,6 +2663,134 @@ body.readonly-mode .admin-only { display: none !important; }
 
 .add-jungjin-label input { width: 15px; height: 15px; cursor: pointer; }
 
+/* 본인 기록 — 사유 수정 ✏ 버튼 */
+.hist-edit-reason {
+  width: 26px; height: 26px;
+  margin-left: 4px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-3, #9c9384);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.hist-edit-reason:hover { background: #f7f4ee; border-color: #cdb18a; color: #8a5a16; }
+
+/* 사유 수정 모달 — textarea */
+.reason-edit-label {
+  display: block;
+  margin-bottom: 12px;
+}
+.reason-edit-label > span {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-3, #9c9384);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+.reason-edit-label textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.5;
+  background: #fff;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.reason-edit-label textarea:focus {
+  outline: none;
+  border-color: #8a5a2a;
+  box-shadow: 0 0 0 3px rgba(138,90,42,0.1);
+}
+
+/* 발송 대상 — scope 표시 + 수정 버튼 */
+.tg-target-scope {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  background: var(--bg-subtle, #f7f4ee);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-2, #6b6256);
+}
+.tg-target-edit {
+  width: 28px; height: 28px;
+  background: #fff;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-3, #9c9384);
+  cursor: pointer;
+  margin-right: 4px;
+}
+.tg-target-edit:hover { background: #eef4fb; border-color: #cdddf0; color: #2c5d9e; }
+
+/* 추가 폼 — 그리드 확장 (scope + dept) */
+.tg-target-add-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 100px 1fr 1fr;
+  gap: 6px !important;
+}
+.tg-target-add-row select {
+  padding: 7px 10px;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 6px;
+  font-size: 12.5px;
+  background: #fff;
+}
+.tg-target-add-btns {
+  grid-column: span 5;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+@media (max-width: 640px) {
+  .tg-target-add-row { grid-template-columns: 1fr 1fr !important; }
+  .tg-target-add-btns { grid-column: span 2; }
+}
+
+/* 공지 발송 모달 */
+.notice-targets-head {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3, #9c9384);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+.notice-targets {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--line, #e3ddd2);
+  border-radius: 8px;
+  background: var(--bg-subtle, #f7f4ee);
+  padding: 4px;
+}
+.notice-target-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.notice-target-row:last-child { margin-bottom: 0; }
+.notice-target-row input { width: 17px; height: 17px; cursor: pointer; }
+.notice-target-row.notice-all {
+  background: #fffbeb;
+  border: 1px dashed #e8d5a0;
+}
+
 /* ── 중진 모드 (읽기 전용) — 관리·수정·삭제 UI 일괄 숨김 ── */
 body.readonly-mode .admin-add-card,           /* 사명자/장소 추가 폼 전체 */
 body.readonly-mode .admin-subtab[data-subtab="locations"],
@@ -2959,6 +3087,30 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
       </div>
     </div>
 
+    <!-- 사유 수정 모달 (개인 대시보드) -->
+    <div class="modal-backdrop" id="reason-edit-backdrop" onclick="closeReasonEditIfBackdrop(event)">
+      <div class="reason-modal" onclick="event.stopPropagation()">
+        <div class="reason-modal-head">
+          <h3 class="reason-modal-title">✏️ 사유 수정</h3>
+          <p class="reason-modal-sub" id="reason-edit-sub">—</p>
+        </div>
+        <div class="reason-modal-body">
+          <label class="reason-edit-label">
+            <span>시작 사유</span>
+            <textarea id="reason-edit-in" rows="3" placeholder="(없음) — 지각·결석일 때 사유 입력"></textarea>
+          </label>
+          <label class="reason-edit-label" id="reason-edit-out-wrap">
+            <span>종료 사유</span>
+            <textarea id="reason-edit-out" rows="3" placeholder="(없음)"></textarea>
+          </label>
+        </div>
+        <div class="reason-modal-footer">
+          <button class="btn-cancel" onclick="closeReasonEdit()">취소</button>
+          <button class="btn-confirm" onclick="saveReasonEdit()">저장</button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /tab-member -->
 
   <!-- ━━━ 탭 2: 관리자 ━━━ -->
@@ -3043,7 +3195,7 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
         <div class="tg-report-box">
           <div class="tg-report-info">
             <b>📤 텔레그램 발송</b>
-            <span>선택한 날짜의 봉사 시작·종료 현황을 등록된 그룹방 토픽으로 보냅니다. (매일 저녁 9시 자동 발송)</span>
+            <span>선택한 날짜의 봉사 시작·종료 현황을 등록된 그룹방 토픽으로 보냅니다. 자동 발송: <b>08:30 시작 알림</b> · <b>20:00 종료 알림 + 오늘 현황</b></span>
           </div>
 
           <!-- 발송 대상 목록 (다중) -->
@@ -3060,16 +3212,27 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
               <input type="text" id="tg-new-label" placeholder="이름 (예: 본부 그룹방)" maxlength="40">
               <input type="text" id="tg-new-chatid" placeholder="Chat ID (예: -1001234567890)">
               <input type="text" id="tg-new-topicid" placeholder="토픽 ID (선택)">
-              <button class="tg-target-save-btn" onclick="addTgTarget()" type="button">저장</button>
-              <button class="tg-target-cancel-btn" onclick="closeTgTargetAddRow()" type="button">취소</button>
+              <select id="tg-new-scope" onchange="onTgScopeChange()">
+                <option value="all">🌐 전체 사명자</option>
+                <option value="jungjin">⭐ 중진만</option>
+                <option value="dept">📁 특정 부서</option>
+              </select>
+              <select id="tg-new-dept" style="display:none">
+                <option value="">부서 선택…</option>
+              </select>
+              <div class="tg-target-add-btns">
+                <button class="tg-target-save-btn" onclick="addTgTarget()" type="button">저장</button>
+                <button class="tg-target-cancel-btn" onclick="closeTgTargetAddRow()" type="button">취소</button>
+              </div>
             </div>
           </div>
 
           <textarea id="tg-report-extra" class="tg-report-extra" rows="3" placeholder="(선택) 봉사 현황 위에 추가로 보낼 공지·메시지가 있다면 입력하세요…"></textarea>
 
           <div class="tg-action-row">
+            <button class="tg-preview-btn" onclick="openNoticeModal()" id="tg-notice-btn" type="button">📣 공지만 발송</button>
             <button class="tg-preview-btn" onclick="previewAttendReport()" id="tg-preview-btn" type="button">👁 미리보기</button>
-            <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 지금 발송</button>
+            <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 봉사 현황 발송</button>
           </div>
         </div>
 
@@ -3087,6 +3250,25 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
             <div class="reason-modal-footer" style="justify-content:space-between">
               <button class="btn-cancel" onclick="closeTgPreview()">닫기</button>
               <button class="btn-confirm" onclick="closeTgPreview(); sendAttendReport()">이대로 발송</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 공지 발송 모달 -->
+        <div class="modal-backdrop" id="tg-notice-backdrop" onclick="closeNoticeModalIfBackdrop(event)">
+          <div class="reason-modal" onclick="event.stopPropagation()" style="max-width:560px">
+            <div class="reason-modal-head">
+              <h3 class="reason-modal-title">📣 공지 발송</h3>
+              <p class="reason-modal-sub">선택한 그룹방·토픽에 공지 메시지만 보냅니다 (봉사 현황 없이)</p>
+            </div>
+            <div class="reason-modal-body">
+              <div class="notice-targets-head">대상 선택</div>
+              <div class="notice-targets" id="notice-targets"></div>
+              <textarea id="notice-text" rows="6" placeholder="공지 메시지를 입력하세요…" style="width:100%;margin-top:10px;padding:10px 12px;border:1px solid var(--line,#e3ddd2);border-radius:8px;font-size:13px;font-family:inherit;line-height:1.5;resize:vertical"></textarea>
+            </div>
+            <div class="reason-modal-footer" style="justify-content:space-between">
+              <button class="btn-cancel" onclick="closeNoticeModal()">취소</button>
+              <button class="btn-confirm" onclick="sendNoticeBroadcast()" id="notice-send-btn">📤 발송</button>
             </div>
           </div>
         </div>
@@ -4877,6 +5059,7 @@ async function loadMyRecords(){
             <span class="hist-spacer"></span>
             ${duration ? `<span class="hist-dur">${duration}</span>` : ''}
             ${tagHtml ? tagHtml.replace(/class="tag /, 'class="hist-tag ') : ''}
+            <button class="hist-edit-reason" onclick="openReasonEditModal(${r.id})" title="사유 수정">✏</button>
           </div>
           ${reasons.length ? `<div class="hist-reason">${escapeHtml(reasons.join(' · '))}</div>` : ''}
         </div>
@@ -4884,6 +5067,60 @@ async function loadMyRecords(){
   }).join('');
   
   container.innerHTML = `<div class="history-list">${html}</div>`;
+}
+
+// ── 본인 기록의 사유 수정 ──
+let _editingRecordId = null;
+async function openReasonEditModal(recordId){
+  // 본인 기록인지 확인 후 모달 열기
+  const { data, error } = await sb.from('attend_records')
+    .select('id, member_id, record_date, check_in_reason, check_out_reason, check_in_at, check_out_at')
+    .eq('id', recordId).maybeSingle();
+  if(error || !data){ showToast('기록을 불러오지 못했어요'); return; }
+  if(data.member_id !== currentMemberId){
+    showToast('본인 기록만 수정할 수 있어요');
+    return;
+  }
+  _editingRecordId = recordId;
+  document.getElementById('reason-edit-sub').textContent = `${fmtDateKor(data.record_date)} · 본인 기록`;
+  document.getElementById('reason-edit-in').value = data.check_in_reason || '';
+  document.getElementById('reason-edit-out').value = data.check_out_reason || '';
+  // 종료 안 했으면 종료 사유 입력란 숨김
+  document.getElementById('reason-edit-out-wrap').style.display = data.check_out_at ? '' : 'none';
+  document.getElementById('reason-edit-backdrop').classList.add('show');
+}
+
+function closeReasonEdit(){
+  document.getElementById('reason-edit-backdrop').classList.remove('show');
+  _editingRecordId = null;
+}
+function closeReasonEditIfBackdrop(e){
+  if(e.target.id === 'reason-edit-backdrop') closeReasonEdit();
+}
+
+async function saveReasonEdit(){
+  if(!_editingRecordId) return;
+  const inReason  = document.getElementById('reason-edit-in').value.trim();
+  const outReason = document.getElementById('reason-edit-out').value.trim();
+  try {
+    const update = {
+      check_in_reason: inReason || null,
+      check_out_reason: outReason || null,
+    };
+    const { error } = await sb.from('attend_records')
+      .update(update)
+      .eq('id', _editingRecordId)
+      .eq('member_id', currentMemberId);   // 안전 가드 — 본인만 수정
+    if(error) throw error;
+    showToast('✅ 사유 저장됨');
+    closeReasonEdit();
+    await loadMyRecords();
+    // 오늘 기록이면 시계 영역도 갱신
+    await loadTodayRecord();
+  } catch(e){
+    console.error('[saveReasonEdit]', e);
+    showToast('저장 실패: ' + (e.message || ''));
+  }
 }
 
 // ────────────────────────────────────────────────────────────
@@ -7283,48 +7520,76 @@ let tgTargets = [];
 let _tgTargetsTableMissing = false;
 
 async function loadTgTarget(){
+  // 시작 시 로딩 표시
+  const box = document.getElementById('tg-targets-list');
+  if(box) box.innerHTML = '<div class="loading"><span class="spinner"></span>불러오는 중…</div>';
   try {
     const { data, error } = await sb.from('attend_report_targets')
       .select('*').order('sort_order').order('id');
     if(error){
+      console.error('[loadTgTarget]', error);
       if(/relation .*attend_report_targets/i.test(error.message||'')){
         _tgTargetsTableMissing = true;
-        renderTgTargets();
       }
+      // 어떤 에러든 빈 목록으로라도 렌더 → 로딩 무한루프 방지
+      tgTargets = [];
+      renderTgTargets(error.message);
       return;
     }
     _tgTargetsTableMissing = false;
     tgTargets = data || [];
     renderTgTargets();
-  } catch(e){ console.warn('[loadTgTarget]', e); }
+  } catch(e){
+    console.error('[loadTgTarget]', e);
+    tgTargets = [];
+    renderTgTargets(e.message || '알 수 없는 오류');
+  }
 }
 
-function renderTgTargets(){
+function renderTgTargets(errMsg){
   const box = document.getElementById('tg-targets-list');
   if(!box) return;
   if(_tgTargetsTableMissing){
-    box.innerHTML = `<div class="tg-target-warn">⚠️ 발송_대상_다중.sql을 먼저 실행해주세요. (attend_report_targets 테이블 없음)</div>`;
+    box.innerHTML = `<div class="tg-target-warn">⚠️ 발송_대상_다중.sql을 먼저 실행해주세요.</div>`;
+    return;
+  }
+  if(errMsg){
+    box.innerHTML = `<div class="tg-target-warn">⚠️ 불러오기 실패: ${escapeHtml(errMsg)}</div>`;
     return;
   }
   if(tgTargets.length === 0){
     box.innerHTML = `<div class="tg-target-empty">아직 등록된 그룹방이 없어요 — 위 "+ 그룹방 추가"로 시작하세요</div>`;
     return;
   }
-  box.innerHTML = tgTargets.map(t => `
+  box.innerHTML = tgTargets.map(t => {
+    const scope = _scopeLabel(t);
+    return `
     <div class="tg-target-item${t.enabled ? '' : ' disabled'}">
       <label class="tg-target-check">
         <input type="checkbox" ${t.enabled ? 'checked' : ''} onchange="toggleTgTarget(${t.id}, this.checked)">
       </label>
       <div class="tg-target-info">
-        <div class="tg-target-label">${escapeHtml(t.label)}</div>
+        <div class="tg-target-label">${escapeHtml(t.label)} <span class="tg-target-scope">${scope}</span></div>
         <div class="tg-target-meta">
           <span>Chat ${escapeHtml(t.chat_id)}</span>
           ${t.topic_id != null ? `<span>· 토픽 ${t.topic_id}</span>` : `<span class="muted">· 일반 채팅</span>`}
         </div>
       </div>
+      <button class="tg-target-edit" onclick="openTgTargetEdit(${t.id})" title="범위 수정">⚙</button>
       <button class="tg-target-del" onclick="deleteTgTarget(${t.id})" title="삭제">✕</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+}
+
+function _scopeLabel(t){
+  const st = t.scope_type || 'all';
+  if(st === 'all') return '🌐 전체';
+  if(st === 'jungjin') return '⭐ 중진만';
+  if(st === 'dept'){
+    const d = DEPTS.find(x => x.id === t.scope_value);
+    return `📁 ${d ? d.name : t.scope_value}`;
+  }
+  return st;
 }
 
 function openTgTargetAddRow(){
@@ -7332,10 +7597,51 @@ function openTgTargetAddRow(){
   document.getElementById('tg-new-label').value = '';
   document.getElementById('tg-new-chatid').value = '';
   document.getElementById('tg-new-topicid').value = '';
+  document.getElementById('tg-new-scope').value = 'all';
+  _populateTgDeptSelect();
+  onTgScopeChange();
+  _editingTgTargetId = null;  // 추가 모드
   document.getElementById('tg-new-label').focus();
 }
 function closeTgTargetAddRow(){
   document.getElementById('tg-target-add-row').style.display = 'none';
+  _editingTgTargetId = null;
+}
+
+function _populateTgDeptSelect(){
+  const sel = document.getElementById('tg-new-dept');
+  if(!sel || sel.options.length > 1) return;
+  DEPTS.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
+
+function onTgScopeChange(){
+  const scope = document.getElementById('tg-new-scope').value;
+  const deptSel = document.getElementById('tg-new-dept');
+  deptSel.style.display = (scope === 'dept') ? '' : 'none';
+}
+
+let _editingTgTargetId = null;
+
+function openTgTargetEdit(id){
+  const t = tgTargets.find(x => x.id === id);
+  if(!t) return;
+  document.getElementById('tg-target-add-row').style.display = 'grid';
+  document.getElementById('tg-new-label').value = t.label || '';
+  document.getElementById('tg-new-chatid').value = t.chat_id || '';
+  document.getElementById('tg-new-topicid').value = t.topic_id != null ? String(t.topic_id) : '';
+  document.getElementById('tg-new-scope').value = t.scope_type || 'all';
+  _populateTgDeptSelect();
+  if((t.scope_type || 'all') === 'dept'){
+    document.getElementById('tg-new-dept').value = t.scope_value || '';
+  }
+  onTgScopeChange();
+  _editingTgTargetId = id;
+  document.getElementById('tg-new-label').focus();
 }
 
 async function addTgTarget(){
@@ -7343,26 +7649,44 @@ async function addTgTarget(){
   const label = document.getElementById('tg-new-label').value.trim();
   const chatId = document.getElementById('tg-new-chatid').value.trim();
   const topicRaw = document.getElementById('tg-new-topicid').value.trim();
+  const scopeType = document.getElementById('tg-new-scope').value || 'all';
+  const scopeValue = scopeType === 'dept' ? document.getElementById('tg-new-dept').value : null;
   if(!label){ showToast('이름을 입력하세요'); return; }
   if(!chatId){ showToast('Chat ID를 입력하세요'); return; }
   const topicId = topicRaw ? parseInt(topicRaw) : null;
   if(topicRaw && isNaN(topicId)){ showToast('토픽 ID는 숫자여야 합니다'); return; }
+  if(scopeType === 'dept' && !scopeValue){ showToast('부서를 선택하세요'); return; }
   try {
-    const maxOrder = tgTargets.length > 0 ? Math.max(...tgTargets.map(t => t.sort_order || 0)) : -1;
-    const { error } = await sb.from('attend_report_targets').insert({
+    const row = {
       label, chat_id: chatId, topic_id: topicId,
-      enabled: true, sort_order: maxOrder + 1,
-    });
-    if(error) throw error;
+      scope_type: scopeType, scope_value: scopeValue,
+      enabled: true,
+      updated_at: new Date().toISOString(),
+    };
+    if(_editingTgTargetId){
+      // 수정
+      const { error } = await sb.from('attend_report_targets')
+        .update(row).eq('id', _editingTgTargetId);
+      if(error) throw error;
+      showToast(`✅ ${label} 수정됨`);
+    } else {
+      // 추가
+      const maxOrder = tgTargets.length > 0 ? Math.max(...tgTargets.map(t => t.sort_order || 0)) : -1;
+      row.sort_order = maxOrder + 1;
+      const { error } = await sb.from('attend_report_targets').insert(row);
+      if(error) throw error;
+      showToast(`✅ ${label} 추가됨`);
+    }
     closeTgTargetAddRow();
-    showToast(`✅ ${label} 추가됨`);
     await loadTgTarget();
   } catch(e){
     console.error('[addTgTarget]', e);
-    if(/relation .*attend_report_targets/i.test(e.message||'')){
+    if(/scope_type|scope_value/i.test(e.message||'')){
+      showToast('발송_대상_범위확장.sql을 먼저 실행하세요');
+    } else if(/relation .*attend_report_targets/i.test(e.message||'')){
       showToast('발송_대상_다중.sql을 먼저 실행하세요');
     } else {
-      showToast('추가 실패: ' + (e.message||''));
+      showToast('저장 실패: ' + (e.message||''));
     }
   }
 }
@@ -7406,15 +7730,22 @@ async function previewAttendReport(){
 
   if(enabledTargets.length === 0){
     targetsEl.innerHTML = `<div class="tg-preview-warn">⚠️ 활성화된 발송 대상이 없습니다</div>`;
-  } else {
-    targetsEl.innerHTML = `<div class="tg-preview-targets-list">${enabledTargets.map(t => `
-      <span class="tg-preview-target-chip">📍 ${escapeHtml(t.label)}${t.topic_id != null ? ` · T${t.topic_id}` : ''}</span>
-    `).join('')}</div>`;
+    document.getElementById('tg-preview-text').textContent = '';
+    document.getElementById('tg-preview-backdrop').classList.add('show');
+    return;
   }
+  targetsEl.innerHTML = `<div class="tg-preview-targets-list">${enabledTargets.map(t => `
+    <span class="tg-preview-target-chip">${_scopeLabel(t)} · ${escapeHtml(t.label)}${t.topic_id != null ? ` (T${t.topic_id})` : ''}</span>
+  `).join('')}</div>`;
 
-  // 메시지 본문 미리보기 — 로컬에서 동일 로직으로 생성
-  const text = await _buildReportPreview(theDate, extraMsg);
-  document.getElementById('tg-preview-text').textContent = text;
+  // 미리보기는 첫 번째 대상 기준 (각 그룹마다 다르니 안내)
+  const sample = enabledTargets[0];
+  const text = await _buildReportPreview(theDate, extraMsg, sample);
+  let header = '';
+  if(enabledTargets.length > 1){
+    header = `※ 아래는 첫 번째 대상(${sample.label}) 기준 미리보기입니다. 다른 대상은 각자 범위에 맞게 발송됩니다.\n\n`;
+  }
+  document.getElementById('tg-preview-text').textContent = header + text;
   document.getElementById('tg-preview-backdrop').classList.add('show');
 }
 
@@ -7425,44 +7756,54 @@ function closeTgPreviewIfBackdrop(e){
   if(e.target.id === 'tg-preview-backdrop') closeTgPreview();
 }
 
-async function _buildReportPreview(theDate, extraMsg){
-  // 사명자 전원 + 그날 기록
+async function _buildReportPreview(theDate, extraMsg, target){
+  // 사명자 전원 (dept_id, is_jungjin 포함) + 그날 기록
   const [memRes, recRes] = await Promise.all([
-    sb.from('attend_members').select('id, name, is_active').eq('is_active', true),
+    sb.from('attend_members').select('id, name, dept_id, is_jungjin, is_active').eq('is_active', true),
     sb.from('attend_records').select('member_id, penalty_type, check_in_reason, check_in_at').eq('record_date', theDate),
   ]);
-  const members = memRes.data || [];
-  const records = recRes.data || [];
+  let members = memRes.data || [];
+  // target scope에 따라 사명자 필터링
+  if(target){
+    const st = target.scope_type || 'all';
+    if(st === 'jungjin') members = members.filter(m => m.is_jungjin === true);
+    else if(st === 'dept' && target.scope_value) members = members.filter(m => m.dept_id === target.scope_value);
+  }
+  const memberIds = new Set(members.map(m => m.id));
+  const records = (recRes.data || []).filter(r => memberIds.has(r.member_id));
   const recByMember = new Map();
   records.forEach(r => recByMember.set(r.member_id, r));
   
-  const hasPre = (s) => !!(s && s.replace(/\s/g,'').includes('사전보고'));
   const onTime = [], late = [], absent = [], noShow = [];
   for(const m of members){
     const rec = recByMember.get(m.id);
     if(!rec || !rec.check_in_at){ noShow.push({ ...m }); continue; }
-    const pre = hasPre(rec.check_in_reason);
-    if(rec.penalty_type === 'late') late.push({ ...m, pre });
-    else if(rec.penalty_type === 'absent') absent.push({ ...m, pre });
+    const reason = (rec.check_in_reason || '').trim();
+    if(rec.penalty_type === 'late') late.push({ ...m, reason });
+    else if(rec.penalty_type === 'absent') absent.push({ ...m, reason });
     else onTime.push({ ...m });
   }
   const cmp = (a,b) => (a.name||'').localeCompare(b.name||'', 'ko');
   [onTime, late, absent, noShow].forEach(arr => arr.sort(cmp));
   
-  const line = (m) => `· ${m.name}${m.pre ? ' ※사전보고' : ''}`;
-  const list = (arr) => arr.length ? arr.map(line).join('\n') : '· (없음)';
+  const lineSimple = (m) => `· ${m.name}`;
+  const lineWithReason = (m) => m.reason ? `· ${m.name} (${m.reason})` : `· ${m.name}`;
+  const listSimple = (arr) => arr.length ? arr.map(lineSimple).join('\n') : '· (없음)';
+  const listReason = (arr) => arr.length ? arr.map(lineWithReason).join('\n') : '· (없음)';
   
   // 날짜 표시
   const d = new Date(theDate + 'T00:00:00');
   const days = ['일','월','화','수','목','금','토'];
   const dateKor = `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
   
-  let msg = `📋 ${dateKor} 봉사 시작·종료 현황\n`;
-  msg += `전체 ${members.length}명 · 정시 ${onTime.length} · 지각 ${late.length} · 결석 ${absent.length} · 미출석 ${noShow.length}\n`;
-  msg += `\n✅ 정시 (${onTime.length}명)\n${list(onTime)}`;
-  msg += `\n\n🟡 지각 (${late.length}명)\n${list(late)}`;
-  msg += `\n\n🔴 결석 (${absent.length}명)\n${list(absent)}`;
-  msg += `\n\n⬜ 미출석 (${noShow.length}명)\n${list(noShow)}`;
+  const scopeName = target ? _scopeLabel(target) : '🌐 전체';
+  let msg = `🌙 봉사 종료를 눌러주세요\n\n`;
+  msg += `📋 ${dateKor} 봉사 현황 ${scopeName}\n`;
+  msg += `대상 ${members.length}명 · 정시 ${onTime.length} · 지각 ${late.length} · 결석 ${absent.length} · 미출석 ${noShow.length}\n`;
+  msg += `\n✅ 정시 (${onTime.length}명)\n${listSimple(onTime)}`;
+  msg += `\n\n🟡 지각 (${late.length}명)\n${listReason(late)}`;
+  msg += `\n\n🔴 결석 (${absent.length}명)\n${listReason(absent)}`;
+  msg += `\n\n⬜ 미출석 (${noShow.length}명)\n${listSimple(noShow)}`;
   
   if(extraMsg){
     msg = `📢 공지\n${extraMsg}\n\n━━━━━━━━━━━━━━━━━\n\n${msg}`;
@@ -7506,6 +7847,8 @@ async function sendAttendReport(){
           date: theDate,
           chat_id: t.chat_id,
           topic_id: t.topic_id,
+          scope_type: t.scope_type || 'all',
+          scope_value: t.scope_value || null,
           extra: extraMsg || null,
         })
       });
@@ -7524,6 +7867,89 @@ async function sendAttendReport(){
     if(extraEl) extraEl.value = '';
   } else {
     showToast(`발송: 성공 ${okCount} / 실패 ${failCount} (콘솔 확인)`);
+  }
+  btn.disabled = false;
+  btn.textContent = orig;
+}
+
+// ── 공지 발송 (사용자가 선택한 대상에 메시지만 발송) ──
+function openNoticeModal(){
+  if(tgTargets.length === 0){
+    showToast('먼저 그룹방을 추가하세요');
+    return;
+  }
+  // 체크박스 목록 생성
+  const box = document.getElementById('notice-targets');
+  box.innerHTML = `
+    <label class="notice-target-row notice-all">
+      <input type="checkbox" id="notice-all" onchange="_noticeToggleAll(this.checked)">
+      <span><b>전체 선택/해제</b></span>
+    </label>
+    ${tgTargets.map(t => `
+      <label class="notice-target-row">
+        <input type="checkbox" class="notice-tg-chk" data-id="${t.id}" ${t.enabled ? 'checked' : ''}>
+        <span>${_scopeLabel(t)} · ${escapeHtml(t.label)}${t.topic_id != null ? ` <span style="color:var(--text-3)">(T${t.topic_id})</span>` : ''}</span>
+      </label>
+    `).join('')}
+  `;
+  document.getElementById('notice-text').value = '';
+  document.getElementById('tg-notice-backdrop').classList.add('show');
+}
+
+function _noticeToggleAll(on){
+  document.querySelectorAll('.notice-tg-chk').forEach(c => c.checked = on);
+}
+
+function closeNoticeModal(){
+  document.getElementById('tg-notice-backdrop').classList.remove('show');
+}
+function closeNoticeModalIfBackdrop(e){
+  if(e.target.id === 'tg-notice-backdrop') closeNoticeModal();
+}
+
+async function sendNoticeBroadcast(){
+  const msg = (document.getElementById('notice-text').value || '').trim();
+  if(!msg){ showToast('공지 메시지를 입력하세요'); return; }
+  const ids = Array.from(document.querySelectorAll('.notice-tg-chk:checked'))
+    .map(c => Number(c.dataset.id));
+  if(ids.length === 0){ showToast('대상을 1개 이상 선택하세요'); return; }
+  const targets = tgTargets.filter(t => ids.includes(t.id));
+  if(!confirm(`${targets.length}개 그룹방에 공지를 발송할까요?`)) return;
+
+  const btn = document.getElementById('notice-send-btn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  
+  let okCount = 0, failCount = 0;
+  for(let i = 0; i < targets.length; i++){
+    const t = targets[i];
+    btn.textContent = `발송 중… (${i+1}/${targets.length})`;
+    try {
+      const res = await fetch(ATTEND_REPORT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: ATTEND_REPORT_SECRET,
+          notice_only: true,           // 봉사 현황 없이 공지만 발송
+          chat_id: t.chat_id,
+          topic_id: t.topic_id,
+          extra: msg,
+        })
+      });
+      const data = await res.json();
+      if(data.ok) okCount++; else { failCount++; console.error(`[${t.label}]`, data); }
+    } catch(e){
+      failCount++;
+      console.error(`[${t.label}]`, e);
+    }
+    if(i < targets.length - 1) await new Promise(r => setTimeout(r, 250));
+  }
+  
+  if(failCount === 0){
+    showToast(`✅ ${okCount}개 그룹방 공지 발송 완료`);
+    closeNoticeModal();
+  } else {
+    showToast(`발송: 성공 ${okCount} / 실패 ${failCount}`);
   }
   btn.disabled = false;
   btn.textContent = orig;
