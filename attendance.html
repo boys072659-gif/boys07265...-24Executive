@@ -148,8 +148,10 @@
     padding: 28px 20px 60px;
     transition: max-width 0.2s;
   }
-  /* 관리자 탭일 때 더 넓게 (표·KPI 가독성) */
-  body.admin-wide .main { max-width: 1080px; }
+  /* 관리자 탭일 때 더 넓게 — 데스크탑만 (모바일은 그대로 좁게 유지해 가로 스크롤 방지) */
+  @media (min-width: 1100px) {
+    body.admin-wide .main { max-width: 1080px; }
+  }
 
   /* 탭 패널 */
   .tab-panel { display: none; }
@@ -1619,6 +1621,57 @@
 .admin-kpi-card.late-card .k-value { color: var(--late, #D14343); }
 .admin-kpi-card.ok-card .k-value { color: #2c8f3c; }
 
+/* 텔레그램 출퇴근 발송 박스 */
+.tg-report-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #eef4fb 0%, #f5f9fe 100%);
+  border: 1px solid #cdddf0;
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+.tg-report-info { display: flex; flex-direction: column; gap: 3px; }
+.tg-report-info b { font-size: 14px; color: #2c5d9e; }
+.tg-report-info span { font-size: 11.5px; color: var(--text-2, #6b6256); line-height: 1.45; }
+.tg-report-extra {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cdddf0;
+  border-radius: 9px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  background: #fff;
+  color: var(--text, #2b2620);
+}
+.tg-report-extra:focus {
+  outline: none;
+  border-color: #4178c8;
+  box-shadow: 0 0 0 3px rgba(65, 120, 200, 0.15);
+}
+.tg-report-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #2c5d9e 0%, #4178c8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  align-self: flex-end;
+}
+.tg-report-btn:hover { background: linear-gradient(135deg, #234e85 0%, #2c5d9e 100%); transform: translateY(-1px); }
+.tg-report-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+@media (max-width: 640px) {
+  .tg-report-btn { width: 100%; }
+}
+
 @media (max-width: 640px) {
   .pen-card-main { gap: 8px; }
   .pen-card-left { min-width: 0; flex: 1 1 100%; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -1807,6 +1860,192 @@
   .sys-link-mark { width: 22px; height: 22px; font-size: 14px; }
   .sys-links { margin-right: 6px; gap: 4px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════ */
+/* 📱 모바일 종합 보강 (작은 화면에서 안 맞던 부분 일괄 정리)            */
+/* ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 720px) {
+  /* 가로 스크롤 방지 — 한 번 더 안전망 */
+  body, html { overflow-x: hidden; }
+  body.admin-wide .main { max-width: 100% !important; }
+
+  /* 상단바 */
+  .topbar {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .topbar .brand { gap: 8px; }
+  .topbar .brand-mark { width: 32px; height: 32px; font-size: 16px; }
+  .topbar .brand-name .title { font-size: 14px; }
+  .topbar .brand-name .sub { font-size: 10.5px; }
+
+  /* 탭 — 깔끔한 가로 분할 */
+  .tabs {
+    margin-left: auto;
+    gap: 4px;
+  }
+  .tab {
+    padding: 7px 12px !important;
+    font-size: 12.5px !important;
+  }
+  .sj-refresh-btn { width: 32px !important; height: 30px !important; }
+
+  /* 메인 패딩 줄여 가용폭 늘림 */
+  .main { padding: 16px 12px 40px; }
+
+  /* 시계·사명자 카드 */
+  .clock-card { padding: 18px 14px; border-radius: 14px; }
+  .clock-display { font-size: 36px !important; }
+  .status-text { font-size: 12.5px; line-height: 1.5; }
+
+  /* 사명자 선택 영역 */
+  .picker, .picker-locked {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+  .picker select, .picker-locked .lock-name { font-size: 14px; }
+
+  /* 시작 사유 힌트 */
+  .start-pen-hint { font-size: 12px; padding: 8px 10px; }
+
+  /* 알림 토글 — 한 줄에 어울리게 */
+  .notif-toggle { font-size: 12.5px; padding: 10px; }
+  .notif-hint { font-size: 10.5px; padding: 0 4px; }
+
+  /* 기록 카드 (내 봉사 / 관리자 둘 다 적용되는 공통 카드) */
+  .rec-card, .row-status-on_time, .row-status-late,
+  .row-status-absent, .row-status-working, .row-status-done, .row-status-none {
+    padding: 12px 14px !important;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .rec-name { font-size: 14px; }
+  .rec-sub  { font-size: 11.5px; }
+
+  /* ─ 관리자 페이지 ─ */
+  /* 서브탭 가로 스크롤 */
+  .admin-subtabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .admin-subtab {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* 관리자 필터(날짜·부서·상태) */
+  .admin-filter {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+    padding: 12px;
+  }
+  .admin-filter-field label { font-size: 10px; }
+  .admin-filter-field input,
+  .admin-filter-field select {
+    padding: 8px 10px;
+    font-size: 13px;
+    width: 100%;
+  }
+  .admin-today-btn, .admin-refresh-btn {
+    padding: 8px 11px;
+    font-size: 12.5px;
+    grid-column: span 1;
+  }
+
+  /* KPI 그리드 — 2칸 */
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  .admin-kpi-card { padding: 12px 12px 10px; }
+  .admin-kpi-card .k-label { font-size: 10.5px; }
+  .admin-kpi-card .k-value { font-size: 18px; }
+  .admin-kpi-card .k-meta { font-size: 10.5px; }
+
+  /* 테이블 카드 헤더 */
+  .admin-table-card { padding: 14px 14px 12px; border-radius: 12px; }
+  .admin-table-head { gap: 8px; flex-wrap: wrap; }
+  .admin-table-head h3 { font-size: 14px; }
+  .admin-table-meta { font-size: 11px; }
+
+  /* 텔레그램 발송 박스 — 세로 배치, 버튼 풀폭 */
+  .tg-report-box {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .tg-report-info { min-width: 0; }
+  .tg-report-info b { font-size: 13px; }
+  .tg-report-info span { font-size: 11px; }
+  .tg-report-btn { width: 100%; padding: 12px; font-size: 13.5px; }
+
+  /* 사명자/장소 추가 폼 */
+  .admin-add-card { padding: 14px; }
+  .admin-add-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+  }
+  .admin-add-row .add-input { font-size: 13px; padding: 9px 10px; }
+  .admin-add-row .btn-add { grid-column: span 2; padding: 11px; font-size: 13.5px; }
+
+  /* 기록 수정 모달 */
+  .reason-modal { max-width: calc(100vw - 20px); padding: 0; }
+  .reason-modal-body { padding: 14px 16px; }
+  .member-form-row {
+    grid-template-columns: 80px 1fr !important;
+    gap: 8px;
+    align-items: center;
+  }
+  .member-form-row label { font-size: 12px; }
+  .member-form-row input, .member-form-row select {
+    font-size: 13px; padding: 8px 10px;
+  }
+  .reason-modal-footer button { padding: 10px 14px; font-size: 13px; }
+
+  /* 이전 누적 벌금 */
+  .pf-row { padding: 10px 0; gap: 8px; }
+  .pf-row-info { flex: 1 1 100%; flex-direction: row; align-items: baseline; gap: 6px; }
+  .pf-row-inputs { margin-left: 0; width: 100%; gap: 6px; }
+  .pf-field input { width: 78px; padding: 7px 6px; font-size: 12px; }
+  .pf-unpaid { min-width: 0; flex: 1; font-size: 11.5px; }
+  .pf-save-btn { padding: 7px 11px; font-size: 12px; }
+  .prior-fines-filter { gap: 6px; }
+  .prior-fines-filter select,
+  .prior-fines-filter input { font-size: 12.5px; padding: 7px 9px; }
+  .prior-fines-summary { gap: 6px; }
+  .pf-sum-item { min-width: calc(50% - 3px); padding: 8px 10px; }
+  .pf-sum-item span { font-size: 10px; }
+  .pf-sum-item b { font-size: 13.5px; }
+  .prior-fines-intro { font-size: 11.5px; padding: 10px 12px; }
+
+  /* 공휴일 / 장소 리스트 행 */
+  .holiday-row, .location-row {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  /* 진짜 작은 화면 — KPI 1칸으로, 부서명 더 짧게 */
+  .admin-kpi-grid { grid-template-columns: 1fr !important; }
+  .admin-kpi-card .k-value { font-size: 20px; }
+  .admin-add-row { grid-template-columns: 1fr !important; }
+  .admin-add-row .btn-add { grid-column: span 1; }
+  .admin-filter { grid-template-columns: 1fr !important; }
+  .admin-today-btn, .admin-refresh-btn { grid-column: span 1; width: 100%; }
+  .topbar { padding: 8px 10px; }
+  .topbar .brand-name .title { font-size: 13px; }
+  .clock-display { font-size: 30px !important; }
+}
 </style>
 </head>
 <body>
@@ -1986,6 +2225,16 @@
           <button class="admin-refresh-btn" onclick="loadAdminToday()" title="새로고침">
             ↻ 새로고침
           </button>
+        </div>
+
+        <!-- 텔레그램 출퇴근 발송 -->
+        <div class="tg-report-box">
+          <div class="tg-report-info">
+            <b>📤 텔레그램 출퇴근 현황 발송</b>
+            <span>선택한 날짜의 정시·지각·결석·미출석 현황을 그룹방 토픽으로 보냅니다. (매일 저녁 9시 자동 발송)</span>
+          </div>
+          <textarea id="tg-report-extra" class="tg-report-extra" rows="3" placeholder="(선택) 출퇴근 현황 위에 추가로 보낼 공지·메시지가 있다면 입력하세요…"></textarea>
+          <button class="tg-report-btn" onclick="sendAttendReport()" id="tg-report-btn">📤 지금 내보내기</button>
         </div>
 
         <!-- 오늘 현황 표 -->
@@ -2373,6 +2622,14 @@
         <input id="edit-rec-in-reason" class="add-input" maxlength="100" placeholder="선택">
       </div>
       <div class="member-form-row">
+        <label>&nbsp;</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px;padding:6px 0">
+          <input type="checkbox" id="edit-rec-prereport" style="width:16px;height:16px;cursor:pointer">
+          <span>📋 사전보고</span>
+          <span style="font-size:11px;color:var(--text-3, #9c9384);font-weight:500">(체크 시 사유 앞에 "사전보고" 자동 추가)</span>
+        </label>
+      </div>
+      <div class="member-form-row">
         <label>종료 사유</label>
         <input id="edit-rec-out-reason" class="add-input" maxlength="100" placeholder="선택">
       </div>
@@ -2730,31 +2987,88 @@ function _checkTimeReminders(now){
       const firedKey = _remindFiredKey(now, r.key);
       if(localStorage.getItem(firedKey)) return;   // 오늘 이미 울림
       localStorage.setItem(firedKey, '1');
+      // async이지만 fire-and-forget
       _showNotification(r.title, r.body);
     }
   });
 }
 
-function _showNotification(title, body){
+// iOS PWA에서 알림이 안 뜨는 가장 큰 원인은 `new Notification()`이 막혔기 때문.
+// 해결: Service Worker를 등록하고 `registration.showNotification()`을 사용.
+// iOS 16.4+는 PWA에서 SW 알림이 동작함.
+let _swRegistration = null;
+async function _ensureSW(){
+  if(_swRegistration) return _swRegistration;
+  if(!('serviceWorker' in navigator)) return null;
+  try {
+    // 인라인 SW 코드 (별도 .js 파일 없이도 동작 — Blob URL 사용)
+    const swCode = `
+      self.addEventListener('install', e => self.skipWaiting());
+      self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+      self.addEventListener('notificationclick', e => {
+        e.notification.close();
+        e.waitUntil((async () => {
+          const list = await self.clients.matchAll({type:'window', includeUncontrolled:true});
+          if(list.length) return list[0].focus();
+          return self.clients.openWindow('/');
+        })());
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    _swRegistration = await navigator.serviceWorker.register(url);
+    await navigator.serviceWorker.ready;
+    return _swRegistration;
+  } catch(e){
+    console.warn('[SW]', e);
+    return null;
+  }
+}
+
+async function _showNotification(title, body){
+  // 1순위: Service Worker로 알림 (iOS PWA에서 유일하게 동작)
+  const reg = await _ensureSW();
+  if(reg && reg.showNotification){
+    try {
+      await reg.showNotification(title, {
+        body: body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%238a5a2a"/><text x="50" y="68" font-size="56" text-anchor="middle" fill="white">봉</text></svg>',
+        tag: 'sjames-attend-remind',
+        requireInteraction: false,
+      });
+      return true;
+    } catch(e){
+      console.warn('[notif/sw]', e);
+    }
+  }
+  // 2순위: 기존 방식 (Android/데스크탑에서 동작)
   try {
     const n = new Notification(title, {
       body: body,
-      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%238a5a2a"/><text x="50" y="68" font-size="56" text-anchor="middle" fill="white">봉</text></svg>',
       tag: 'sjames-attend-remind',
-      requireInteraction: false
     });
     n.onclick = () => { window.focus(); n.close(); };
+    return true;
   } catch(e){
     console.warn('[notif]', e);
+    return false;
   }
 }
 
 // 알림 켜기/끄기 토글
 async function toggleNotifications(){
+  // 1) 브라우저 지원 확인
   if(typeof Notification === 'undefined'){
-    showToast('이 브라우저는 알림을 지원하지 않습니다');
+    // iOS Safari 일반 탭은 Notification API가 없음 → 홈화면 추가 필요
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if(isIOS){
+      alert('📱 아이폰에서는 알림을 받으려면:\n\n1) Safari에서 이 페이지 열기\n2) 공유 버튼(↑) → "홈 화면에 추가"\n3) 홈 화면의 앱 아이콘으로 다시 열기\n4) 그 상태에서 알림 켜기\n\n(Safari 탭 상태로는 알림이 지원되지 않습니다)');
+    } else {
+      alert('이 브라우저는 웹 알림을 지원하지 않습니다.\nChrome, Edge, 또는 최신 Safari를 사용해주세요.');
+    }
     return;
   }
+
   const isOn = localStorage.getItem(LS_KEY_NOTIF) === '1';
   if(isOn){
     localStorage.setItem(LS_KEY_NOTIF, '0');
@@ -2762,18 +3076,46 @@ async function toggleNotifications(){
     showToast('알림이 꺼졌습니다');
     return;
   }
-  // 켜기 — 권한 요청
+
+  // 2) 권한 상태별 분기
   let perm = Notification.permission;
-  if(perm === 'default'){
-    perm = await Notification.requestPermission();
-  }
-  if(perm !== 'granted'){
-    showToast('알림 권한이 거부되어 있습니다. 브라우저 설정에서 허용해주세요.');
+
+  if(perm === 'denied'){
+    alert('🔕 알림 권한이 차단되어 있습니다.\n\n브라우저 주소창 왼쪽의 자물쇠(🔒) 아이콘 → 알림 → "허용"으로 바꾼 뒤 다시 시도해주세요.\n\n(아이폰은 설정 → 알림 → 해당 앱에서 허용)');
     return;
   }
+
+  if(perm === 'default'){
+    try {
+      perm = await Notification.requestPermission();
+    } catch(e){
+      // 일부 브라우저(구형 Safari)는 콜백 방식만 지원
+      perm = await new Promise(res => {
+        try { Notification.requestPermission(res); } catch(_) { res('denied'); }
+      });
+    }
+  }
+
+  if(perm !== 'granted'){
+    alert('알림 권한을 허용하지 않으면 알림을 보낼 수 없습니다.\n다시 시도하려면 "알림 켜기"를 한 번 더 눌러주세요.');
+    return;
+  }
+
+  // 3) 권한 OK → 켜고 즉시 테스트 알림
   localStorage.setItem(LS_KEY_NOTIF, '1');
   _renderNotifBtn();
-  _showNotification('✅ 알림이 켜졌습니다', '매일 오전 8:30 시작 · 저녁 8:00 종료 알림을 보냅니다. (앱이 켜져 있을 때)');
+
+  const shown = await _showNotification('✅ 알림이 켜졌습니다', '오전 8:30 시작 · 저녁 8:00 종료 알림을 보냅니다.');
+  if(shown){
+    showToast('✅ 알림이 켜졌습니다 (테스트 알림 발송됨)');
+  } else {
+    // 권한은 granted인데 알림 객체 생성이 막힌 경우 (보통 iOS PWA 아님)
+    showToast('알림은 켜졌지만, 이 환경에서는 표시가 제한될 수 있습니다');
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if(isIOS){
+      alert('⚠️ 알림 권한은 허용됐지만 표시가 안 될 수 있습니다.\n\n아이폰은 반드시 "홈 화면에 추가"한 앱 아이콘으로 열어야 알림이 보입니다.\n(Safari 탭 상태 ✗ / 홈화면 앱 ○)');
+    }
+  }
 }
 
 function _renderNotifBtn(){
@@ -4929,12 +5271,20 @@ function renderStats(){
 // ════════════════════════════════════════════════════════════
 let editingRecordId = null;
 let editingRecordDate = null;
+let editingIsNew = false;
+
+// 사유에 "사전보고" 포함 여부
+function _reasonHasPrereport(s){
+  return !!(s && s.replace(/\s/g,'').includes('사전보고'));
+}
 
 function openRecModal(recordId){
   const rec = adminTodayRecords.find(r => r.id === recordId);
   if(!rec){ showToast('기록을 찾을 수 없어요'); return; }
   editingRecordId = recordId;
   editingRecordDate = rec.record_date;
+  editingMemberId = rec.member_id;
+  editingIsNew = false;
   
   const member = allMembers.find(m => m.id === rec.member_id);
   const memberName = member ? member.name : '사명자';
@@ -4945,19 +5295,48 @@ function openRecModal(recordId){
   document.getElementById('edit-rec-out').value = outHM;
   document.getElementById('edit-rec-in-reason').value  = rec.check_in_reason || '';
   document.getElementById('edit-rec-out-reason').value = rec.check_out_reason || '';
+  document.getElementById('edit-rec-prereport').checked = _reasonHasPrereport(rec.check_in_reason);
   
   const penKey = `${rec.penalty_type || 'none'}:${rec.penalty_amount || 0}:${rec.penalty_status || 'none'}`;
   const penSel = document.getElementById('edit-rec-penalty');
   penSel.value = [...penSel.options].some(o => o.value === penKey) ? penKey : 'none:0:none';
   
   document.getElementById('edit-rec-err').textContent = '';
+  document.querySelector('.reason-modal-title').textContent = '봉사 기록 수정';
   document.getElementById('rec-modal-sub').textContent = `${memberName} · ${fmtDateKor(rec.record_date)}`;
+  document.getElementById('rec-modal-backdrop').classList.add('show');
+}
+
+// 미출석자 — 신규 기록 생성 모드
+function openRecModalForMember(memberId){
+  const member = allMembers.find(m => m.id === memberId);
+  if(!member){ showToast('사명자를 찾을 수 없어요'); return; }
+  const theDate = getAdminDate();
+  
+  editingRecordId = null;
+  editingMemberId = memberId;
+  editingRecordDate = theDate;
+  editingIsNew = true;
+  
+  // 기본값 — 결석 시간대(09:01)로 미리 채워 자주 쓰는 케이스를 빠르게
+  document.getElementById('edit-rec-in').value  = '';
+  document.getElementById('edit-rec-out').value = '';
+  document.getElementById('edit-rec-in-reason').value  = '';
+  document.getElementById('edit-rec-out-reason').value = '';
+  document.getElementById('edit-rec-prereport').checked = false;
+  document.getElementById('edit-rec-penalty').value = 'absent:5000:charged';  // 미출석 → 결석 디폴트
+  
+  document.getElementById('edit-rec-err').textContent = '';
+  document.querySelector('.reason-modal-title').textContent = '미출석자 기록 추가';
+  document.getElementById('rec-modal-sub').textContent = `${member.name} · ${fmtDateKor(theDate)}`;
   document.getElementById('rec-modal-backdrop').classList.add('show');
 }
 
 function closeRecModal(){
   document.getElementById('rec-modal-backdrop').classList.remove('show');
   editingRecordId = null;
+  editingMemberId = null;
+  editingIsNew = false;
 }
 
 function closeRecModalIfBackdrop(e){
@@ -4965,14 +5344,27 @@ function closeRecModalIfBackdrop(e){
 }
 
 async function saveRecEdit(){
-  if(!editingRecordId) return;
+  if(!editingIsNew && !editingRecordId) return;
   const inHM  = document.getElementById('edit-rec-in').value;
   const outHM = document.getElementById('edit-rec-out').value;
-  const inReason  = document.getElementById('edit-rec-in-reason').value.trim();
-  const outReason = document.getElementById('edit-rec-out-reason').value.trim();
+  let inReason  = document.getElementById('edit-rec-in-reason').value.trim();
+  let outReason = document.getElementById('edit-rec-out-reason').value.trim();
+  const prereport = document.getElementById('edit-rec-prereport').checked;
   const penVal = document.getElementById('edit-rec-penalty').value;
   const err = document.getElementById('edit-rec-err');
   err.textContent = '';
+  
+  // 사전보고 토글: 사유 앞에 "사전보고" 자동 prefix
+  //   - 체크 켜졌는데 사유에 "사전보고"가 없으면 prefix 추가
+  //   - 사유가 비었다면 그냥 "사전보고"만 넣음
+  //   - 체크 꺼졌는데 사유에 "사전보고"가 들어있으면 제거
+  if(prereport){
+    if(!_reasonHasPrereport(inReason)){
+      inReason = inReason ? `사전보고: ${inReason}` : '사전보고';
+    }
+  } else {
+    inReason = inReason.replace(/사전보고\s*:?\s*/g, '').trim();
+  }
   
   if(!inHM){ err.textContent = '시작 시각은 필수입니다'; return; }
   
@@ -4994,6 +5386,34 @@ async function saveRecEdit(){
   
   const [pType, pAmount, pStatus] = penVal.split(':');
   
+  if(editingIsNew){
+    // 신규 기록 생성
+    const row = {
+      member_id:    editingMemberId,
+      record_date:  editingRecordDate,
+      check_in_at:  checkInISO,
+      check_out_at: checkOutISO,
+      check_in_reason:  inReason || null,
+      check_out_reason: outReason || null,
+      penalty_type:   pType,
+      penalty_amount: parseInt(pAmount) || 0,
+      penalty_status: pStatus,
+      gps_verified: false,
+      gps_verified_out: false,
+    };
+    const { error } = await sb.from('attend_records').insert(row);
+    if(error){
+      console.error('[saveRecEdit/insert]', error);
+      err.textContent = '저장 실패: ' + (error.message || '서버 오류');
+      return;
+    }
+    closeRecModal();
+    showToast('✅ 미출석자 기록이 추가되었습니다');
+    await loadAdminToday();
+    return;
+  }
+
+  // 기존 기록 수정
   const updates = {
     check_in_at:  checkInISO,
     check_out_at: checkOutISO,
@@ -5046,6 +5466,51 @@ function adminGoToday(){
   const el = document.getElementById('admin-f-date');
   if(el) el.value = fmtYMD(new Date());
   loadAdminToday();
+}
+
+// ── 텔레그램 출퇴근 현황 발송 (Edge Function 호출) ──
+// Edge Function: attend-daily-report (Supabase에 배포 필요)
+const ATTEND_REPORT_URL = 'https://faxaqxyafsitdfykxgem.supabase.co/functions/v1/attend-daily-report';
+const ATTEND_REPORT_SECRET = 'sjames2026';  // Edge Function의 ATTEND_REPORT_SECRET 환경변수와 동일하게
+
+async function sendAttendReport(){
+  const theDate = getAdminDate();
+  const isToday = theDate === fmtYMD(new Date());
+  const extraEl = document.getElementById('tg-report-extra');
+  const extraMsg = extraEl ? extraEl.value.trim() : '';
+  const confirmMsg = `${isToday ? '오늘' : theDate}의 출퇴근 현황${extraMsg ? ' + 추가 메시지' : ''}을 텔레그램으로 보낼까요?`;
+  if(!confirm(confirmMsg)) return;
+
+  const btn = document.getElementById('tg-report-btn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '발송 중…';
+
+  try {
+    const res = await fetch(ATTEND_REPORT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: ATTEND_REPORT_SECRET,
+        date: theDate,
+        extra: extraMsg || null,
+      })
+    });
+    const data = await res.json();
+    if(data.ok){
+      showToast('✅ 텔레그램으로 발송했습니다');
+      if(extraEl) extraEl.value = '';
+    } else {
+      showToast('발송 실패: ' + (data.error || '서버 오류'));
+      console.error('[attend-report]', data);
+    }
+  } catch(e){
+    console.error('[sendAttendReport]', e);
+    showToast('발송 실패 — Edge Function이 배포되었는지 확인하세요');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
 }
 
 async function loadAdminToday(){
@@ -5230,7 +5695,10 @@ function renderAdminToday(){
     
     // 행 상태 클래스 (배경 그라데이션 + 좌측 경계)
     const rowStatusCls = `row-status-${status}`;
-    const clickAttr = record ? `onclick="openRecModal(${record.id})" style="cursor:pointer"` : '';
+    // 클릭: 기록 있으면 수정, 없으면(미출석) 신규 생성
+    const clickAttr = record
+      ? `onclick="openRecModal(${record.id})" style="cursor:pointer"`
+      : `onclick="openRecModalForMember(${member.id})" style="cursor:pointer" title="미출석자 — 클릭해 기록 추가"`;
     
     return `
       <div class="admin-table-row ${rowStatusCls}" ${clickAttr}>
