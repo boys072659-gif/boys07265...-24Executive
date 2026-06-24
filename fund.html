@@ -3751,7 +3751,7 @@ async function sendCommentToDept(requestId){
   if(!message){ showToast('보낼 메시지를 입력하세요'); return; }
 
   // 청구 정보
-  const r = requests.find(x => x.id === requestId);
+  const r = allRequests.find(x => x.id === requestId);
   if(!r){ showToast('청구 정보를 찾을 수 없습니다'); return; }
 
   // ★ 원본 청구 메시지가 올라온 곳에 답글로 달기 (가장 자연스럽고 맥락 명확)
