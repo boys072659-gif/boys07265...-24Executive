@@ -2123,6 +2123,130 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
   .topbar .brand-name .title { font-size: 13px; }
   .clock-display { font-size: 30px !important; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   📋 봉사 기록 카드 (개인 화면) — 모바일·데스크탑 통합 디자인
+   ════════════════════════════════════════════════════════════════════ */
+.history-list { display: flex; flex-direction: column; }
+
+.hist-card {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line, #ece7de);
+  background: #fff;
+  transition: background 0.15s;
+}
+.hist-card:last-child { border-bottom: none; }
+.hist-card:hover { background: #fcfaf6; }
+
+/* 상태별 좌측 막대 */
+.hist-card.working { background: linear-gradient(90deg, #f0f7f0 0%, transparent 60%); border-left: 3px solid #2c8f3c; padding-left: 13px; }
+.hist-card.late    { background: linear-gradient(90deg, #fbeaea 0%, transparent 60%); border-left: 3px solid #D14343; padding-left: 13px; }
+.hist-card.absent  { background: linear-gradient(90deg, #f3e8e8 0%, transparent 60%); border-left: 3px solid #9c3a3a; padding-left: 13px; }
+
+/* 좌: 날짜 + 시간 */
+.hist-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hist-date {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text, #2b2620);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hist-time {
+  font-size: 11.5px;
+  color: var(--text-2, #6b6256);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 중: 칩들 + 사유 */
+.hist-mid { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.hist-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.hist-chips:empty { display: none; }
+.hist-reason {
+  font-size: 11.5px;
+  color: var(--text-2, #6b6256);
+  background: var(--bg-subtle, #f7f4ee);
+  padding: 5px 9px;
+  border-radius: 6px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+/* 우: 봉사시간 + 상태 태그 */
+.hist-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.hist-dur {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text, #2b2620);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 칩 자체 — 더 컴팩트 */
+.hist-chips .gps-chip,
+.hist-chips .pen-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.hist-chips .gps-chip.ok   { background: #e8f5e9; color: #2c6e2c; }
+.hist-chips .gps-chip.miss { background: #fbeaea; color: #b5564f; }
+.hist-chips .pen-chip.charged { background: #fbeaea; color: #D14343; }
+.hist-chips .pen-chip.pending { background: #fff3d6; color: #8a5a16; }
+.hist-chips .pen-chip.exempt  { background: #e8f0e8; color: #4a7a4a; }
+
+.hist-right .tag {
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.hist-right .tag.working { background: #fff3d6; color: #8a5a16; }
+.hist-right .tag.done    { background: #eee8dc; color: var(--text-2, #6b6256); }
+
+/* 모바일 — 카드가 화면 끝까지 안 잘리게, 좌측 폭 축소 */
+@media (max-width: 640px) {
+  .hist-card {
+    grid-template-columns: 70px 1fr auto;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .hist-card.working, .hist-card.late, .hist-card.absent { padding-left: 11px; }
+  .hist-date { font-size: 12px; }
+  .hist-time { font-size: 11px; }
+  .hist-reason { font-size: 11px; padding: 4px 8px; }
+}
+@media (max-width: 420px) {
+  /* 진짜 좁은 화면 — 우측 정보를 칩 줄에 합치고 1+1 그리드 */
+  .hist-card { grid-template-columns: 64px 1fr; gap: 8px; padding: 11px 12px; }
+  .hist-right {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    margin-top: 2px;
+  }
+}
 </style>
 </head>
 <body>
@@ -2352,6 +2476,7 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
             <input id="add-mem-name" class="add-input" placeholder="이름" maxlength="20">
             <select id="add-mem-role" class="add-input">
               <option value="부장">부장</option>
+              <option value="회장">회장</option>
               <option value="과장">과장</option>
               <option value="서무">서무</option>
               <option value="총무">총무</option>
@@ -2616,6 +2741,7 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
         <label>역할</label>
         <select id="edit-mem-role" class="add-input">
           <option value="부장">부장</option>
+          <option value="회장">회장</option>
           <option value="과장">과장</option>
           <option value="서무">서무</option>
           <option value="총무">총무</option>
@@ -2634,9 +2760,12 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
       </div>
       <div class="admin-add-err" id="edit-mem-err"></div>
     </div>
-    <div class="reason-modal-footer">
-      <button class="btn-cancel" onclick="closeMemberModal()">취소</button>
-      <button class="btn-confirm" onclick="saveMemberEdit()">저장</button>
+    <div class="reason-modal-footer" style="justify-content:space-between">
+      <button class="btn-cancel" onclick="deleteMemberPermanent()" style="background:#fbeaea;color:#b5564f;border:1px solid #e0b8b8">🗑️ 명단에서 삭제</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-cancel" onclick="closeMemberModal()">취소</button>
+        <button class="btn-confirm" onclick="saveMemberEdit()">저장</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3948,16 +4077,18 @@ async function loadMyRecords(){
       : '';
     
     return `
-      <div class="history-row-wrap">
-        <div class="history-row">
-          <span class="history-date">${fmtDateKor(r.record_date)}</span>
-          <span class="history-time">${timeText}</span>
-          ${gpsHtml}
-          ${penaltyHtml}
-          <span class="history-duration">${duration}</span>
-          ${tagHtml}
+      <div class="hist-card${!outDate && inDate ? ' working' : ''}${r.penalty_type === 'absent' ? ' absent' : ''}${r.penalty_type === 'late' && r.penalty_status !== 'exempt' ? ' late' : ''}">
+        <div class="hist-left">
+          <div class="hist-date">${fmtDateKor(r.record_date)}</div>
+          <div class="hist-time">${timeText}</div>
         </div>
-        ${reasonHtml}
+        <div class="hist-mid">
+          <div class="hist-chips">${gpsHtml}${penaltyHtml}</div>
+          ${reasons.length ? `<div class="hist-reason">${escapeHtml(reasons.join(' / '))}</div>` : ''}
+        </div>
+        <div class="hist-right">
+          ${duration ? `<div class="hist-dur">${duration}</div>` : ''}
+          ${tagHtml}
       </div>`;
   }).join('');
   
@@ -4317,6 +4448,51 @@ async function saveMemberEdit(){
   showToast(`✅ ${name} 정보 수정됨`);
   await loadAllMembersAdmin();
   await loadAllMembers();  // 메인 사명자 드롭다운도 갱신
+}
+
+// 사명자 영구 삭제 — DB에서 완전히 제거 (출퇴근 기록은 남음, member_id로만 연결)
+async function deleteMemberPermanent(){
+  if(!editingMemberId) return;
+  const m = adminAllMembers.find(x => x.id === editingMemberId);
+  if(!m) return;
+
+  // 봉사 기록 존재 여부 체크
+  const { count } = await sb.from('attend_records')
+    .select('*', { count: 'exact', head: true })
+    .eq('member_id', editingMemberId);
+
+  let warn = `'${m.name}' 사명자를 명단에서 영구 삭제합니다.\n\n`;
+  if(count && count > 0){
+    warn += `⚠️ 이 사명자에게 ${count}건의 봉사 기록이 있습니다.\n`
+         + `삭제하면 다시 추가할 수 없으며, 기록은 남지만 이름이 표시되지 않습니다.\n\n`
+         + `(추천: 삭제 대신 "비활성화"하면 명단에서 숨겨지면서 기록은 보존됩니다)\n\n`;
+  }
+  warn += '정말 삭제하시겠습니까?';
+
+  if(!confirm(warn)) return;
+
+  const { error } = await sb.from('attend_members').delete().eq('id', editingMemberId);
+  if(error){
+    // FK 제약 등으로 삭제 불가 → 비활성으로 안내
+    if(/foreign key|violates/i.test(error.message || '')){
+      if(confirm('봉사 기록이 있어 완전 삭제할 수 없습니다.\n대신 비활성화하시겠습니까?')){
+        await sb.from('attend_members').update({ is_active: false }).eq('id', editingMemberId);
+        showToast(`${m.name} 비활성화됨`);
+        closeMemberModal();
+        await loadAllMembersAdmin();
+        await loadAllMembers();
+      }
+      return;
+    }
+    console.error('[deleteMemberPermanent]', error);
+    alert('삭제 실패: ' + (error.message || '서버 오류'));
+    return;
+  }
+
+  closeMemberModal();
+  showToast(`🗑️ ${m.name} 명단에서 삭제됨`);
+  await loadAllMembersAdmin();
+  await loadAllMembers();
 }
 
 // ────────────────────────────────────────────────────────────
