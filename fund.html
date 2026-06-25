@@ -2708,23 +2708,17 @@ async function doLogin(){
 async function verifyDeptPassword(deptId, pw){
   console.log('[verifyDeptPassword] dept_id:', deptId);
   try {
-    const { data, error } = await sb
-      .from('exec_dept_passwords')
-      .select('password')
-      .eq('dept_id', deptId)
-      .maybeSingle();
+    // 🔐 v6.2: RPC 기반 검증 (서버에서 해시 비교)
+    const { data, error } = await sb.rpc('verify_exec_password', {
+      p_dept_id: deptId,
+      p_plaintext: pw
+    });
     if(error){
-      console.error('[pw] 조회 오류:', error.message, error);
-      loginErr('비밀번호 조회 실패: ' + error.message);
+      console.error('[pw] RPC 오류:', error.message, error);
+      loginErr('비밀번호 검증 실패: ' + error.message);
       return false;
     }
-    if(data && data.password){
-      return data.password === pw;
-    }
-    // DB에 비밀번호 미설정 — 관리자 패널 또는 시드 SQL로 등록 필요
-    console.warn('[pw] 비밀번호 미설정:', deptId);
-    loginErr('이 부서 비밀번호가 등록되지 않았습니다. 관리자에게 문의하세요.');
-    return false;
+    return data === true;
   } catch(e){
     console.error('[pw] 예외:', e);
     loginErr('비밀번호 검증 중 예외 발생');

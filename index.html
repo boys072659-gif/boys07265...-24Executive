@@ -5170,12 +5170,25 @@ function findDeptIdByName(deptName){
 }
 
 // 부서 비밀번호 검증
-function verifyDeptPassword(deptName, inputPw){
-  // 마스터 체크 먼저
+async function verifyDeptPassword(deptName, inputPw){
+  // 🔐 v6.2: RPC 우선 검증, 실패 시 클라이언트 fallback (마이그레이션 중 호환)
+  const deptIdForRpc = (deptName === MASTER_DEPT) ? 'master' : findDeptIdByName(deptName);
+  if(deptIdForRpc && window._sbReady){
+    try {
+      const { data, error } = await window._sb.rpc('verify_exec_password', {
+        p_dept_id: deptIdForRpc, p_plaintext: inputPw
+      });
+      if(!error && data === true) return true;
+      if(!error && data === false) {
+        // RPC가 명시적 false → fallback 안 함 (보안)
+        return false;
+      }
+    } catch(e){ /* RPC 실패 시 fallback으로 */ }
+  }
+  // Fallback: 클라이언트 측 평문 비교 (RPC/네트워크 실패 시)
   if(deptName === MASTER_DEPT){
     return inputPw === getMasterPassword();
   }
-  // 일반 부서
   const deptId = findDeptIdByName(deptName);
   if(!deptId) return false;
   const realPw = getDeptPassword(deptId);
@@ -5247,7 +5260,7 @@ function fillDeptSelect(){
   });
 }
 
-function doLogin(){
+async function doLogin(){
   const dept = document.getElementById('login-dept-select').value.trim();
   const deptPw = document.getElementById('login-dept-pw').value.trim();
   const errEl = document.getElementById('login-dept-error');
@@ -5265,7 +5278,7 @@ function doLogin(){
   }
 
   // 비밀번호 검증
-  if(!verifyDeptPassword(dept, deptPw)){
+  if(!(await verifyDeptPassword(dept, deptPw))){
     errEl.textContent = '부서 비밀번호가 일치하지 않습니다';
     errEl.style.display = 'block';
     document.getElementById('login-dept-pw').value = '';
