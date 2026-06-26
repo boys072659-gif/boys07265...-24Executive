@@ -1,0 +1,29 @@
+name: SJAMES 봉사기록부 일일 리포트
+
+on:
+  schedule:
+    # ★ 매일 KST 08:00 = UTC 23:00 (전날)
+    #   평일(월~금)만 발송 + 관리자 지정 공휴일(attend_holidays) 제외
+    #   판정 로직은 attend_daily_report.py 내부에서 처리
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  send-attend-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 봉사기록부 일일 리포트 발송
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TZ: Asia/Seoul
+        run: |
+          python attend_daily_report.py
