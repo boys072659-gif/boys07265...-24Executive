@@ -739,10 +739,16 @@
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, transform 0.15s;
+    cursor: pointer;
+    user-select: none;
   }
   .summary-card:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .summary-card:active {
+    transform: translateY(0);
   }
   .summary-card::before {
     content: '';
@@ -2708,17 +2714,23 @@ async function doLogin(){
 async function verifyDeptPassword(deptId, pw){
   console.log('[verifyDeptPassword] dept_id:', deptId);
   try {
-    // 🔐 v6.2: RPC 기반 검증 (서버에서 해시 비교)
-    const { data, error } = await sb.rpc('verify_exec_password', {
-      p_dept_id: deptId,
-      p_plaintext: pw
-    });
+    const { data, error } = await sb
+      .from('exec_dept_passwords')
+      .select('password')
+      .eq('dept_id', deptId)
+      .maybeSingle();
     if(error){
-      console.error('[pw] RPC 오류:', error.message, error);
-      loginErr('비밀번호 검증 실패: ' + error.message);
+      console.error('[pw] 조회 오류:', error.message, error);
+      loginErr('비밀번호 조회 실패: ' + error.message);
       return false;
     }
-    return data === true;
+    if(data && data.password){
+      return data.password === pw;
+    }
+    // DB에 비밀번호 미설정 — 관리자 패널 또는 시드 SQL로 등록 필요
+    console.warn('[pw] 비밀번호 미설정:', deptId);
+    loginErr('이 부서 비밀번호가 등록되지 않았습니다. 관리자에게 문의하세요.');
+    return false;
   } catch(e){
     console.error('[pw] 예외:', e);
     loginErr('비밀번호 검증 중 예외 발생');
@@ -2853,22 +2865,22 @@ function renderSummary(){
   const monthLabel = `${now.getMonth()+1}월`;
 
   const html = `
-    <div class="summary-card approved">
+    <div class="summary-card approved" onclick="applyCardFilter('month-approved')" title="이번 달 승인된 청구 목록 보기">
       <div class="label">이번 달 승인 (${monthLabel})</div>
       <div class="value">${fmtMoney(sumApprovedMonth)}<span class="currency">원</span></div>
       <div class="meta">${approvedThisMonth.length}건 · ${inMonth.length}건 중</div>
     </div>
-    <div class="summary-card pending">
+    <div class="summary-card pending" onclick="applyCardFilter('pending')" title="승인 대기 청구 목록 보기">
       <div class="label">전체 승인 대기</div>
       <div class="value">${fmtMoney(sumPendingAll)}<span class="currency">원</span></div>
       <div class="meta">${pendingAll.length}건</div>
     </div>
-    <div class="summary-card approved">
+    <div class="summary-card approved" onclick="applyCardFilter('approved')" title="전체 누적 승인 청구 목록 보기">
       <div class="label">전체 누적 승인</div>
       <div class="value">${fmtMoney(sumApprovedTotal)}<span class="currency">원</span></div>
       <div class="meta">${approvedAll.length}건</div>
     </div>
-    <div class="summary-card">
+    <div class="summary-card" onclick="applyCardFilter('all')" title="전체 청구 목록 보기 (필터 초기화)">
       <div class="label">${currentUser.isMaster ? '전체' : currentUser.dept} 청구</div>
       <div class="value" style="font-size:22px">${allRequests.length}<span class="currency">건</span></div>
       <div class="meta">최근 ${monthLabel} 기준 ${inMonth.length}건</div>
@@ -3360,6 +3372,43 @@ function renderMonthChart(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 필터링 + 목록 렌더
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 🆕 카드 클릭 → 필터 적용 + 목록으로 스크롤
+//   type: 'month-approved' | 'pending' | 'approved' | 'all'
+function applyCardFilter(type){
+  // 모든 필터 초기화 먼저
+  document.getElementById('f-search').value = '';
+  document.getElementById('f-status').value = '';
+  document.getElementById('f-from').value = '';
+  document.getElementById('f-to').value = '';
+  const deptSel = document.getElementById('f-dept');
+  if(currentUser && currentUser.isMaster && deptSel) deptSel.value = '';
+  
+  // 카드별 필터 적용
+  if(type === 'month-approved'){
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(yyyy, now.getMonth() + 1, 0).getDate();
+    document.getElementById('f-status').value = 'approved';
+    document.getElementById('f-from').value = `${yyyy}-${mm}-01`;
+    document.getElementById('f-to').value = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
+  } else if(type === 'pending'){
+    document.getElementById('f-status').value = 'pending';
+  } else if(type === 'approved'){
+    document.getElementById('f-status').value = 'approved';
+  } else if(type === 'all'){
+    // 모든 필터 비움 — 위에서 이미 처리됨
+  }
+  
+  // 목록 다시 렌더 + 청구 목록 영역으로 부드럽게 스크롤
+  renderList();
+  setTimeout(() => {
+    const tableWrap = document.querySelector('.table-wrap');
+    if(tableWrap) tableWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
 function getFiltered(){
   const search = document.getElementById('f-search').value.trim().toLowerCase();
   const deptId = currentUser.isMaster ? document.getElementById('f-dept').value : currentUser.deptId;
