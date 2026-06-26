@@ -3146,6 +3146,7 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
       <!-- 상단 액션 줄 -->
       <div class="admin-toolbar">
         <span class="admin-toolbar-label">🔑 관리자</span>
+        <button class="admin-logout-btn" onclick="resetMemberLock()" title="이 기기의 사명자 잠금을 해제합니다 (봉사자가 다른 이름으로 잠가놓은 경우 사용)">🔓 사명자 잠금 초기화</button>
         <button class="admin-logout-btn" onclick="doAdminLogout()">로그아웃</button>
       </div>
 
@@ -3195,7 +3196,7 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
         <div class="tg-report-box">
           <div class="tg-report-info">
             <b>📤 텔레그램 발송</b>
-            <span>선택한 날짜의 봉사 시작·종료 현황을 등록된 그룹방 토픽으로 보냅니다. 자동 발송: <b>08:30 시작 알림</b> · <b>20:00 종료 알림 + 오늘 현황</b></span>
+            <span>선택한 날짜의 봉사 시작·종료 현황을 등록된 그룹방 토픽으로 보냅니다. 자동 발송: <b>08:00 시작 알림</b> · <b>20:00 종료 알림 + 오늘 현황</b> (평일·공휴일 제외)</span>
           </div>
 
           <!-- 발송 대상 목록 (다중) -->
@@ -4885,6 +4886,45 @@ async function changeLockedMember(){
   updateClockArea();
   renderEmptyRecords();
   showToast('잠금 해제됨 — 새 사명자를 선택하세요');
+}
+
+// 🔓 v6.5: 관리자 모드에서 사명자 잠금 강제 초기화
+//   - 이미 관리자 인증을 거쳤으므로 비번 prompt 없이 즉시 해제
+//   - 봉사자가 다른 이름으로 잠가놓아 본인으로 변경 못 할 때 관리자가 풀어주는 용도
+async function resetMemberLock(){
+  if(!isAdminLoggedIn){
+    showToast('관리자 모드에서만 사용 가능합니다');
+    return;
+  }
+  if(!confirm('이 기기의 사명자 잠금을 초기화하시겠습니까?\n\n' +
+              '봉사 화면에서 다시 사명자를 선택할 수 있게 됩니다.\n' +
+              '(저장된 봉사 기록은 영향 없음)')) return;
+  
+  // 잠금 정보 모두 제거
+  localStorage.removeItem(LS_KEY_MEMBER);
+  localStorage.removeItem(LS_KEY_DEPT);
+  // 장소는 유지 (기기 위치는 잘 안 바뀌니까)
+  
+  // 메모리 상태도 초기화
+  isLocked = false;
+  currentMemberId = null;
+  currentMember = null;
+  currentDeptId = '';
+  todayRecord = null;
+  
+  // UI 갱신 (봉사 화면 미리 준비)
+  try { renderUnlockedPicker(); } catch(_){}
+  const selDept = document.getElementById('sel-dept');
+  if(selDept) selDept.value = '';
+  const selMember = document.getElementById('sel-member');
+  if(selMember){
+    selMember.innerHTML = '<option value="">먼저 부서 선택</option>';
+    selMember.disabled = true;
+  }
+  try { updateClockArea(); } catch(_){}
+  try { renderEmptyRecords(); } catch(_){}
+  
+  showToast('✅ 사명자 잠금 초기화 완료 — 봉사 화면에서 새 사명자를 선택하세요');
 }
 
 // 저장된 사명자 자동 복원
