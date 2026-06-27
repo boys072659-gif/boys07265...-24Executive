@@ -8181,27 +8181,172 @@ function renderAdminKPI(){
   
   const grid = document.getElementById('admin-kpi');
   grid.innerHTML = `
-    <div class="admin-kpi-card">
+    <div class="admin-kpi-card" onclick="openKpiDetail('all')" style="cursor:pointer" title="클릭하여 명단 보기">
       <div class="k-label">전체 사명자</div>
       <div class="k-value">${total}</div>
       <div class="k-meta">활성 등록</div>
     </div>
-    <div class="admin-kpi-card">
+    <div class="admin-kpi-card" onclick="openKpiDetail('present')" style="cursor:pointer" title="클릭하여 명단 보기">
       <div class="k-label">${dayWord} 봉사</div>
       <div class="k-value">${present}</div>
       <div class="k-meta">시작 기준</div>
     </div>
-    <div class="admin-kpi-card working">
+    <div class="admin-kpi-card working" onclick="openKpiDetail('working')" style="cursor:pointer" title="클릭하여 명단 보기">
       <div class="k-label">봉사 중</div>
       <div class="k-value">${working}</div>
       <div class="k-meta">종료 안 함</div>
     </div>
-    <div class="admin-kpi-card absent">
+    <div class="admin-kpi-card absent" onclick="openKpiDetail('none')" style="cursor:pointer" title="클릭하여 명단 보기">
       <div class="k-label">미시작</div>
       <div class="k-value">${absent}</div>
       <div class="k-meta">아직 시작 전</div>
     </div>
   `;
+}
+
+// 🆕 KPI 카드 클릭 → 명단 팝업 + 텔레그램 발송
+function openKpiDetail(statusType){
+  const theDate = getAdminDate();
+  const recordByMember = {};
+  adminTodayRecords.forEach(r => { recordByMember[r.member_id] = r; });
+
+  let rows = allMembers.filter(m => isAllowedDept(m.dept_id)).map(m => {
+    const rec = recordByMember[m.id] || null;
+    let status;
+    if(!rec || !rec.check_in_at) status = 'none';
+    else if(rec.check_in_at && !rec.check_out_at) status = 'working';
+    else status = 'done';
+    return { member: m, record: rec, status };
+  });
+
+  if(statusType !== 'all'){
+    if(statusType === 'present') rows = rows.filter(r => r.status !== 'none');
+    else rows = rows.filter(r => r.status === statusType);
+  }
+
+  rows.sort((a,b) => {
+    const ai = DEPTS.findIndex(d => d.id === a.member.dept_id);
+    const bi = DEPTS.findIndex(d => d.id === b.member.dept_id);
+    if(ai !== bi) return ai - bi;
+    return a.member.name.localeCompare(b.member.name, 'ko');
+  });
+
+  const titles = { all:'전체 사명자', present:'오늘 봉사자', working:'봉사 중', none:'미시작' };
+  const title = titles[statusType] || '사명자 목록';
+  const statusBadge = { all:'', present:'✅', working:'🔵', none:'⬜' }[statusType] || '';
+
+  // 그룹별 카운트
+  const byDept = {};
+  rows.forEach(r => {
+    const dept = r.member.dept_id || '기타';
+    if(!byDept[dept]) byDept[dept] = [];
+    byDept[dept].push(r);
+  });
+
+  let listHtml = '';
+  Object.entries(byDept).forEach(([dept, dRows]) => {
+    const deptObj = DEPTS.find(d => d.id === dept);
+    const deptName = deptObj ? deptObj.name : dept;
+    listHtml += `<div style="font-weight:700;font-size:12px;color:#64748b;padding:8px 14px 4px;background:#f8fafc;border-top:1px solid #e2e8f0">${escapeHtml(deptName)} (${dRows.length}명)</div>`;
+    dRows.forEach(r => {
+      const rec = r.record;
+      const inTime = rec?.check_in_at ? new Date(rec.check_in_at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '';
+      const statusIcon = r.status === 'working' ? '🔵' : r.status === 'done' ? '✅' : '⬜';
+      listHtml += `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid #f1f5f9">
+          <span style="font-size:14px">${statusIcon}</span>
+          <span style="flex:1;font-size:13px;font-weight:600">${escapeHtml(r.member.name)}</span>
+          <span style="font-size:11px;color:#94a3b8">${inTime ? inTime + ' 시작' : ''}</span>
+        </div>`;
+    });
+  });
+
+  if(rows.length === 0) listHtml = '<div style="padding:30px;text-align:center;color:#94a3b8">해당 사명자가 없습니다</div>';
+
+  // 발송 가능 그룹방 목록
+  const enabledTargets = (tgTargets || []).filter(t => t.enabled);
+  const targetOpts = enabledTargets.map((t,i) =>
+    `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+      <input type="checkbox" data-kpi-target="${i}" checked style="cursor:pointer">
+      ${escapeHtml(t.label)}
+    </label>`
+  ).join('');
+
+  document.body.style.overflow = 'hidden';
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)';
+  overlay.onclick = e => { if(e.target === overlay){ overlay.remove(); document.body.style.overflow=''; } };
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:14px;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.2)';
+  box.innerHTML = `
+    <div style="padding:16px 18px 12px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:800;font-size:16px">${statusBadge} ${escapeHtml(title)}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">${theDate} · ${rows.length}명</div>
+      </div>
+      <button onclick="this.closest('[data-kpi-overlay]').remove();document.body.style.overflow=''"
+              style="background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8">×</button>
+    </div>
+    <div style="overflow-y:auto;flex:1">${listHtml}</div>
+    ${enabledTargets.length > 0 ? `
+    <div style="padding:12px 16px;border-top:1px solid #e2e8f0;background:#f8fafc">
+      <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:8px">📤 텔레그램 발송</div>
+      <textarea id="kpiMsgText" rows="2" placeholder="메시지 입력 (선택 — 비우면 현황만 발송)"
+                style="width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;resize:none;box-sizing:border-box"></textarea>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${targetOpts}</div>
+      <button onclick="sendKpiMessage('${statusType}', ${JSON.stringify(rows.map(r=>r.member.name))})"
+              style="margin-top:10px;width:100%;background:#0f172a;color:#fff;border:none;padding:9px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        📢 선택 그룹방에 발송
+      </button>
+    </div>` : ''}
+  `;
+  box.addEventListener('click', e => e.stopPropagation());
+  overlay.setAttribute('data-kpi-overlay', '1');
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+async function sendKpiMessage(statusType, names){
+  const msg = (document.getElementById('kpiMsgText')?.value || '').trim();
+  const titles = { all:'전체 사명자', present:'오늘 봉사자', working:'봉사 중', none:'미시작' };
+  const statusLabel = titles[statusType] || '';
+
+  // 체크된 그룹방만
+  const checkedTargets = (tgTargets || []).filter((t,i) => {
+    const cb = document.querySelector(`input[data-kpi-target="${i}"]`);
+    return t.enabled && cb?.checked;
+  });
+  if(checkedTargets.length === 0){ alert('발송할 그룹방을 선택해주세요.'); return; }
+
+  const theDate = getAdminDate();
+  // 명단 + 메시지 조합
+  const nameList = names.map(n => `· ${escapeHtml(n)}`).join('\n');
+  const fullMsg = (msg ? `📢 ${msg}\n\n` : '') + `[${statusLabel}] ${theDate} · ${names.length}명\n\n${nameList}`;
+
+  const btn = document.querySelector('[data-kpi-overlay] button:last-of-type');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ 발송 중...'; }
+
+  let ok = 0, fail = 0;
+  for(const t of checkedTargets){
+    try {
+      const res = await fetch(ATTEND_REPORT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ secret: ATTEND_REPORT_SECRET, notice_only: true, chat_id: t.chat_id, topic_id: t.topic_id, extra: fullMsg })
+      });
+      const data = await res.json();
+      if(data.ok) ok++; else fail++;
+    } catch(e){ fail++; }
+    await new Promise(r => setTimeout(r, 250));
+  }
+
+  if(btn){ btn.disabled = false; btn.textContent = '📢 선택 그룹방에 발송'; }
+  showToast(fail === 0 ? `✅ ${ok}개 그룹방 발송 완료` : `발송 완료 ${ok} / 실패 ${fail}`);
+  if(fail === 0){
+    document.querySelector('[data-kpi-overlay]')?.remove();
+    document.body.style.overflow = '';
+  }
 }
 
 // 오늘 현황 표
