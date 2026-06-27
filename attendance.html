@@ -7904,19 +7904,25 @@ function closeTgPreviewIfBackdrop(e){
 }
 
 async function _buildReportPreview(theDate, extraMsg, target){
-  // 사명자 전원 (dept_id, is_jungjin 포함) + 그날 기록
-  // 🔐 v6.4: 관리자 RPC로 멤버+기록 조회 (master 게이트)
-  const [memRes, recRes] = await Promise.all([
+  const [memRes, recRes, exclRes] = await Promise.all([
     sb.rpc('admin_list_attend_members', { p_master_pw: _masterPwCache }),
     sb.rpc('admin_list_attend_records', { p_master_pw: _masterPwCache, p_from: theDate, p_to: theDate, p_limit: 5000 }),
+    sb.rpc('list_report_excluded_members'),  // 🆕 명단 제외 대상
   ]);
+  
+  // 🆕 제외 대상 member_id Set
+  const excludedIds = new Set((exclRes.data || []).map(r => Number(r.member_id)));
+
   let members = (memRes.data || []).filter(m => m.is_active === true);
-  // target scope에 따라 사명자 필터링
+  // target scope 필터
   if(target){
     const st = target.scope_type || 'all';
     if(st === 'jungjin') members = members.filter(m => m.is_jungjin === true);
     else if(st === 'dept' && target.scope_value) members = members.filter(m => m.dept_id === target.scope_value);
   }
+  // 🆕 명단 제외 필터 (개인 + 부서 설정)
+  members = members.filter(m => !excludedIds.has(Number(m.id)));
+
   const memberIds = new Set(members.map(m => m.id));
   const records = (recRes.data || []).filter(r => memberIds.has(r.member_id));
   const recByMember = new Map();
@@ -7934,29 +7940,22 @@ async function _buildReportPreview(theDate, extraMsg, target){
   const cmp = (a,b) => (a.name||'').localeCompare(b.name||'', 'ko');
   [onTime, late, absent, noShow].forEach(arr => arr.sort(cmp));
   
-  // 정시·미출석은 이름만, 지각·결석은 이름+사유
-  const lineName = (m) => `· ${m.name}`;
-  const lineWithReason = (m) => m.reason ? `· ${m.name} (${m.reason})` : `· ${m.name}`;
-  const listName = (arr) => arr.length ? arr.map(lineName).join('\n') : '· (없음)';
-  const listReason = (arr) => arr.length ? arr.map(lineWithReason).join('\n') : '· (없음)';
+  const lineN = (m) => `· ${m.name}`;
+  const lineR = (m) => m.reason ? `· ${m.name} (${m.reason})` : `· ${m.name}`;
   
-  // 날짜 표시
+  // 날짜 표시 (간략)
   const d = new Date(theDate + 'T00:00:00');
   const days = ['일','월','화','수','목','금','토'];
-  const dateKor = `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+  const shortDate = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
   
-  const scopeName = target ? _scopeLabel(target) : '🌐 전체';
-  let msg = `🌙 봉사 종료를 눌러주세요\n\n`;
-  msg += `📋 ${dateKor} 봉사 현황 ${scopeName}\n`;
-  msg += `대상 ${members.length}명 · 정시 ${onTime.length} · 지각 ${late.length} · 결석 ${absent.length} · 미출석 ${noShow.length}\n`;
-  msg += `\n✅ 정시 (${onTime.length}명)\n${listName(onTime)}`;
-  msg += `\n\n🟡 지각 (${late.length}명)\n${listReason(late)}`;
-  msg += `\n\n🔴 결석 (${absent.length}명)\n${listReason(absent)}`;
-  msg += `\n\n⬜ 미출석 (${noShow.length}명)\n${listName(noShow)}`;
+  // 🆕 간략 형식 — 정시 생략, 이슈 있는 항목만
+  let msg = `🌙 <b>${shortDate} 봉사 종료해주세요</b>\n`;
+  msg += `정시 ${onTime.length} · 지각 ${late.length} · 결석 ${absent.length} · 미보고 ${noShow.length}`;
+  if(late.length)   msg += `\n\n🟡 지각 (${late.length}명)\n${late.map(lineR).join('\n')}`;
+  if(absent.length) msg += `\n\n🔴 결석 (${absent.length}명)\n${absent.map(lineR).join('\n')}`;
+  if(noShow.length) msg += `\n\n⬜ 시작 미보고 (${noShow.length}명)\n${noShow.map(lineN).join('\n')}`;
   
-  if(extraMsg){
-    msg = `📢 공지\n${extraMsg}\n\n━━━━━━━━━━━━━━━━━\n\n${msg}`;
-  }
+  if(extraMsg) msg = `📢 ${extraMsg}\n\n${msg}`;
   return msg;
 }
 
