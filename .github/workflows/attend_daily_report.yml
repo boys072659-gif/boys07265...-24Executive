@@ -2,16 +2,21 @@ name: SJAMES 봉사기록부 일일 리포트
 
 on:
   schedule:
-    # ★ 매일 KST 07:00 = UTC 22:00 (전날)
-    #   매일(월~일) 발송 + 관리자 지정 공휴일(attend_holidays) 제외
-    #   판정 로직은 attend_daily_report.py 내부에서 처리
-    #   ⚠️ GitHub Actions cron은 분 단위 지연이 잦아 07시로 앞당겨 08시 도착 목표
+    # 07:00 KST = UTC 22:00 (전날) — 시작 알림 + 전날 종료 미보고
     - cron: '0 22 * * *'
+    # 20:00 KST = UTC 11:00 — 종료 알림 + 지각/결석/미보고 현황
+    - cron: '0 11 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: '발송 모드 (start or end)'
+        required: false
+        default: 'end'
 
 jobs:
   send-attend-report:
     runs-on: ubuntu-latest
+
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
@@ -21,10 +26,27 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: 발송 모드 결정
+        id: mode
+        run: |
+          # cron 실행 시 UTC 시간으로 모드 판별
+          HOUR=$(date -u +%H)
+          if [ "$HOUR" = "22" ]; then
+            echo "mode=start" >> $GITHUB_OUTPUT
+          else
+            echo "mode=end" >> $GITHUB_OUTPUT
+          fi
+          # workflow_dispatch 수동 실행 시 input 우선
+          if [ "${{ github.event.inputs.mode }}" != "" ]; then
+            echo "mode=${{ github.event.inputs.mode }}" >> $GITHUB_OUTPUT
+          fi
+          echo "결정된 모드: $(cat $GITHUB_OUTPUT)"
+
       - name: 봉사기록부 일일 리포트 발송
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          MODE: ${{ steps.mode.outputs.mode }}
           TZ: Asia/Seoul
         run: |
           python attend_daily_report.py
