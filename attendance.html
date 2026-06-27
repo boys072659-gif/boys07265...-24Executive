@@ -3443,6 +3443,23 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
         <!-- 벌금 요약 -->
         <div class="admin-kpi-grid" id="pen-kpi"></div>
 
+        <!-- 🆕 부서별 벌금 면제 설정 -->
+        <div class="admin-table-card" id="dept-exempt-card" style="margin-bottom:14px">
+          <div class="admin-table-head" onclick="toggleDeptExempt()" style="cursor:pointer">
+            <h3>⚙️ 부서별 면제 설정 <span style="font-size:12px;color:#94a3b8;font-weight:400">벌금 면제 + 텔레그램 명단 제외</span></h3>
+            <span id="dept-exempt-toggle">▼ 펼치기</span>
+          </div>
+          <div id="dept-exempt-body" style="display:none;padding:12px">
+            <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#78350f">
+              💡 면제 부서로 지정하면 봉사 시작/종료는 정상 기록되되 <b>벌금이 자동 0원</b> 처리됩니다. 
+              "리포트 제외" 체크 시 매일 발송되는 텔레그램 알림의 <b>정시/지각/결석 명단에서 제외</b>됩니다.
+            </div>
+            <div id="dept-exempt-list">
+              <div class="loading"><span class="spinner"></span>불러오는 중...</div>
+            </div>
+          </div>
+        </div>
+
         <!-- 이전 누적 벌금 (대시보드 도입 전 모은 벌금) -->
         <div class="admin-table-card prior-fines-card">
           <div class="admin-table-head prior-fines-head" onclick="togglePriorFines()">
@@ -6447,6 +6464,116 @@ async function toggleLocationActive(locId, makeActive){
 // 벌금 관리
 // ════════════════════════════════════════════════════════════
 let penaltyRecords = [];
+
+// 🆕 부서별 벌금 면제 설정 — 토글/로드/저장
+function toggleDeptExempt(){
+  const body = document.getElementById('dept-exempt-body');
+  const toggle = document.getElementById('dept-exempt-toggle');
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  toggle.textContent = isOpen ? '▼ 펼치기' : '▲ 접기';
+  if(!isOpen) loadDeptExemptSettings();  // 펼칠 때 로드
+}
+
+async function loadDeptExemptSettings(){
+  const mount = document.getElementById('dept-exempt-list');
+  if(!mount) return;
+  mount.innerHTML = '<div class="loading"><span class="spinner"></span>불러오는 중...</div>';
+  
+  const pw = _masterPwCache;
+  if(!pw){
+    mount.innerHTML = '<div style="padding:20px;color:#dc2626">관리자 비밀번호가 캐시에 없습니다. 로그아웃 후 다시 로그인하세요.</div>';
+    return;
+  }
+  
+  try {
+    const { data, error } = await sb.rpc('admin_list_dept_penalty_settings', { p_master_pw: pw });
+    if(error) throw error;
+    const rows = data || [];
+    
+    if(rows.length === 0){
+      mount.innerHTML = '<div style="padding:20px;color:#94a3b8;text-align:center">등록된 부서가 없습니다</div>';
+      return;
+    }
+    
+    let html = `
+      <table class="adm-table" style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:left">부서</th>
+            <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center">인원</th>
+            <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center">벌금 면제</th>
+            <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center">리포트 명단 제외</th>
+            <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:left">메모</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    rows.forEach(r => {
+      const deptKey = (r.dept_id || '').replace(/'/g, "\\'");
+      html += `
+        <tr style="border-bottom:1px solid #f1f5f9">
+          <td style="padding:8px;font-weight:600">${escapeHtml(r.dept_id || '(미지정)')}</td>
+          <td style="padding:8px;text-align:center;color:#64748b">${r.member_count}</td>
+          <td style="padding:8px;text-align:center">
+            <input type="checkbox" id="dept-pen-exempt-${escapeHtml(deptKey)}" 
+                   ${r.penalty_exempt ? 'checked' : ''}
+                   onchange="saveDeptExempt('${deptKey}')"
+                   style="width:18px;height:18px;cursor:pointer">
+          </td>
+          <td style="padding:8px;text-align:center">
+            <input type="checkbox" id="dept-rep-exclude-${escapeHtml(deptKey)}"
+                   ${r.exclude_from_report ? 'checked' : ''}
+                   onchange="saveDeptExempt('${deptKey}')"
+                   style="width:18px;height:18px;cursor:pointer">
+          </td>
+          <td style="padding:8px">
+            <input type="text" id="dept-note-${escapeHtml(deptKey)}" 
+                   value="${escapeHtml(r.note || '')}" 
+                   onblur="saveDeptExempt('${deptKey}')"
+                   placeholder="메모 (선택)"
+                   style="width:100%;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:13px">
+          </td>
+        </tr>
+      `;
+    });
+    html += `</tbody></table>`;
+    mount.innerHTML = html;
+  } catch(e){
+    mount.innerHTML = `<div style="padding:20px;color:#dc2626">로드 실패: ${escapeHtml(e.message || String(e))}</div>`;
+  }
+}
+
+async function saveDeptExempt(deptId){
+  const pw = _masterPwCache;
+  if(!pw){
+    showToast('관리자 비밀번호가 없습니다');
+    return;
+  }
+  
+  const exemptCb = document.getElementById('dept-pen-exempt-' + deptId);
+  const excludeCb = document.getElementById('dept-rep-exclude-' + deptId);
+  const noteIn = document.getElementById('dept-note-' + deptId);
+  
+  if(!exemptCb || !excludeCb) return;
+  
+  try {
+    const { error } = await sb.rpc('admin_upsert_dept_penalty_settings', {
+      p_master_pw:          pw,
+      p_dept_id:            deptId,
+      p_penalty_exempt:     exemptCb.checked,
+      p_exclude_from_report: excludeCb.checked,
+      p_note:               noteIn ? noteIn.value.trim() : null
+    });
+    if(error) throw error;
+    showToast(`✅ ${deptId} 설정 저장`);
+  } catch(e){
+    showToast('❌ 저장 실패: ' + (e.message || e));
+    // 실패하면 체크박스 되돌리기
+    await loadDeptExemptSettings();
+  }
+}
 
 async function loadPenalty(){
   const period = document.getElementById('pen-f-period').value;
