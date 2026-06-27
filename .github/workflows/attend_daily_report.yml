@@ -2,10 +2,11 @@ name: SJAMES 봉사기록부 일일 리포트
 
 on:
   schedule:
-    # ★ 매일 KST 08:00 = UTC 23:00 (전날)
-    #   평일(월~금)만 발송 + 관리자 지정 공휴일(attend_holidays) 제외
+    # ★ 매일 KST 07:00 = UTC 22:00 (전날)
+    #   매일(월~일) 발송 + 관리자 지정 공휴일(attend_holidays) 제외
     #   판정 로직은 attend_daily_report.py 내부에서 처리
-    - cron: '0 23 * * *'
+    #   ⚠️ GitHub Actions cron은 분 단위 지연이 잦아 07시로 앞당겨 08시 도착 목표
+    - cron: '0 22 * * *'
   workflow_dispatch:
 
 jobs:
