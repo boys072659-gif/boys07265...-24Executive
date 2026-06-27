@@ -966,10 +966,18 @@
     margin-bottom: 10px;
   }
   .admin-add-row {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr 0.9fr 1.2fr auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+  }
+  .admin-add-row .add-input,
+  .admin-add-row select.add-input {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+  .admin-add-row .add-btn {
+    flex: 0 0 auto;
   }
   .add-input {
     padding: 9px 11px;
@@ -1065,10 +1073,7 @@
 
   /* 반응형 사명자 표 */
   @media (max-width: 720px) {
-    .admin-add-row {
-      grid-template-columns: 1fr 1fr;
-    }
-    .add-btn { grid-column: span 2; }
+    /* admin-add-row 는 flex-wrap 으로 모바일 자동 줄바꿈 */
     .members-row {
       grid-template-columns: 1.2fr 1fr 0.8fr;
       font-size: 12.5px;
@@ -1108,12 +1113,7 @@
     color: var(--text-3);
     margin-top: 8px;
   }
-  .loc-add-row {
-    grid-template-columns: 1.2fr 1.6fr 0.7fr auto;
-  }
-  .holiday-add-row {
-    grid-template-columns: 0.9fr 1.6fr auto;
-  }
+  /* loc-add-row, holiday-add-row 는 admin-add-row 의 flex-wrap 으로 자동 처리됨 */
 
   /* ─── 벌금 표 ─── */
   .pen-row-wrap {
@@ -2074,14 +2074,9 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
   .tg-report-info span { font-size: 11px; }
   .tg-report-btn { width: 100%; padding: 12px; font-size: 13.5px; }
 
-  /* 사명자/장소 추가 폼 */
+  /* 사명자/장소 추가 폼 — flex-wrap 으로 모바일 자동 줄바꿈 */
   .admin-add-card { padding: 14px; }
-  .admin-add-row {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px;
-  }
   .admin-add-row .add-input { font-size: 13px; padding: 9px 10px; }
-  .admin-add-row .btn-add { grid-column: span 2; padding: 11px; font-size: 13.5px; }
 
   /* 기록 수정 모달 */
   .reason-modal { max-width: calc(100vw - 20px); padding: 0; }
@@ -2125,8 +2120,6 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
   /* 진짜 작은 화면 — KPI 1칸으로, 부서명 더 짧게 */
   .admin-kpi-grid { grid-template-columns: 1fr !important; }
   .admin-kpi-card .k-value { font-size: 20px; }
-  .admin-add-row { grid-template-columns: 1fr !important; }
-  .admin-add-row .btn-add { grid-column: span 1; }
   .admin-filter { grid-template-columns: 1fr !important; }
   .admin-today-btn, .admin-refresh-btn { grid-column: span 1; width: 100%; }
   .topbar { padding: 8px 10px; }
@@ -2420,22 +2413,27 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
 }
 .tg-target-del:hover { background: #fbeaea; border-color: #e0b8b8; color: #b5564f; }
 .tg-target-add-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 100px auto auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 10px;
   background: #fff;
   border: 1px solid #cdddf0;
   border-radius: 8px;
+  align-items: center;
 }
-.tg-target-add-row input {
+.tg-target-add-row input,
+.tg-target-add-row select {
+  flex: 1 1 140px;
+  min-width: 0;
   padding: 7px 10px;
   border: 1px solid var(--line, #e3ddd2);
   border-radius: 6px;
   font-size: 12.5px;
   background: #fff;
 }
-.tg-target-add-row input:focus { outline: none; border-color: #4178c8; }
+.tg-target-add-row input:focus,
+.tg-target-add-row select:focus { outline: none; border-color: #4178c8; }
 .tg-target-save-btn, .tg-target-cancel-btn {
   padding: 7px 12px;
   border-radius: 6px;
@@ -2505,11 +2503,7 @@ input[type="date"].add-input::-webkit-calendar-picker-indicator,
 }
 
 @media (max-width: 640px) {
-  .tg-target-add-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .tg-target-add-row input[type="text"]:nth-child(1) { grid-column: span 2; }
+  /* tg-target-add-row 는 flex-wrap 으로 모바일 자동 줄바꿈 */
   .tg-target-save-btn, .tg-target-cancel-btn { padding: 9px 12px; }
   .tg-action-row { flex-direction: column-reverse; gap: 6px; }
   .tg-preview-btn, .tg-report-btn { width: 100%; }
@@ -2732,12 +2726,7 @@ body.readonly-mode .admin-only { display: none !important; }
 }
 .tg-target-edit:hover { background: #eef4fb; border-color: #cdddf0; color: #2c5d9e; }
 
-/* 추가 폼 — 그리드 확장 (scope + dept) */
-.tg-target-add-row {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 100px 1fr 1fr;
-  gap: 6px !important;
-}
+/* 추가 폼 — flex-wrap 기반 반응형 (위에서 정의됨) */
 .tg-target-add-row select {
   padding: 7px 10px;
   border: 1px solid var(--line, #e3ddd2);
@@ -2746,14 +2735,13 @@ body.readonly-mode .admin-only { display: none !important; }
   background: #fff;
 }
 .tg-target-add-btns {
-  grid-column: span 5;
   display: flex;
   gap: 6px;
   justify-content: flex-end;
+  flex-basis: 100%;
 }
 @media (max-width: 640px) {
-  .tg-target-add-row { grid-template-columns: 1fr 1fr !important; }
-  .tg-target-add-btns { grid-column: span 2; }
+  /* flex-wrap 기반이라 별도 grid 정의 불필요 */
 }
 
 /* 공지 발송 모달 */
@@ -3686,6 +3674,21 @@ body.readonly-mode .admin-today-row:hover { background: transparent; }
           <input type="checkbox" id="edit-mem-jungjin" style="width:16px;height:16px;cursor:pointer">
           <span>중진 (지각·결석 시 벌금 부과)</span>
         </label>
+      </div>
+      <!-- 🆕 개인별 면제 설정 -->
+      <div class="member-form-row" style="border-top:1px solid #f1f5f9;padding-top:10px;margin-top:6px">
+        <label style="color:#dc2626">면제</label>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
+            <input type="checkbox" id="edit-mem-penalty-exempt" style="width:16px;height:16px;cursor:pointer">
+            <span>💰 벌금 면제 (직장인 등 — 시작 늦어도 벌금 안 부과)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:13px">
+            <input type="checkbox" id="edit-mem-exclude-report" style="width:16px;height:16px;cursor:pointer">
+            <span>📤 텔레그램 명단 제외 (정시/지각/결석 알림에서 빠짐)</span>
+          </label>
+          <input id="edit-mem-exempt-note" class="add-input" placeholder="면제 메모 (선택, 예: 직장근무)" maxlength="50" style="font-size:12px">
+        </div>
       </div>
       <div class="admin-add-err" id="edit-mem-err"></div>
     </div>
@@ -5835,6 +5838,13 @@ function openMemberModal(memberId){
   document.getElementById('edit-mem-phone').value = m.phone || '';
   document.getElementById('edit-mem-order').value = m.sort_order ?? 0;
   document.getElementById('edit-mem-jungjin').checked = m.is_jungjin === true;
+  // 🆕 면제 필드 표시 (없으면 false 기본)
+  const pExempt = document.getElementById('edit-mem-penalty-exempt');
+  const eReport = document.getElementById('edit-mem-exclude-report');
+  const exNote  = document.getElementById('edit-mem-exempt-note');
+  if(pExempt) pExempt.checked = !!m.penalty_exempt;
+  if(eReport) eReport.checked = !!m.exclude_from_report;
+  if(exNote)  exNote.value    = m.exempt_note || '';
   document.getElementById('edit-mem-err').textContent = '';
   document.getElementById('member-modal-sub').textContent = 
     `${m.name} · ${m.is_active ? '활성' : '비활성'}`;
@@ -5901,6 +5911,26 @@ async function saveMemberEdit(){
     console.error('[saveMemberEdit]', error);
     err.textContent = '저장 실패: ' + (error.message || '서버 오류');
     return;
+  }
+  
+  // 🆕 면제 설정도 함께 저장 (별도 RPC)
+  try {
+    const pExempt = !!document.getElementById('edit-mem-penalty-exempt')?.checked;
+    const eReport = !!document.getElementById('edit-mem-exclude-report')?.checked;
+    const exNote  = document.getElementById('edit-mem-exempt-note')?.value.trim() || null;
+    const { error: exErr } = await sb.rpc('admin_set_member_exempt', {
+      p_master_pw:          _masterPwCache,
+      p_member_id:          editingMemberId,
+      p_penalty_exempt:     pExempt,
+      p_exclude_from_report: eReport,
+      p_exempt_note:        exNote
+    });
+    if(exErr){
+      console.warn('[saveMemberEdit] 면제 설정 저장 실패:', exErr);
+      // 면제 저장 실패해도 기본 정보는 이미 저장됐으니 진행
+    }
+  } catch(e){
+    console.warn('[saveMemberEdit] 면제 RPC 호출 실패 (member_penalty_exempt.sql 미실행 가능):', e);
   }
   
   closeMemberModal();
